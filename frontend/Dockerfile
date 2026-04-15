@@ -19,12 +19,5 @@ COPY frontend/next-env.d.ts ./frontend/next-env.d.ts
 # Install dependencies and build
 RUN cd ./frontend && npm install && npm run build
 
-# Ensure curl is available for healthcheck
-RUN apk add --no-cache curl
-
-# Health check
-HEALTHCHECK --interval=30s --timeout=10s --retries=3 --start-period=5s \
-  CMD curl -f http://localhost:3000/health || exit 1
-
 # Start
 CMD cd ./frontend && npx next start -p 3000
