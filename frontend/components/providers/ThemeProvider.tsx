@@ -23,15 +23,10 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     const stored = localStorage.getItem('mc-theme') as Theme | null
-    if (stored) {
-      setTheme(stored)
-      document.documentElement.classList.toggle('dark', stored === 'dark')
-    } else {
-      // Check system preference
-      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches
-      setTheme(prefersDark ? 'dark' : 'light')
-      document.documentElement.classList.toggle('dark', prefersDark)
-    }
+    const resolved = stored || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')
+    setTheme(resolved)
+    document.documentElement.classList.toggle('dark', resolved === 'dark')
+    document.documentElement.classList.toggle('light', resolved === 'light')
   }, [])
 
   const toggleTheme = () => {
@@ -39,6 +34,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     setTheme(next)
     localStorage.setItem('mc-theme', next)
     document.documentElement.classList.toggle('dark', next === 'dark')
+    document.documentElement.classList.toggle('light', next === 'light')
   }
 
   return (
