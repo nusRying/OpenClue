@@ -62,14 +62,14 @@ export function NewTaskModal({ isOpen, onClose, onCreate, projects }: {
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="block text-xs font-medium text-zinc-400 mb-1.5">Project</label>
-              <select value={projectId} onChange={(e) => setProjectId(e.target.value)} className="input">
+              <select value={projectId} onChange={(e) => setProjectId(e.target.value)} className="input bg-zinc-900">
                 <option value="">No project</option>
                 {projects.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
               </select>
             </div>
             <div>
               <label className="block text-xs font-medium text-zinc-400 mb-1.5">Priority</label>
-              <select value={priority} onChange={(e) => setPriority(e.target.value as any)} className="input">
+              <select value={priority} onChange={(e) => setPriority(e.target.value as any)} className="input bg-zinc-900">
                 <option value="low">Low</option>
                 <option value="medium">Medium</option>
                 <option value="high">High</option>

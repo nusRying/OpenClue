@@ -91,7 +91,7 @@ export default function DashboardPage() {
   return (
     <div className="min-h-screen bg-zinc-950 text-zinc-100">
       {/* Header */}
-      <header className="sticky top-0 z-30 backdrop-blur-xl bg-zinc-950/80 border-b border-zinc-800">
+      <header className="sticky top-0 z-30 backdrop-blur-xl bg-gradient-to-b from-zinc-950/95 to-zinc-950/80 border-b border-zinc-800">
         <div className="max-w-7xl mx-auto px-4 sm:px-6">
           <div className="flex items-center justify-between h-14">
             {/* Logo */}
@@ -104,28 +104,28 @@ export default function DashboardPage() {
                 <div className="flex items-center gap-1.5">
                   <span className="relative flex h-1.5 w-1.5">
                     <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                    <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-500"></span>
+                    <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-500 shadow-sm shadow-emerald-500/50"></span>
                   </span>
-                  <span className="text-[10px] text-zinc-500 uppercase tracking-wider">Live</span>
+                  <span className="text-[10px] text-emerald-500/80 uppercase tracking-wider font-medium">Live</span>
                 </div>
               </div>
             </div>
 
             {/* Stats */}
-            <div className="hidden md:flex items-center gap-6 text-xs">
-              <div className="text-center">
-                <div className="text-lg font-semibold text-zinc-100">{agents.length}</div>
-                <div className="text-zinc-600">Agents</div>
+            <div className="hidden md:flex items-center gap-5 text-xs">
+              <div className="flex items-center gap-1.5">
+                <span className="text-base font-semibold text-zinc-100 tabular-nums">{agents.length}</span>
+                <span className="text-zinc-600">Agents</span>
               </div>
-              <div className="w-px h-8 bg-zinc-800" />
-              <div className="text-center">
-                <div className="text-lg font-semibold text-emerald-400">{activeProjects}</div>
-                <div className="text-zinc-600">Active</div>
+              <div className="w-px h-4 bg-zinc-800" />
+              <div className="flex items-center gap-1.5">
+                <span className="text-base font-semibold text-emerald-400 tabular-nums">{activeProjects}</span>
+                <span className="text-zinc-600">Active</span>
               </div>
-              <div className="w-px h-8 bg-zinc-800" />
-              <div className="text-center">
-                <div className="text-lg font-semibold text-blue-400">{inProgressTasks}</div>
-                <div className="text-zinc-600">In progress</div>
+              <div className="w-px h-4 bg-zinc-800" />
+              <div className="flex items-center gap-1.5">
+                <span className="text-base font-semibold text-blue-400 tabular-nums">{inProgressTasks}</span>
+                <span className="text-zinc-600">Tasks</span>
               </div>
             </div>
 

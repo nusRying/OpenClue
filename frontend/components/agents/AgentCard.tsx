@@ -50,7 +50,7 @@ export function AgentCard({ agent, compact = false }: { agent: Agent; compact?: 
   }
 
   return (
-    <div className="card p-4 hover:border-zinc-600 transition-colors">
+    <div className="card p-4 hover:border-zinc-600 transition-all hover:shadow-lg hover:shadow-zinc-900/50">
       <div className="flex items-start gap-3">
         <div className="relative">
           <div className="w-10 h-10 rounded-full bg-zinc-700 flex items-center justify-center text-lg">

@@ -1,16 +1,21 @@
 'use client'
 
+import { useState } from 'react'
 import type { ActivityEvent } from '@/types'
 
-const EVENT_COLORS: Record<string, string> = {
-  agent_status: 'text-blue-400',
-  task_created: 'text-emerald-400',
-  task_updated: 'text-amber-400',
-  task_assigned: 'text-purple-400',
-  project_updated: 'text-cyan-400',
-  tool_start: 'text-zinc-400',
-  tool_end: 'text-orange-400',
-  session_event: 'text-zinc-500',
+const EVENT_CONFIG: Record<string, { color: string; icon: string; label?: string }> = {
+  agent_status: { color: 'text-blue-400 bg-blue-500', icon: '●', label: 'Status' },
+  task_created: { color: 'text-emerald-400 bg-emerald-500', icon: '●', label: 'Created' },
+  task_updated: { color: 'text-amber-400 bg-amber-500', icon: '●', label: 'Updated' },
+  task_assigned: { color: 'text-purple-400 bg-purple-500', icon: '●', label: 'Assigned' },
+  project_updated: { color: 'text-cyan-400 bg-cyan-500', icon: '●', label: 'Project' },
+  'message:received': { color: 'text-indigo-400 bg-indigo-500', icon: '↓', label: 'Received' },
+  'message:sent': { color: 'text-violet-400 bg-violet-500', icon: '↑', label: 'Sent' },
+  'message:preprocessed': { color: 'text-teal-400 bg-teal-500', icon: '→', label: 'Preprocessed' },
+  tool_start: { color: 'text-zinc-400 bg-zinc-500', icon: '▶', label: 'Tool' },
+  tool_end: { color: 'text-orange-400 bg-orange-500', icon: '■', label: 'Tool' },
+  session_event: { color: 'text-zinc-500 bg-zinc-600', icon: '●', label: 'Event' },
+  session_error: { color: 'text-red-400 bg-red-500', icon: '!' },
 }
 
 function formatTime(ts: string): string {
@@ -23,57 +28,109 @@ function formatTime(ts: string): string {
   return `${Math.floor(hrs / 24)}d`
 }
 
-export function ActivityFeed({ events, compact = false }: { events: ActivityEvent[]; compact?: boolean }) {
-  if (!events || events.length === 0) {
-    return (
-      <div className="text-center py-8 text-zinc-600 text-sm">
-        No activity yet
-      </div>
-    )
+function getMessage(event: ActivityEvent): { primary: string; secondary?: string } {
+  const msg = event.message || ''
+
+  // If it's the generic fallback, try to show something useful
+  if (msg.startsWith('Session event from ')) {
+    const meta = event.metadata as Record<string, any> | null
+    const content = meta?.content || meta?.bodyForAgent || meta?.error
+    if (content) return { primary: String(content), secondary: 'Session event' }
+    return { primary: 'Session event', secondary: msg.replace('Session event from ', '') }
   }
+
+  // Session error — extract error message
+  if (msg.startsWith('Session error:')) {
+    return { primary: msg, secondary: 'Session error' }
+  }
+
+  // Tool failures
+  if (msg.startsWith('❌')) {
+    return { primary: msg, secondary: 'Tool failed' }
+  }
+
+  // Regular messages — truncate if long
+  if (msg.length > 120) {
+    return { primary: msg.slice(0, 120) + '…', secondary: msg.slice(120) }
+  }
+
+  return { primary: msg, secondary: undefined }
+}
+
+function EventRow({ event, compact }: { event: ActivityEvent; compact?: boolean }) {
+  const [expanded, setExpanded] = useState(false)
+  const config = EVENT_CONFIG[event.event_type] || EVENT_CONFIG.session_event
+  const { primary, secondary } = getMessage(event)
+  const hasSecondary = !!secondary
+
+  const content = (
+    <div className="flex items-start gap-2.5">
+      {/* Status dot */}
+      <div className={`shrink-0 mt-0.5 w-5 h-5 rounded-full ${config.color} bg-opacity-20 flex items-center justify-center text-[8px] font-bold ${config.color.split(' ')[0]}`}>
+        {config.icon}
+      </div>
+
+      <div className="flex-1 min-w-0">
+        {/* Message */}
+        <p
+          className={`text-xs leading-snug text-zinc-300 ${hasSecondary && !expanded ? 'cursor-pointer hover:text-zinc-100' : ''}`}
+          onClick={() => hasSecondary && !expanded && setExpanded(true)}
+          title={hasSecondary ? 'Click to expand' : undefined}
+        >
+          {expanded && secondary ? (
+            <span>
+              <span className="text-zinc-100">{primary}</span>
+              <span className="block text-zinc-500 mt-0.5">{secondary}</span>
+            </span>
+          ) : (
+            <span className={!primary || primary === 'Session event' ? 'text-zinc-600 italic' : 'text-zinc-300'}>
+              {primary || 'Empty event'}
+            </span>
+          )}
+        </p>
+
+        {/* Meta row */}
+        <div className="flex items-center gap-2 mt-1">
+          {config.label && (
+            <span className={`text-[10px] px-1.5 py-0.5 rounded ${config.color} bg-opacity-20 ${config.color.split(' ')[0]}`}>
+              {config.label}
+            </span>
+          )}
+          <span className="text-[10px] text-zinc-600">{formatTime(event.created_at)}</span>
+        </div>
+      </div>
+    </div>
+  )
 
   if (compact) {
     return (
-      <div className="divide-y divide-zinc-800">
-        {events.map(event => (
-          <div key={event.id} className="px-3 py-2.5 hover:bg-zinc-800/30 transition">
-            <div className="flex items-start gap-2">
-              <div className={`text-xs mt-0.5 ${EVENT_COLORS[event.event_type] || 'text-zinc-400'}`}>
-                ●
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-xs text-zinc-300 leading-snug line-clamp-2">
-                  {event.message || <span className="text-zinc-600 italic">Empty event</span>}
-                </p>
-                <span className="text-[10px] text-zinc-600 mt-0.5">{formatTime(event.created_at)}</span>
-              </div>
-            </div>
-          </div>
-        ))}
+      <div className="px-3 py-2.5 hover:bg-zinc-800/30 transition">
+        {content}
       </div>
     )
   }
 
   return (
-    <div className="divide-y divide-zinc-800">
+    <div className="px-4 py-3 hover:bg-zinc-800/30 transition">
+      {content}
+    </div>
+  )
+}
+
+export function ActivityFeed({ events, compact = false }: { events: ActivityEvent[]; compact?: boolean }) {
+  if (!events || events.length === 0) {
+    return (
+      <div className="text-center py-10 text-zinc-600 text-xs">
+        <div className="text-2xl mb-2 opacity-30">◎</div>
+        No activity yet
+      </div>
+    )
+  }
+
+  return (
+    <div className={compact ? '' : 'divide-y divide-zinc-800'}>
       {events.map(event => (
-        <div key={event.id} className="px-4 py-3 hover:bg-zinc-800/30 transition">
-          <div className="flex items-start gap-3">
-            <div className={`mt-1 ${EVENT_COLORS[event.event_type] || 'text-zinc-400'}`}>
-              <div className="w-1.5 h-1.5 rounded-full bg-current" />
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-sm text-zinc-200 leading-snug">
-                {event.message || <span className="text-zinc-600 italic">Empty event</span>}
-              </p>
-              <div className="flex items-center gap-2 mt-1">
-                <span className="text-xs text-zinc-600">{event.event_type.replace('_', ' ')}</span>
-                <span className="text-zinc-700">·</span>
-                <span className="text-xs text-zinc-600">{formatTime(event.created_at)}</span>
-              </div>
-            </div>
-          </div>
-        </div>
+        <EventRow key={event.id} event={event} compact={compact} />
       ))}
     </div>
   )

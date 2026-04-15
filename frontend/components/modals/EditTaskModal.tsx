@@ -89,7 +89,7 @@ export function EditTaskModal({ isOpen, onClose, onSave, onDelete, task, agents 
           <div className="grid grid-cols-3 gap-3">
             <div>
               <label className="block text-xs font-medium text-zinc-400 mb-1.5">Status</label>
-              <select value={status} onChange={(e) => setStatus(e.target.value as any)} className="input">
+              <select value={status} onChange={(e) => setStatus(e.target.value as any)} className="input bg-zinc-900">
                 <option value="pending">To do</option>
                 <option value="in-progress">In progress</option>
                 <option value="completed">Done</option>
@@ -98,7 +98,7 @@ export function EditTaskModal({ isOpen, onClose, onSave, onDelete, task, agents 
             </div>
             <div>
               <label className="block text-xs font-medium text-zinc-400 mb-1.5">Priority</label>
-              <select value={priority} onChange={(e) => setPriority(e.target.value as any)} className="input">
+              <select value={priority} onChange={(e) => setPriority(e.target.value as any)} className="input bg-zinc-900">
                 <option value="low">Low</option>
                 <option value="medium">Medium</option>
                 <option value="high">High</option>
@@ -107,7 +107,7 @@ export function EditTaskModal({ isOpen, onClose, onSave, onDelete, task, agents 
             </div>
             <div>
               <label className="block text-xs font-medium text-zinc-400 mb-1.5">Assignee</label>
-              <select value={assigneeId} onChange={(e) => setAssigneeId(e.target.value)} className="input">
+              <select value={assigneeId} onChange={(e) => setAssigneeId(e.target.value)} className="input bg-zinc-900">
                 <option value="">Unassigned</option>
                 {agents.map((a) => <option key={a.id} value={a.id}>{a.emoji} {a.name}</option>)}
               </select>
