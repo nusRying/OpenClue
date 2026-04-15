@@ -6,6 +6,7 @@ interface TimelineProps {
   tasks: Task[]
   projects: Project[]
   agents: Agent[]
+  onBack?: () => void
 }
 
 const STATUS_COLORS = {
@@ -56,7 +57,7 @@ function getTimeWidth(createdAt: string): number {
   return 100
 }
 
-export function Timeline({ tasks, projects, agents }: TimelineProps) {
+export function Timeline({ tasks, projects, agents, onBack }: TimelineProps) {
   // Sort tasks by creation date (newest first)
   const sortedTasks = [...tasks].sort((a, b) =>
     new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
@@ -81,10 +82,23 @@ export function Timeline({ tasks, projects, agents }: TimelineProps) {
 
   return (
     <div className="bg-white rounded-xl border overflow-hidden">
-      <div className="px-4 py-3 border-b bg-gray-50 flex items-center gap-2">
-        <span className="text-lg">📊</span>
-        <h3 className="font-semibold">Timeline</h3>
-        <span className="text-xs bg-gray-200 text-gray-600 px-2 py-0.5 rounded">{tasks.length} tasks</span>
+      <div className="px-4 py-3 border-b bg-gray-50 flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <span className="text-lg">📊</span>
+          <h3 className="font-semibold">Timeline</h3>
+          <span className="text-xs bg-gray-200 text-gray-600 px-2 py-0.5 rounded">{tasks.length} tasks</span>
+        </div>
+        {onBack && (
+          <button
+            onClick={onBack}
+            className="flex items-center gap-1 text-sm text-gray-600 hover:text-gray-900 px-3 py-1.5 rounded-lg hover:bg-gray-100 transition"
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+            </svg>
+            Back
+          </button>
+        )}
       </div>
 
       <div className="divide-y">

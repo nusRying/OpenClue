@@ -139,7 +139,7 @@ export default function DashboardPage() {
         {showTimeline ? (
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <div className="lg:col-span-2">
-              <Timeline tasks={tasks} projects={projects} agents={agents} />
+              <Timeline tasks={tasks} projects={projects} agents={agents} onBack={() => setShowTimeline(false)} />
             </div>
             <div className="space-y-4">
               <div className="bg-white rounded-xl border overflow-hidden">
