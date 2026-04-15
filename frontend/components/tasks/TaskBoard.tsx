@@ -87,11 +87,11 @@ export function TaskBoard({ tasks, projects, agents, onStatusChange, onCreateTas
           </button>
         </div>
 
-        <div className="flex gap-4 overflow-x-auto p-4">
+        <div className="flex gap-3 overflow-x-auto p-4">
           {COLUMNS.map(col => (
             <div
               key={col.id}
-              className={`flex-1 min-w-64 bg-gray-50 rounded-lg p-3 border-t-4 ${col.color}`}
+              className={`flex-1 min-w-52 bg-gray-50 rounded-lg p-3 border-t-4 ${col.color}`}
               onDragOver={handleDragOver}
               onDrop={() => handleDrop(col.id)}
             >

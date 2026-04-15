@@ -194,7 +194,7 @@ export default function DashboardPage() {
                   </div>
                   <span className="text-xs text-green-600 font-medium">{onlineAgents} online</span>
                 </div>
-                <div className="divide-y max-h-[calc(100vh-400px)] overflow-y-auto">
+                <div className="divide-y overflow-y-auto" style={{ maxHeight: 'calc(100vh - 16rem)' }}>
                   {agents.map((agent: any) => (
                     <AgentCard key={agent.id} agent={agent} />
                   ))}

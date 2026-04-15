@@ -112,11 +112,13 @@ export const handler: HookHandler = {
 
   onMessageReceived(event) {
     const agentName = getAgentNameFromMetadata(event.context?.metadata);
+    // Try bodyForAgent first (preprocessed), then content, then first message
+    const messageContent = (event as any).bodyForAgent || event.context?.content || (event.messages?.[0] as string) || "";
     void sendToBackend({
       event_type: "message:received",
-      message: event.context?.content || "",
+      message: messageContent,
       context: {
-        content: event.context?.content,
+        content: messageContent,
         from: event.context?.from,
         channelId: event.context?.channelId,
         metadata: event.context?.metadata,
@@ -154,11 +156,12 @@ export const handler: HookHandler = {
 
   onMessageSent(event) {
     const agentName = getAgentNameFromMetadata(event.context?.metadata);
+    const messageContent = (event as any).bodyForAgent || event.context?.content || (event.messages?.[0] as string) || "";
     void sendToBackend({
       event_type: "message:sent",
-      message: event.context?.content || "",
+      message: messageContent,
       context: {
-        content: event.context?.content,
+        content: messageContent,
         to: (event.context as any)?.to,
         channelId: event.context?.channelId,
         metadata: event.context?.metadata,
