@@ -51,6 +51,8 @@ export async function webhooksRouter(fastify: FastifyInstance) {
   // ─── POST /api/webhook/openclaw ─────────────────────────────────────────────
   // Receives session events from OpenClaw hooks
   fastify.post('/openclaw', async (request: FastifyRequest<{ Body: WebhookBody }>, reply: FastifyReply) => {
+    console.log('[Webhook] Raw body:', JSON.stringify(request.body, null, 2));
+
     const agentId = verifyAgentToken(request);
     if (!agentId) {
       return reply.status(401).send({ error: 'Unauthorized' });
