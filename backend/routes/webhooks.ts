@@ -41,6 +41,13 @@ interface WebhookBody {
   agent_id?: string;
   event_type?: string;
   message?: string;
+  context?: {
+    content?: string;
+    from?: string;
+    to?: string;
+    channelId?: string;
+    metadata?: Record<string, unknown>;
+  };
   metadata?: Record<string, unknown>;
   [key: string]: unknown;
 }
@@ -63,8 +70,11 @@ export async function webhooksRouter(fastify: FastifyInstance) {
     // Use sessionKey to identify the agent (authoritative), fall back to token
     const sessionKey = (metadata?.sessionKey as string) || '';
     const sessionAgent = extractAgentFromSessionKey(sessionKey);
-    const agentName = sessionAgent || agentId;
+    // resolvedAgent from hook's metadata takes priority (hook resolves Telegram ID → agent name)
+    const resolvedAgent = metadata?.resolvedAgent as string | null;
+    const agentName = resolvedAgent || sessionAgent || agentId;
 
+    // Use context.content (actual message) if available, otherwise hook's message field
     const messageText = context?.content || message || `Session event from ${agentName}`;
 
     // Resolve agent name to UUID for database
@@ -101,7 +111,7 @@ export async function webhooksRouter(fastify: FastifyInstance) {
     if (event_type) {
       const priority = eventPriority(event_type, metadata);
       if (priority !== 'low') {
-        await sendTelegramMessage({ message: messageText, priority, metadata: { ...metadata, agentName } });
+        await sendTelegramMessage({ message: `[${agentName}] ${messageText}`, priority, metadata: { ...metadata, agentName } });
       }
     }
 
