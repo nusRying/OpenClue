@@ -53,6 +53,14 @@ export async function webhooksRouter(fastify: FastifyInstance) {
     // Resolve agent name to UUID for database
     const agentUuid = await resolveAgentUuid(supabase, agentId);
 
+    // Update agent's last_seen_at
+    if (agentUuid) {
+      await supabase
+        .from('agents')
+        .update({ last_seen_at: new Date().toISOString() })
+        .eq('id', agentUuid);
+    }
+
     // Log to activity_log
     const { data: activity, error: activityError } = await supabase
       .from('activity_log')

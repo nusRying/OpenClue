@@ -13,6 +13,7 @@ export interface Agent {
   bot_username: string;
   workspace_path: string;
   last_heartbeat: string;
+  last_seen_at: string | null;
   current_task?: string;
   skills: string[];
   memory: { has_memory_md: boolean };

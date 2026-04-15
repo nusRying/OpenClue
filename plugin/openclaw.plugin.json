@@ -4,5 +4,6 @@
   "description": "Tracks all tool calls and skill usage for Mission Control dashboard",
   "version": "1.0.0",
   "author": "Kutraa",
-  "repository": "https://github.com/alnassar1/kutraa-mission-control"
+  "repository": "https://github.com/alnassar1/kutraa-mission-control",
+  "configSchema": {}
 }

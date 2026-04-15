@@ -3,20 +3,28 @@
 import type { Agent } from '@/types'
 
 const STATUS_COLORS = {
-  online: 'bg-green-500',
-  idle: 'bg-yellow-500',
-  busy: 'bg-red-500',
-  offline: 'bg-gray-400',
+  green: 'bg-green-500',
+  yellow: 'bg-yellow-500',
+  gray: 'bg-gray-400',
 }
 
-const STATUS_TEXT = {
-  online: 'Online',
-  idle: 'Idle',
-  busy: 'Busy',
-  offline: 'Offline',
+const STATUS_LABELS = {
+  green: 'Online',
+  yellow: 'Idle',
+  gray: 'Offline',
 }
 
-function formatHeartbeat(ts: string): string {
+function getActivityStatus(lastSeenAt: string | null): 'green' | 'yellow' | 'gray' {
+  if (!lastSeenAt) return 'gray'
+  const diff = Date.now() - new Date(lastSeenAt).getTime()
+  const mins = diff / 60000
+  if (mins <= 5) return 'green'
+  if (mins <= 30) return 'yellow'
+  return 'gray'
+}
+
+function formatLastSeen(ts: string | null): string {
+  if (!ts) return 'never'
   const diff = Date.now() - new Date(ts).getTime()
   const mins = Math.floor(diff / 60000)
   if (mins < 1) return 'just now'
@@ -27,6 +35,8 @@ function formatHeartbeat(ts: string): string {
 }
 
 export function AgentCard({ agent }: { agent: Agent }) {
+  const activityStatus = getActivityStatus(agent.last_seen_at)
+
   return (
     <div className="bg-white rounded-lg border p-4 hover:shadow-md transition-shadow">
       <div className="flex items-start justify-between mb-3">
@@ -38,8 +48,8 @@ export function AgentCard({ agent }: { agent: Agent }) {
           </div>
         </div>
         <div className="flex items-center gap-1.5">
-          <div className={`w-2 h-2 rounded-full ${STATUS_COLORS[agent.status]}`} />
-          <span className="text-xs text-gray-600">{STATUS_TEXT[agent.status]}</span>
+          <div className={`w-2 h-2 rounded-full ${STATUS_COLORS[activityStatus]}`} />
+          <span className="text-xs text-gray-600">{STATUS_LABELS[activityStatus]}</span>
         </div>
       </div>
 
@@ -49,8 +59,8 @@ export function AgentCard({ agent }: { agent: Agent }) {
           <span className="font-mono text-xs">{agent.bot_username}</span>
         </div>
         <div className="flex items-center gap-2">
-          <span className="text-gray-500 min-w-16">Heartbeat:</span>
-          <span className="text-xs">{formatHeartbeat(agent.last_heartbeat)}</span>
+          <span className="text-gray-500 min-w-16">Last seen:</span>
+          <span className="text-xs">{formatLastSeen(agent.last_seen_at)}</span>
         </div>
         {agent.current_task && (
           <div className="flex items-start gap-2">
