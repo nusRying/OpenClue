@@ -47,8 +47,11 @@
 
     /* ─── Accent extras ─────────────────────────────────────────────────── */
     --accent-purple: #a78bfa;
+    --accent-purple-muted: rgba(167, 139, 250, 0.15);
     --accent-teal: #2dd4bf;
+    --accent-teal-muted: rgba(45, 212, 191, 0.15);
     --accent-orange: #fb923c;
+    --accent-orange-muted: rgba(251, 146, 60, 0.15);
 
     /* ─── Priority ───────────────────────────────────────────────────────── */
     --priority-low: #71717a;
@@ -63,12 +66,18 @@
     /* ─── Cards ───────────────────────────────────────────────────────────── */
     --card-bg: #18181b;
     --card-border: #27272a;
+    --card-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 
     /* ─── Column status backgrounds ──────────────────────────────────────── */
     --col-pending: rgba(113, 113, 122, 0.12);
     --col-in-progress: rgba(96, 165, 250, 0.12);
     --col-done: rgba(74, 222, 128, 0.12);
     --col-blocked: rgba(248, 113, 113, 0.12);
+
+    /* ─── Column borders ──────────────────────────────────────────────────── */
+    --col-in-progress-border: rgba(96, 165, 250, 0.3);
+    --col-done-border: rgba(74, 222, 128, 0.3);
+    --col-blocked-border: rgba(248, 113, 113, 0.3);
 
     /* ─── Status badge borders (muted bg + color border) ────────────────────── */
     --status-in-progress-bg: rgba(96, 165, 250, 0.15);
@@ -127,8 +136,11 @@
     --status-offline: #a1a1aa;
 
     --accent-purple: #7c3aed;
+    --accent-purple-muted: rgba(124, 58, 237, 0.1);
     --accent-teal: #0d9488;
+    --accent-teal-muted: rgba(13, 148, 136, 0.1);
     --accent-orange: #ea580c;
+    --accent-orange-muted: rgba(234, 88, 12, 0.1);
 
     --priority-low: #71717a;
     --priority-low-bg: rgba(113, 113, 122, 0.12);
@@ -141,11 +153,17 @@
 
     --card-bg: #ffffff;
     --card-border: #e4e4e7;
+    --card-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
 
     --col-pending: rgba(113, 113, 122, 0.1);
     --col-in-progress: rgba(99, 102, 241, 0.1);
     --col-done: rgba(22, 163, 74, 0.1);
     --col-blocked: rgba(220, 38, 38, 0.1);
+
+    /* ─── Column borders ──────────────────────────────────────────────────── */
+    --col-in-progress-border: rgba(99, 102, 241, 0.25);
+    --col-done-border: rgba(22, 163, 74, 0.25);
+    --col-blocked-border: rgba(220, 38, 38, 0.25);
 
     /* ─── Status badge borders (muted bg + color border) ────────────────────── */
     --status-in-progress-bg: rgba(99, 102, 241, 0.12);
@@ -269,7 +287,7 @@
   /* ─── Select ───────────────────────────────────────────────────────────── */
   select.input {
     appearance: none;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2371717a' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
     background-repeat: no-repeat;
     background-position: right 0.75rem center;
     padding-right: 2.25rem;

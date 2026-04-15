@@ -10,14 +10,16 @@ export function NewProjectModal({ isOpen, onClose, onCreate }: {
 }) {
   const [name, setName] = useState('')
   const [description, setDescription] = useState('')
-  const [status, setStatus] = useState<'active' | 'paused'>('active')
+  const [status, setStatus] = useState<'active' | 'paused' | 'completed' | 'archived'>('active')
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [nameError, setNameError] = useState(false)
 
   if (!isOpen) return null
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!name.trim()) return
+    if (!name.trim()) { setNameError(true); return }
+    setNameError(false)
     setIsSubmitting(true)
     try {
       await onCreate({ name: name.trim(), description: description.trim(), status })
@@ -30,13 +32,22 @@ export function NewProjectModal({ isOpen, onClose, onCreate }: {
     }
   }
 
+  const handleBackdropClick = (e: React.MouseEvent) => {
+    if (e.target === e.currentTarget) onClose()
+  }
+
+  const STATUS_OPTIONS = ['active', 'paused', 'completed', 'archived'] as const
+
   return (
-    <div style={{
-      position: 'fixed', inset: 0,
-      background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)',
-      display: 'flex', alignItems: 'center', justifyContent: 'center',
-      zIndex: 50, padding: '1rem',
-    }}>
+    <div
+      style={{
+        position: 'fixed', inset: 0,
+        background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)',
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        zIndex: 50, padding: '1rem',
+      }}
+      onClick={handleBackdropClick}
+    >
       <div className="card" style={{ width: '100%', maxWidth: 440, boxShadow: '0 25px 50px -12px rgba(0,0,0,0.5)' }}>
         {/* Header */}
         <div style={{ padding: '1.25rem 1.5rem', borderBottom: '1px solid var(--border-subtle)' }}>
@@ -53,12 +64,16 @@ export function NewProjectModal({ isOpen, onClose, onCreate }: {
             <input
               type="text"
               value={name}
-              onChange={(e) => setName(e.target.value)}
+              onChange={(e) => { setName(e.target.value); setNameError(false) }}
               placeholder="e.g. Mission Control Phase 2"
               className="input"
               autoFocus
               required
+              style={nameError ? { borderColor: 'var(--error)', boxShadow: '0 0 0 3px var(--error-muted)' } : {}}
             />
+            {nameError && (
+              <p style={{ fontSize: '0.75rem', color: 'var(--error)', margin: '0.25rem 0 0' }}>Project name is required</p>
+            )}
           </div>
 
           <div>
@@ -79,10 +94,10 @@ export function NewProjectModal({ isOpen, onClose, onCreate }: {
             <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 500, color: 'var(--text-secondary)', marginBottom: '0.375rem' }}>
               Status
             </label>
-            <div style={{ display: 'flex', gap: '0.5rem' }}>
-              {(['active', 'paused'] as const).map((s) => (
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.375rem' }}>
+              {STATUS_OPTIONS.map((s) => (
                 <label key={s} style={{
-                  flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem',
                   padding: '0.625rem',
                   borderRadius: 'var(--radius-md)',
                   border: `1px solid ${status === s ? 'var(--accent)' : 'var(--border-default)'}`,
@@ -96,7 +111,7 @@ export function NewProjectModal({ isOpen, onClose, onCreate }: {
                     color: status === s ? 'var(--accent)' : 'var(--text-secondary)',
                     fontWeight: 500,
                   }}>
-                    {s === 'active' ? '● Active' : '◐ Paused'}
+                    {s.charAt(0).toUpperCase() + s.slice(1)}
                   </span>
                 </label>
               ))}

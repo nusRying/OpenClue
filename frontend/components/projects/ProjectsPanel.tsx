@@ -55,6 +55,8 @@ export function ProjectsPanel({ projects, agents, onCreateProject, onUpdateProje
             width: '100%',
           }}
           className="project-filter-btn"
+          tabIndex={0}
+          onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') onSelectProject(null) }}
         >
           <span>All projects</span>
           <span style={{ opacity: 0.6, fontSize: '0.75rem' }}>{projects.length}</span>
@@ -95,7 +97,8 @@ export function ProjectsPanel({ projects, agents, onCreateProject, onUpdateProje
                   {owner && (
                     <div style={{
                       fontSize: '0.6875rem',
-                      color: isSelected ? 'rgba(255,255,255,0.6)' : 'var(--text-tertiary)',
+                      color: isSelected ? 'var(--text-inverse)' : 'var(--text-tertiary)',
+                      opacity: isSelected ? 0.6 : 1,
                       marginTop: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
                     }}>
                       {owner.emoji} {owner.name}
@@ -104,7 +107,8 @@ export function ProjectsPanel({ projects, agents, onCreateProject, onUpdateProje
                 </div>
                 <span style={{
                   fontSize: '0.6875rem',
-                  color: isSelected ? 'rgba(255,255,255,0.5)' : 'var(--text-tertiary)',
+                  color: isSelected ? 'var(--text-inverse)' : 'var(--text-tertiary)',
+                  opacity: isSelected ? 0.5 : 1,
                   flexShrink: 0,
                 }}>
                   {config.label}

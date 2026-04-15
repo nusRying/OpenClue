@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import type { Task, Agent } from '@/types'
 
 export function EditTaskModal({ isOpen, onClose, onSave, onDelete, task, agents }: {
@@ -20,21 +20,17 @@ export function EditTaskModal({ isOpen, onClose, onSave, onDelete, task, agents 
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [showDelete, setShowDelete] = useState(false)
 
-  if (task && (
-    title !== task.title ||
-    description !== (task.description || '') ||
-    status !== task.status ||
-    priority !== task.priority ||
-    assigneeId !== (task.assignee_id || '') ||
-    dueDate !== (task.due_date ? task.due_date.split('T')[0] : '')
-  )) {
-    setTitle(task.title)
-    setDescription(task.description || '')
-    setStatus(task.status)
-    setPriority(task.priority)
-    setAssigneeId(task.assignee_id || '')
-    setDueDate(task.due_date ? task.due_date.split('T')[0] : '')
-  }
+  // Sync state when task prop changes (avoids setState during render)
+  useEffect(() => {
+    if (task) {
+      setTitle(task.title)
+      setDescription(task.description || '')
+      setStatus(task.status)
+      setPriority(task.priority)
+      setAssigneeId(task.assignee_id || '')
+      setDueDate(task.due_date ? task.due_date.split('T')[0] : '')
+    }
+  }, [task])
 
   if (!isOpen || !task) return null
 
@@ -69,6 +65,10 @@ export function EditTaskModal({ isOpen, onClose, onSave, onDelete, task, agents 
     }
   }
 
+  const handleBackdropClick = (e: React.MouseEvent) => {
+    if (e.target === e.currentTarget) onClose()
+  }
+
   const STATUS_BADGE: Record<string, { bg: string; color: string; border: string }> = {
     pending: { bg: 'var(--bg-elevated)', color: 'var(--text-tertiary)', border: 'var(--border-default)' },
     'in-progress': { bg: 'var(--status-in-progress-bg)', color: 'var(--info)', border: 'var(--status-in-progress-border)' },
@@ -79,12 +79,15 @@ export function EditTaskModal({ isOpen, onClose, onSave, onDelete, task, agents 
   const statusBadge = STATUS_BADGE[status] || STATUS_BADGE.pending
 
   return (
-    <div style={{
-      position: 'fixed', inset: 0,
-      background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)',
-      display: 'flex', alignItems: 'center', justifyContent: 'center',
-      zIndex: 50, padding: '1rem',
-    }}>
+    <div
+      style={{
+        position: 'fixed', inset: 0,
+        background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)',
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        zIndex: 50, padding: '1rem',
+      }}
+      onClick={handleBackdropClick}
+    >
       <div className="card" style={{ width: '100%', maxWidth: 520, boxShadow: '0 25px 50px -12px rgba(0,0,0,0.5)' }}>
         <div style={{
           padding: '1.25rem 1.5rem',
@@ -125,7 +128,6 @@ export function EditTaskModal({ isOpen, onClose, onSave, onDelete, task, agents 
                 value={status}
                 onChange={(e) => setStatus(e.target.value as any)}
                 className="input"
-                style={{ background: 'var(--bg-surface)' }}
               >
                 <option value="pending">To do</option>
                 <option value="in-progress">In progress</option>
@@ -142,7 +144,6 @@ export function EditTaskModal({ isOpen, onClose, onSave, onDelete, task, agents 
                 value={priority}
                 onChange={(e) => setPriority(e.target.value as any)}
                 className="input"
-                style={{ background: 'var(--bg-surface)' }}
               >
                 <option value="low">Low</option>
                 <option value="medium">Medium</option>
@@ -159,7 +160,6 @@ export function EditTaskModal({ isOpen, onClose, onSave, onDelete, task, agents 
                 value={assigneeId}
                 onChange={(e) => setAssigneeId(e.target.value)}
                 className="input"
-                style={{ background: 'var(--bg-surface)' }}
               >
                 <option value="">Unassigned</option>
                 {agents.map((a) => <option key={a.id} value={a.id}>{a.emoji} {a.name}</option>)}

@@ -78,7 +78,7 @@ export function AgentCard({ agent, compact = false }: { agent: Agent; compact?: 
 
   return (
     <div style={cardStyle} className="agent-card-row">
-      <style>{`.agent-card-row:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.15); }`}</style>
+      <style>{`.agent-card-row:hover { box-shadow: var(--card-shadow); }`}</style>
       <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.75rem' }}>
         <div style={{ position: 'relative' }}>
           <div style={{

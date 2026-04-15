@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import type { Project } from '@/types'
 
 export function EditProjectModal({ isOpen, onClose, onSave, onDelete, project }: {
@@ -16,12 +16,14 @@ export function EditProjectModal({ isOpen, onClose, onSave, onDelete, project }:
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [showDelete, setShowDelete] = useState(false)
 
-  // Sync state when project changes
-  if (project && (name !== project.name || description !== (project.description || '') || status !== project.status)) {
-    setName(project.name)
-    setDescription(project.description || '')
-    setStatus(project.status)
-  }
+  // Sync state when project prop changes (avoids setState during render)
+  useEffect(() => {
+    if (project) {
+      setName(project.name)
+      setDescription(project.description || '')
+      setStatus(project.status)
+    }
+  }, [project])
 
   if (!isOpen || !project) return null
 
@@ -48,15 +50,22 @@ export function EditProjectModal({ isOpen, onClose, onSave, onDelete, project }:
     }
   }
 
+  const handleBackdropClick = (e: React.MouseEvent) => {
+    if (e.target === e.currentTarget) onClose()
+  }
+
   const STATUS_OPTIONS = ['active', 'paused', 'completed', 'archived'] as const
 
   return (
-    <div style={{
-      position: 'fixed', inset: 0,
-      background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)',
-      display: 'flex', alignItems: 'center', justifyContent: 'center',
-      zIndex: 50, padding: '1rem',
-    }}>
+    <div
+      style={{
+        position: 'fixed', inset: 0,
+        background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)',
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        zIndex: 50, padding: '1rem',
+      }}
+      onClick={handleBackdropClick}
+    >
       <div className="card" style={{ width: '100%', maxWidth: 440, boxShadow: '0 25px 50px -12px rgba(0,0,0,0.5)' }}>
         <div style={{ padding: '1.25rem 1.5rem', borderBottom: '1px solid var(--border-subtle)' }}>
           <h2 style={{ fontSize: '0.9375rem', fontWeight: 600, color: 'var(--text-primary)', margin: 0 }}>Edit Project</h2>
@@ -71,14 +80,14 @@ export function EditProjectModal({ isOpen, onClose, onSave, onDelete, project }:
           </div>
 
           <div>
-            <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 500, color: 'var(--text-secondary)', marginBottom: '0.375rem' }}>
+            <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 500, color: 'var(--text-secondary)', marginBottom: '0.375rem)' }}>
               Description
             </label>
             <textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={3} className="input" style={{ resize: 'vertical' }} />
           </div>
 
           <div>
-            <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 500, color: 'var(--text-secondary)', marginBottom: '0.375rem' }}>
+            <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 500, color: 'var(--text-secondary)', marginBottom: '0.375rem)' }}>
               Status
             </label>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.375rem' }}>

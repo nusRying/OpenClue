@@ -209,7 +209,7 @@ export default function DashboardPage() {
       <main style={{ maxWidth: '1280px', margin: '0 auto', padding: '1.5rem 1rem' }}>
         {showTimeline ? (
           <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '1.5rem' }}>
-            <Timeline tasks={tasks} projects={projects} agents={agents} onBack={() => setShowTimeline(false)} />
+            <Timeline tasks={tasks} projects={projects} agents={agents} onBack={() => setShowTimeline(false)} selectedProjectId={selectedProjectId} />
             <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
               {/* Compact agents */}
               <div className="card" style={{ overflow: 'hidden' }}>

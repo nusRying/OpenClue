@@ -11,16 +11,18 @@ export function NewTaskModal({ isOpen, onClose, onCreate, projects }: {
 }) {
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
-  const [projectId, setProjectId] = useState(projects[0]?.id || '')
+  const [projectId, setProjectId] = useState('')
   const [priority, setPriority] = useState<'low' | 'medium' | 'high' | 'critical'>('medium')
   const [dueDate, setDueDate] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [titleError, setTitleError] = useState(false)
 
   if (!isOpen) return null
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!title.trim()) return
+    if (!title.trim()) { setTitleError(true); return }
+    setTitleError(false)
     setIsSubmitting(true)
     try {
       await onCreate({
@@ -35,19 +37,27 @@ export function NewTaskModal({ isOpen, onClose, onCreate, projects }: {
       setDescription('')
       setPriority('medium')
       setDueDate('')
+      setProjectId('')
       onClose()
     } finally {
       setIsSubmitting(false)
     }
   }
 
+  const handleBackdropClick = (e: React.MouseEvent) => {
+    if (e.target === e.currentTarget) onClose()
+  }
+
   return (
-    <div style={{
-      position: 'fixed', inset: 0,
-      background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)',
-      display: 'flex', alignItems: 'center', justifyContent: 'center',
-      zIndex: 50, padding: '1rem',
-    }}>
+    <div
+      style={{
+        position: 'fixed', inset: 0,
+        background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)',
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        zIndex: 50, padding: '1rem',
+      }}
+      onClick={handleBackdropClick}
+    >
       <div className="card" style={{ width: '100%', maxWidth: 480, boxShadow: '0 25px 50px -12px rgba(0,0,0,0.5)' }}>
         <div style={{ padding: '1.25rem 1.5rem', borderBottom: '1px solid var(--border-subtle)' }}>
           <h2 style={{ fontSize: '0.9375rem', fontWeight: 600, color: 'var(--text-primary)', margin: 0 }}>New Task</h2>
@@ -61,12 +71,16 @@ export function NewTaskModal({ isOpen, onClose, onCreate, projects }: {
             <input
               type="text"
               value={title}
-              onChange={(e) => setTitle(e.target.value)}
+              onChange={(e) => { setTitle(e.target.value); setTitleError(false) }}
               placeholder="Task title"
               className="input"
               autoFocus
               required
+              style={titleError ? { borderColor: 'var(--error)', boxShadow: '0 0 0 3px var(--error-muted)' } : {}}
             />
+            {titleError && (
+              <p style={{ fontSize: '0.75rem', color: 'var(--error)', margin: '0.25rem 0 0' }}>Task title is required</p>
+            )}
           </div>
 
           <div>
@@ -92,7 +106,6 @@ export function NewTaskModal({ isOpen, onClose, onCreate, projects }: {
                 value={projectId}
                 onChange={(e) => setProjectId(e.target.value)}
                 className="input"
-                style={{ background: 'var(--bg-surface)' }}
               >
                 <option value="">No project</option>
                 {projects.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
@@ -107,7 +120,6 @@ export function NewTaskModal({ isOpen, onClose, onCreate, projects }: {
                 value={priority}
                 onChange={(e) => setPriority(e.target.value as any)}
                 className="input"
-                style={{ background: 'var(--bg-surface)' }}
               >
                 <option value="low">Low</option>
                 <option value="medium">Medium</option>

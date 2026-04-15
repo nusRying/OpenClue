@@ -7,6 +7,7 @@ interface TimelineProps {
   projects: Project[]
   agents: Agent[]
   onBack?: () => void
+  selectedProjectId?: string | null
 }
 
 const STATUS_COLORS: Record<string, string> = {
@@ -53,8 +54,11 @@ const STATUS_BADGE: Record<string, { bg: string; color: string; border: string }
   blocked: { bg: 'var(--error-muted)', color: 'var(--error)', border: 'var(--status-blocked-border)' },
 }
 
-export function Timeline({ tasks, projects, agents, onBack }: TimelineProps) {
-  const sortedTasks = [...tasks].sort((a, b) =>
+export function Timeline({ tasks, projects, agents, onBack, selectedProjectId }: TimelineProps) {
+  const visibleTasks = selectedProjectId
+    ? tasks.filter(t => t.project_id === selectedProjectId)
+    : tasks
+  const sortedTasks = [...visibleTasks].sort((a, b) =>
     new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
   )
 
@@ -74,7 +78,7 @@ export function Timeline({ tasks, projects, agents, onBack }: TimelineProps) {
           <div>
             <h2 style={{ fontSize: '1.0625rem', fontWeight: 600, color: 'var(--text-primary)', margin: 0 }}>Timeline</h2>
             <p style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)', margin: '2px 0 0' }}>
-              {tasks.length} tasks across {projects.length} projects
+              {visibleTasks.length} task{visibleTasks.length !== 1 ? 's' : ''}{selectedProjectId ? ` in ${projects.find(p => p.id === selectedProjectId)?.name || 'project'}` : ` across ${projects.length} project${projects.length !== 1 ? 's' : ''}`}
             </p>
           </div>
         </div>
@@ -85,7 +89,7 @@ export function Timeline({ tasks, projects, agents, onBack }: TimelineProps) {
         )}
       </div>
 
-      {tasks.length === 0 ? (
+      {visibleTasks.length === 0 ? (
         <div style={{ textAlign: 'center', padding: '4rem 1rem', color: 'var(--text-tertiary)' }}>
           <div style={{ fontSize: '2.5rem', marginBottom: '0.75rem' }}>📋</div>
           <p style={{ fontSize: '0.875rem', margin: 0 }}>No tasks yet</p>
@@ -119,7 +123,7 @@ export function Timeline({ tasks, projects, agents, onBack }: TimelineProps) {
                           position: 'absolute', left: '-1.3125rem', top: '0.625rem',
                           width: 10, height: 10, borderRadius: '50%',
                           background: STATUS_COLORS[task.status],
-                          border: '2px solid var(--bg-base)',
+                          border: '2px solid var(--border-strong)',
                         }} />
 
                         {/* Card */}
