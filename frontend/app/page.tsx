@@ -1,30 +1,31 @@
 'use client'
 
 import { useCallback } from 'react'
-import { useDashboardSnapshot, useRealtimeAgents, useRealtimeTasks, useRealtimeActivity, useUpdateTaskStatus } from '@/hooks/useQueries'
+import { useAgents, useProjects, useTasks, useActivity, useRealtimeAgents, useRealtimeTasks, useRealtimeProjects, useRealtimeActivity, useUpdateTaskStatus } from '@/hooks/useQueries'
 import { AgentCard } from '@/components/agents/AgentCard'
 import { ProjectCard } from '@/components/projects/ProjectCard'
 import { TaskBoard } from '@/components/tasks/TaskBoard'
 import { ActivityFeed } from '@/components/dashboard/ActivityFeed'
-import type { Agent, Task } from '@/types'
 
 export default function DashboardPage() {
-  const { data, isLoading, error } = useDashboardSnapshot()
+  const { data: agentsData, isLoading: agentsLoading } = useAgents()
+  const { data: projectsData, isLoading: projectsLoading } = useProjects()
+  const { data: tasksData, isLoading: tasksLoading } = useTasks()
+  const { data: activityData, isLoading: activityLoading } = useActivity()
 
   // Real-time invalidation on Supabase changes
   useRealtimeAgents()
   useRealtimeTasks()
+  useRealtimeProjects()
   useRealtimeActivity()
 
   const updateTaskStatus = useUpdateTaskStatus()
 
-  const displayAgents = (data?.agents ?? []) as Agent[]
-  const displayTasks = (data?.tasks ?? []) as Task[]
-  const displayActivity = data?.recentActivity ?? []
-
   const handleStatusChange = useCallback((taskId: string, newStatus: string) => {
-    updateTaskStatus.mutate({ id: taskId, status: newStatus as any })
+    updateTaskStatus.mutate({ id: taskId, status: newStatus })
   }, [updateTaskStatus])
+
+  const isLoading = agentsLoading || projectsLoading || tasksLoading || activityLoading
 
   if (isLoading) {
     return (
@@ -34,16 +35,12 @@ export default function DashboardPage() {
     )
   }
 
-  if (error) {
-    return (
-      <div className="min-h-screen bg-gray-100 flex items-center justify-center">
-        <div className="text-red-500">Failed to load dashboard: {error.message}</div>
-      </div>
-    )
-  }
+  const agents = agentsData?.agents ?? []
+  const projects = projectsData?.projects ?? []
+  const tasks = tasksData?.tasks ?? []
+  const activity = activityData?.activity ?? []
 
-  const onlineAgents = displayAgents.filter(a => a.status === 'online').length
-  const activeProjects = displayAgents.length // use agents as proxy until projects table is seeded
+  const onlineAgents = agents.filter((a: any) => a.status === 'online').length
 
   return (
     <div className="min-h-screen bg-gray-100">
@@ -56,9 +53,9 @@ export default function DashboardPage() {
             <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded">LIVE</span>
           </div>
           <div className="flex gap-6 text-sm text-gray-600">
-            <span>Agents: <strong className="text-gray-900">{displayAgents.length}</strong></span>
-            <span>Projects: <strong className="text-gray-900">{data?.projects?.length ?? 0}</strong></span>
-            <span>Tasks: <strong className="text-gray-900">{displayTasks.length}</strong></span>
+            <span>Agents: <strong className="text-gray-900">{agents.length}</strong></span>
+            <span>Projects: <strong className="text-gray-900">{projects.length}</strong></span>
+            <span>Tasks: <strong className="text-gray-900">{tasks.length}</strong></span>
           </div>
         </div>
       </header>
@@ -69,21 +66,21 @@ export default function DashboardPage() {
           <StatCard
             title="Online Agents"
             value={onlineAgents}
-            subtitle={`of ${displayAgents.length} total`}
+            subtitle={`of ${agents.length} total`}
             icon="👥"
             color="green"
           />
           <StatCard
             title="Active Projects"
-            value={data?.projects?.filter(p => p.status === 'active').length ?? 0}
-            subtitle={`${data?.projects?.filter(p => p.status === 'completed').length ?? 0} completed`}
+            value={projects.filter((p: any) => p.status === 'active').length}
+            subtitle={`${projects.filter((p: any) => p.status === 'completed').length} completed`}
             icon="📁"
             color="blue"
           />
           <StatCard
             title="Pending Tasks"
-            value={displayTasks.filter(t => t.status === 'pending').length}
-            subtitle={`${displayTasks.filter(t => t.status === 'in-progress').length} in progress`}
+            value={tasks.filter((t: any) => t.status === 'pending').length}
+            subtitle={`${tasks.filter((t: any) => t.status === 'in-progress').length} in progress`}
             icon="📋"
             color="yellow"
           />
@@ -94,13 +91,13 @@ export default function DashboardPage() {
           {/* Agents */}
           <div className="lg:col-span-1 space-y-3">
             <h2 className="text-lg font-semibold flex items-center gap-2">
-              👥 Agents <span className="text-xs text-gray-400 font-normal">{displayAgents.length}</span>
+              👥 Agents <span className="text-xs text-gray-400 font-normal">{agents.length}</span>
             </h2>
             <div className="space-y-2 max-h-96 overflow-y-auto pr-1">
-              {displayAgents.map(agent => (
+              {agents.map((agent: any) => (
                 <AgentCard key={agent.id} agent={agent} />
               ))}
-              {displayAgents.length === 0 && (
+              {agents.length === 0 && (
                 <p className="text-sm text-gray-400 text-center py-4">No agents registered</p>
               )}
             </div>
@@ -111,13 +108,13 @@ export default function DashboardPage() {
             {/* Projects */}
             <div>
               <h2 className="text-lg font-semibold flex items-center gap-2 mb-3">
-                📁 Projects <span className="text-xs text-gray-400 font-normal">{data?.projects?.length ?? 0}</span>
+                📁 Projects <span className="text-xs text-gray-400 font-normal">{projects.length}</span>
               </h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                {data?.projects?.map(project => (
+                {projects.map((project: any) => (
                   <ProjectCard key={project.id} project={project} />
                 ))}
-                {(!data?.projects || data.projects.length === 0) && (
+                {projects.length === 0 && (
                   <p className="text-sm text-gray-400 col-span-2 text-center py-4">No projects yet</p>
                 )}
               </div>
@@ -126,10 +123,10 @@ export default function DashboardPage() {
             {/* Task Board */}
             <div>
               <h2 className="text-lg font-semibold flex items-center gap-2 mb-3">
-                📋 Task Board <span className="text-xs text-gray-400 font-normal">{displayTasks.length}</span>
+                📋 Task Board <span className="text-xs text-gray-400 font-normal">{tasks.length}</span>
               </h2>
               <TaskBoard
-                tasks={displayTasks}
+                tasks={tasks}
                 onStatusChange={handleStatusChange}
               />
             </div>
@@ -141,7 +138,7 @@ export default function DashboardPage() {
           <h2 className="text-lg font-semibold mb-3 flex items-center gap-2">
             ⚡ Recent Activity <span className="text-xs text-gray-400 font-normal">live</span>
           </h2>
-          <ActivityFeed events={displayActivity} />
+          <ActivityFeed events={activity} />
         </div>
       </main>
     </div>

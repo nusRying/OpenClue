@@ -2,78 +2,47 @@
 
 Real-time dashboard for Kutraa's multi-agent operations. Built with Fastify + Next.js + Supabase.
 
+## Architecture
+
+```
+OpenClaw Agents (string, digit, promo)
+    ↓ webhook POSTs
+Fastify Backend (port 3001)
+    ↓ writes
+Supabase PostgreSQL ← ← ← ← ← ← ← ←
+    ↑ reads + realtime                 |
+Next.js Frontend (port 3000) ← ← ← ← ←
+```
+
+**Data flow:**
+- Agents → OpenClaw hook/plugin → Backend → Supabase (write path)
+- Frontend → Supabase direct (read + realtime subscribe)
+
 ## Structure
 
 ```
 kutraa-mission-control/
 ├── backend/                # Fastify API server
-│   ├── src/
-│   │   ├── lib/           # Supabase client, Telegram sender
-│   │   ├── routes/         # API routes (webhooks, live)
-│   │   └── types.ts        # TypeScript types
-│   ├── index.ts            # Entry point
+│   ├── lib/              # Supabase client, Telegram sender
+│   ├── routes/           # Webhook + live endpoints
+│   ├── src/types.ts      # TypeScript types
+│   ├── index.ts
 │   ├── package.json
-│   ├── tsconfig.json
 │   └── Dockerfile
-├── frontend/               # Next.js dashboard
-│   ├── app/                # App router pages
-│   ├── components/         # React components
-│   ├── hooks/              # TanStack Query + realtime hooks
-│   ├── lib/                # Supabase client, API client
-│   ├── types/              # TypeScript types
+├── frontend/              # Next.js dashboard
+│   ├── app/              # App router pages
+│   ├── components/       # AgentCard, ProjectCard, TaskBoard, ActivityFeed
+│   ├── hooks/            # TanStack Query + Supabase realtime hooks
+│   ├── lib/              # Supabase client
+│   ├── types/
 │   ├── package.json
-│   ├── Dockerfile
-│   └── ...
-├── plugin/                 # OpenClaw plugin (tool call tracking)
-│   ├── src/index.ts
-│   ├── package.json
-│   └── openclaw.plugin.json
-├── hook/                   # OpenClaw hook (session events)
-│   ├── handler.ts
-│   └── HOOK.md
-├── supabase-schema.sql      # Database schema
-├── INSTALL.md              # Integration guide
+│   └── Dockerfile
+├── plugin/                # OpenClaw plugin (tool call tracking)
+├── hook/                  # OpenClaw hook (session events)
+├── supabase-schema.sql   # Database schema
+├── INSTALL.md
 └── README.md
 ```
-
-## Quick Start
-
-### 1. Apply Supabase Schema
-```bash
-psql $SUPABASE_URL -f supabase-schema.sql
-```
-
-### 2. Deploy Backend
-- Dockerfile: `backend/Dockerfile`
-- Build context: `backend`
-- Port: 3001
-
-### 3. Deploy Frontend
-- Dockerfile: `frontend/Dockerfile`
-- Build context: `frontend`
-- Port: 3000
-
-### 4. Install OpenClaw Integration
-See `INSTALL.md`
-
-## API Endpoints
-
-### Webhooks
-| Method | Endpoint | Purpose |
-|--------|----------|---------|
-| POST | `/api/webhook/openclaw` | Session events from hook |
-| POST | `/api/webhook/tool_start` | Tool call started |
-| POST | `/api/webhook/tool_end` | Tool call completed |
-
-### Live Dashboard
-| Method | Endpoint | Purpose |
-|--------|----------|---------|
-| GET | `/api/v1/live` | Full snapshot |
-| GET | `/api/v1/live/agents` | All agents |
-| GET | `/api/v1/live/projects` | All projects |
-| GET | `/api/v1/live/tasks` | All tasks |
-| GET | `/api/v1/live/activity` | Activity feed |
-| GET | `/health` | Health check |
 
 ## Environment Variables
 
@@ -92,8 +61,39 @@ AGENT_TOKEN_PROMO=<secret>
 
 ### Frontend
 ```
-NEXT_PUBLIC_SUPABASE_URL=<supabase-url>
+NEXT_PUBLIC_SUPABASE_URL=<supabase-public-https-url>
 NEXT_PUBLIC_SUPABASE_ANON_KEY=<anon-key>
-NEXT_PUBLIC_API_URL=http://mission-control-backend:3001
 PORT=3000
 ```
+
+## API Endpoints (Backend)
+
+Backend handles ingestion only. Frontend reads directly from Supabase.
+
+| Method | Endpoint | Purpose |
+|--------|----------|---------|
+| POST | `/api/webhook/openclaw` | Session events from hook |
+| POST | `/api/webhook/tool_start` | Tool call started |
+| POST | `/api/webhook/tool_end` | Tool call completed |
+| GET | `/health` | Health check |
+
+## Supabase Tables
+
+- `agents` — agent registry
+- `projects` — projects
+- `tasks` — tasks
+- `activity_log` — event log
+- `tool_calls` — tool execution tracking
+- `session_events` — session lifecycle events
+
+## Deployment (Coolify)
+
+### Backend
+- Dockerfile: `backend/Dockerfile`
+- Build context: `.` (repo root)
+- Port: 3001 (internal only)
+
+### Frontend
+- Dockerfile: `frontend/Dockerfile`
+- Build context: `.` (repo root)
+- Port: 3000 (public)

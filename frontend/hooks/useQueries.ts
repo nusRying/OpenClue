@@ -3,54 +3,65 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useEffect, useRef } from 'react'
 import { supabase } from '@/lib/supabase'
-import { api } from '@/lib/api'
-import type { Agent, Project, Task, ActivityEvent, DashboardSnapshot } from '@/types'
+import type { Agent, Project, Task, ActivityEvent } from '@/types'
 
-// ─── REST Queries ───────────────────────────────────────────────────────────
-
-export function useDashboardSnapshot() {
-  return useQuery<DashboardSnapshot>({
-    queryKey: ['dashboard-snapshot'],
-    queryFn: api.live.all,
-    refetchInterval: 30000,
-  })
-}
+// ─── Initial Data Queries (Supabase direct) ───────────────────────────────
 
 export function useAgents() {
-  return useQuery<{ agents: Agent[] }>({
+  return useQuery({
     queryKey: ['agents'],
-    queryFn: api.live.agents,
-    refetchInterval: 30000,
+    queryFn: async () => {
+      const { data, error } = await supabase.from('agents').select('*').order('name')
+      if (error) throw error
+      return { agents: data as Agent[] }
+    },
   })
 }
 
 export function useProjects() {
-  return useQuery<{ projects: Project[] }>({
+  return useQuery({
     queryKey: ['projects'],
-    queryFn: api.live.projects,
-    refetchInterval: 30000,
+    queryFn: async () => {
+      const { data, error } = await supabase.from('projects').select('*').order('created_at', { ascending: false })
+      if (error) throw error
+      return { projects: data as Project[] }
+    },
   })
 }
 
 export function useTasks(filters?: { project_id?: string; assignee_id?: string; status?: string }) {
-  return useQuery<{ tasks: Task[] }>({
+  return useQuery({
     queryKey: ['tasks', filters],
-    queryFn: () => api.live.tasks(filters),
-    refetchInterval: 30000,
+    queryFn: async () => {
+      let query = supabase.from('tasks').select('*').order('created_at', { ascending: false })
+      if (filters?.project_id) query = query.eq('project_id', filters.project_id)
+      if (filters?.assignee_id) query = query.eq('assignee_id', filters.assignee_id)
+      if (filters?.status) query = query.eq('status', filters.status)
+      const { data, error } = await query
+      if (error) throw error
+      return { tasks: data as Task[] }
+    },
   })
 }
 
-export function useActivity(limit = 50, eventType?: string) {
-  return useQuery<{ activity: ActivityEvent[] }>({
-    queryKey: ['activity', limit, eventType],
-    queryFn: () => api.live.activity(String(limit), eventType),
-    refetchInterval: 15000,
+export function useActivity(limit = 50) {
+  return useQuery({
+    queryKey: ['activity', limit],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('activity_log')
+        .select('*')
+        .order('created_at', { ascending: false })
+        .limit(limit)
+      if (error) throw error
+      return { activity: data as ActivityEvent[] }
+    },
   })
 }
 
-// ─── Real-time Subscriptions ────────────────────────────────────────────────
+// ─── Real-time Subscriptions ─────────────────────────────────────────────
 
-export function useRealtimeAgents(queryKey = 'dashboard-snapshot') {
+export function useRealtimeAgents() {
   const queryClient = useQueryClient()
   const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null)
 
@@ -61,7 +72,6 @@ export function useRealtimeAgents(queryKey = 'dashboard-snapshot') {
       .channel('agents-realtime')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'agents' }, () => {
         queryClient.invalidateQueries({ queryKey: ['agents'] })
-        queryClient.invalidateQueries({ queryKey: [queryKey] })
       })
       .subscribe()
 
@@ -71,10 +81,10 @@ export function useRealtimeAgents(queryKey = 'dashboard-snapshot') {
         channelRef.current = null
       }
     }
-  }, [queryClient, queryKey])
+  }, [queryClient])
 }
 
-export function useRealtimeTasks(queryKey = 'dashboard-snapshot') {
+export function useRealtimeTasks() {
   const queryClient = useQueryClient()
   const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null)
 
@@ -85,7 +95,6 @@ export function useRealtimeTasks(queryKey = 'dashboard-snapshot') {
       .channel('tasks-realtime')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'tasks' }, () => {
         queryClient.invalidateQueries({ queryKey: ['tasks'] })
-        queryClient.invalidateQueries({ queryKey: [queryKey] })
       })
       .subscribe()
 
@@ -95,10 +104,33 @@ export function useRealtimeTasks(queryKey = 'dashboard-snapshot') {
         channelRef.current = null
       }
     }
-  }, [queryClient, queryKey])
+  }, [queryClient])
 }
 
-export function useRealtimeActivity(queryKey = 'activity') {
+export function useRealtimeProjects() {
+  const queryClient = useQueryClient()
+  const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null)
+
+  useEffect(() => {
+    if (channelRef.current) return
+
+    channelRef.current = supabase
+      .channel('projects-realtime')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'projects' }, () => {
+        queryClient.invalidateQueries({ queryKey: ['projects'] })
+      })
+      .subscribe()
+
+    return () => {
+      if (channelRef.current) {
+        supabase.removeChannel(channelRef.current)
+        channelRef.current = null
+      }
+    }
+  }, [queryClient])
+}
+
+export function useRealtimeActivity() {
   const queryClient = useQueryClient()
   const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null)
 
@@ -108,7 +140,7 @@ export function useRealtimeActivity(queryKey = 'activity') {
     channelRef.current = supabase
       .channel('activity-realtime')
       .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'activity_log' }, () => {
-        queryClient.invalidateQueries({ queryKey: [queryKey] })
+        queryClient.invalidateQueries({ queryKey: ['activity'] })
       })
       .subscribe()
 
@@ -118,26 +150,35 @@ export function useRealtimeActivity(queryKey = 'activity') {
         channelRef.current = null
       }
     }
-  }, [queryClient, queryKey])
+  }, [queryClient])
 }
 
-// ─── Mutations ──────────────────────────────────────────────────────────────
+// ─── Mutations ───────────────────────────────────────────────────────────
 
 export function useCreateTask() {
   const queryClient = useQueryClient()
   return useMutation({
     mutationFn: async (task: Partial<Task>) => {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/v1/live/tasks`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(task),
-      })
-      if (!res.ok) throw new Error('Failed to create task')
-      return res.json()
+      const { data, error } = await supabase.from('tasks').insert(task).select().single()
+      if (error) throw error
+      return data
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['tasks'] })
-      queryClient.invalidateQueries({ queryKey: ['dashboard-snapshot'] })
+    },
+  })
+}
+
+export function useUpdateTask() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: async ({ id, ...updates }: { id: string } & Partial<Task>) => {
+      const { data, error } = await supabase.from('tasks').update(updates).eq('id', id).select().single()
+      if (error) throw error
+      return data
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['tasks'] })
     },
   })
 }
@@ -146,17 +187,17 @@ export function useUpdateTaskStatus() {
   const queryClient = useQueryClient()
   return useMutation({
     mutationFn: async ({ id, status }: { id: string; status: string }) => {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/v1/live/tasks/${id}/status`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ status }),
-      })
-      if (!res.ok) throw new Error('Failed to update task')
-      return res.json()
+      const { data, error } = await supabase
+        .from('tasks')
+        .update({ status, updated_at: new Date().toISOString() })
+        .eq('id', id)
+        .select()
+        .single()
+      if (error) throw error
+      return data
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['tasks'] })
-      queryClient.invalidateQueries({ queryKey: ['dashboard-snapshot'] })
     },
   })
 }
