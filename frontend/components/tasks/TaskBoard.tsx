@@ -5,25 +5,18 @@ import type { Task, TaskStatus, Project, Agent } from '@/types'
 import { NewTaskModal } from '@/components/modals/NewTaskModal'
 import { EditTaskModal } from '@/components/modals/EditTaskModal'
 
-const COLUMNS: { id: TaskStatus; label: string; color: string }[] = [
-  { id: 'pending', label: 'Pending', color: 'border-gray-300' },
-  { id: 'in-progress', label: 'In Progress', color: 'border-blue-400' },
-  { id: 'completed', label: 'Completed', color: 'border-green-400' },
-  { id: 'blocked', label: 'Blocked', color: 'border-red-400' },
+const COLUMNS: { id: TaskStatus; label: string; color: string; borderColor: string }[] = [
+  { id: 'pending', label: 'To do', color: 'bg-zinc-800', borderColor: 'border-zinc-600' },
+  { id: 'in-progress', label: 'In progress', color: 'bg-blue-900/30', borderColor: 'border-blue-700' },
+  { id: 'completed', label: 'Done', color: 'bg-emerald-900/30', borderColor: 'border-emerald-800' },
+  { id: 'blocked', label: 'Blocked', color: 'bg-red-900/30', borderColor: 'border-red-800' },
 ]
 
-const PRIORITY_COLORS = {
-  low: 'text-gray-400',
-  medium: 'text-yellow-600',
-  high: 'text-orange-600',
-  critical: 'text-red-600',
-}
-
-const PRIORITY_BADGE = {
-  low: 'bg-gray-100',
-  medium: 'bg-yellow-100',
-  high: 'bg-orange-100',
-  critical: 'bg-red-100',
+const PRIORITY_CONFIG = {
+  low: { label: 'Low', color: 'text-zinc-500', bg: 'bg-zinc-800' },
+  medium: { label: 'Medium', color: 'text-amber-400', bg: 'bg-amber-900/40' },
+  high: { label: 'High', color: 'text-orange-400', bg: 'bg-orange-900/40' },
+  critical: { label: 'Critical', color: 'text-red-400', bg: 'bg-red-900/40' },
 }
 
 interface Props {
@@ -54,7 +47,8 @@ export function TaskBoard({ tasks, projects, agents, onStatusChange, onCreateTas
     e.preventDefault()
   }
 
-  function handleDrop(status: TaskStatus) {
+  function handleDrop(e: React.DragEvent, status: TaskStatus) {
+    e.preventDefault()
     if (draggedTask && draggedTask.status !== status && onStatusChange) {
       onStatusChange(draggedTask.id, status)
     }
@@ -62,75 +56,84 @@ export function TaskBoard({ tasks, projects, agents, onStatusChange, onCreateTas
   }
 
   const selectedProject = projects.find(p => p.id === selectedProjectId)
-  const hasProjects = projects.length > 0
 
   return (
     <>
-      <div className="bg-white rounded-xl border overflow-hidden">
-        <div className="px-4 py-3 border-b bg-gray-50 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <span className="text-lg">📋</span>
-            <h3 className="font-semibold">Tasks</h3>
-            <span className="text-xs bg-gray-200 text-gray-600 px-2 py-0.5 rounded">{filteredTasks.length}</span>
-            {selectedProject && (
-              <span className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded">
-                {selectedProject.name}
-              </span>
-            )}
-          </div>
-          <button
-            onClick={() => setShowNewModal(true)}
-            disabled={!hasProjects}
-            className="text-sm bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1.5 rounded-lg font-medium transition flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            <span>+</span> New Task
-          </button>
+      {/* Header */}
+      <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center gap-3">
+          <h2 className="text-base font-semibold text-zinc-100">Tasks</h2>
+          <span className="text-xs text-zinc-600 bg-zinc-800 px-2 py-0.5 rounded-full">{filteredTasks.length}</span>
+          {selectedProject && (
+            <span className="text-xs text-indigo-400 bg-indigo-900/40 px-2 py-0.5 rounded-full">{selectedProject.name}</span>
+          )}
         </div>
+        <button
+          onClick={() => setShowNewModal(true)}
+          disabled={projects.length === 0}
+          className="btn btn-primary text-xs disabled:opacity-40"
+        >
+          + New task
+        </button>
+      </div>
 
-        <div className="flex gap-3 overflow-x-auto p-4">
-          {COLUMNS.map(col => (
+      <div className="flex gap-3 overflow-x-auto pb-4">
+        {COLUMNS.map(col => {
+          const columnTasks = filteredTasks.filter(t => t.status === col.id)
+          return (
             <div
               key={col.id}
-              className={`flex-1 min-w-52 bg-gray-50 rounded-lg p-3 border-t-4 ${col.color}`}
+              className="flex-1 min-w-56"
               onDragOver={handleDragOver}
-              onDrop={() => handleDrop(col.id)}
+              onDrop={(e) => handleDrop(e, col.id)}
             >
-              <div className="flex items-center justify-between mb-3">
-                <h3 className="font-semibold text-sm">{col.label}</h3>
-                <span className="text-xs bg-gray-200 rounded px-1.5 py-0.5">
-                  {filteredTasks.filter(t => t.status === col.id).length}
-                </span>
+              {/* Column header */}
+              <div className="flex items-center justify-between mb-3 px-1">
+                <div className="flex items-center gap-2">
+                  <div className={`w-2 h-2 rounded-full ${col.id === 'pending' ? 'bg-zinc-500' : col.id === 'in-progress' ? 'bg-blue-500' : col.id === 'completed' ? 'bg-emerald-500' : 'bg-red-500'}`} />
+                  <span className="text-sm font-medium text-zinc-300">{col.label}</span>
+                </div>
+                <span className="text-xs text-zinc-600 bg-zinc-800 px-1.5 py-0.5 rounded">{columnTasks.length}</span>
               </div>
-              <div className="space-y-2">
-                {filteredTasks.filter(t => t.status === col.id).map(task => {
+
+              {/* Column body */}
+              <div className={`rounded-lg border ${col.borderColor} ${col.color} p-2 space-y-2 min-h-32`}>
+                {columnTasks.map(task => {
                   const assignee = agents.find(a => a.id === task.assignee_id)
+                  const priority = PRIORITY_CONFIG[task.priority]
+                  const isOverdue = task.due_date && new Date(task.due_date) < new Date() && task.status !== 'completed'
+
                   return (
                     <div
                       key={task.id}
                       draggable
                       onDragStart={() => handleDragStart(task)}
                       onClick={() => setEditTask(task)}
-                      className={`bg-white rounded border p-3 cursor-pointer hover:shadow-md transition-shadow ${
-                        draggedTask?.id === task.id ? 'opacity-50' : ''
+                      className={`bg-zinc-900/80 rounded-md p-3 cursor-pointer hover:bg-zinc-800/80 transition border border-zinc-800 hover:border-zinc-700 ${
+                        draggedTask?.id === task.id ? 'opacity-40' : ''
                       }`}
                     >
-                      <div className="font-medium text-sm leading-tight">{task.title}</div>
-                      {task.description && (
-                        <div className="text-xs text-gray-500 mt-1 line-clamp-2">{task.description}</div>
-                      )}
+                      {/* Title */}
+                      <div className="text-sm font-medium text-zinc-100 leading-snug">{task.title}</div>
+
+                      {/* Meta row */}
                       <div className="flex items-center gap-2 mt-2 flex-wrap">
-                        <span className={`text-xs px-1.5 py-0.5 rounded ${PRIORITY_BADGE[task.priority]} ${PRIORITY_COLORS[task.priority]}`}>
-                          {task.priority}
+                        {/* Priority */}
+                        <span className={`text-[10px] px-1.5 py-0.5 rounded ${priority.bg} ${priority.color} font-medium`}>
+                          {priority.label}
                         </span>
+
+                        {/* Assignee */}
                         {assignee && (
-                          <span className="text-xs text-gray-500">{assignee.emoji} {assignee.name}</span>
+                          <div className="flex items-center gap-1 text-zinc-500">
+                            <span className="text-xs">{assignee.emoji}</span>
+                            <span className="text-xs">{assignee.name}</span>
+                          </div>
                         )}
+
+                        {/* Due date */}
                         {task.due_date && (
-                          <span className={`text-xs ${
-                            new Date(task.due_date) < new Date() && task.status !== 'completed'
-                              ? 'text-red-500 font-medium'
-                              : 'text-gray-400'
-                          }`}>
+                          <span className={`text-[10px] ${isOverdue ? 'text-red-400' : 'text-zinc-600'}`}>
                             {new Date(task.due_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
                           </span>
                         )}
@@ -138,21 +141,16 @@ export function TaskBoard({ tasks, projects, agents, onStatusChange, onCreateTas
                     </div>
                   )
                 })}
-                {filteredTasks.filter(t => t.status === col.id).length === 0 && (
-                  <div className="text-center text-xs text-gray-400 py-6">
-                    No tasks
+
+                {columnTasks.length === 0 && (
+                  <div className="flex items-center justify-center h-16 text-xs text-zinc-700">
+                    Empty
                   </div>
                 )}
               </div>
             </div>
-          ))}
-        </div>
-
-        {!hasProjects && (
-          <div className="text-center text-sm text-gray-400 py-6">
-            Create a project first to add tasks
-          </div>
-        )}
+          )
+        })}
       </div>
 
       <NewTaskModal
