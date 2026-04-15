@@ -47,7 +47,8 @@ export async function webhooksRouter(fastify: FastifyInstance) {
       return reply.status(401).send({ error: 'Unauthorized' });
     }
 
-    const { event_type, message, metadata } = request.body as WebhookBody;
+    const { event_type, message, metadata, context } = request.body as WebhookBody;
+    const messageText = context?.content || message || `Session event from ${agentId}`;
 
     // Resolve agent name to UUID for database
     const agentUuid = await resolveAgentUuid(supabase, agentId);
@@ -57,7 +58,7 @@ export async function webhooksRouter(fastify: FastifyInstance) {
       .from('activity_log')
       .insert({
         event_type: event_type || 'session_event',
-        message: message || `Session event from ${agentId}`,
+        message: messageText,
         agent_id: agentUuid || agentId,
         project_id: metadata?.project_id as string,
         task_id: metadata?.task_id as string,
@@ -75,7 +76,7 @@ export async function webhooksRouter(fastify: FastifyInstance) {
     if (event_type) {
       const priority = eventPriority(event_type, metadata);
       if (priority !== 'low') {
-        await sendTelegramMessage({ message: message || `${agentId}: ${event_type}`, priority, metadata });
+        await sendTelegramMessage({ message: messageText, priority, metadata });
       }
     }
 
