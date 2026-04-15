@@ -32,15 +32,15 @@ export function NewProjectModal({ isOpen, onClose, onCreate }: {
 
   return (
     <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-      <div className="bg-zinc-900 border border-zinc-800 rounded-2xl w-full max-w-md shadow-2xl">
-        <div className="px-6 py-4 border-b border-zinc-800">
-          <h2 className="text-base font-semibold text-zinc-100">New Project</h2>
-          <p className="text-xs text-zinc-500 mt-0.5">Create a new project to track work</p>
+      <div className="card w-full max-w-md shadow-2xl">
+        <div className="px-6 py-4 border-b border-[var(--border-subtle)]">
+          <h2 className="text-base font-semibold text-primary">New Project</h2>
+          <p className="text-xs text-muted mt-0.5">Create a new project to track work</p>
         </div>
 
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
           <div>
-            <label className="block text-xs font-medium text-zinc-400 mb-1.5">Project Name *</label>
+            <label className="block text-xs font-medium text-secondary mb-1.5">Project Name *</label>
             <input
               type="text"
               value={name}
@@ -53,7 +53,7 @@ export function NewProjectModal({ isOpen, onClose, onCreate }: {
           </div>
 
           <div>
-            <label className="block text-xs font-medium text-zinc-400 mb-1.5">Description</label>
+            <label className="block text-xs font-medium text-secondary mb-1.5">Description</label>
             <textarea
               value={description}
               onChange={(e) => setDescription(e.target.value)}
@@ -64,12 +64,18 @@ export function NewProjectModal({ isOpen, onClose, onCreate }: {
           </div>
 
           <div>
-            <label className="block text-xs font-medium text-zinc-400 mb-1.5">Status</label>
+            <label className="block text-xs font-medium text-secondary mb-1.5">Status</label>
             <div className="flex gap-2">
               {(['active', 'paused'] as const).map((s) => (
-                <label key={s} className={`flex-1 flex items-center justify-center gap-2 p-2.5 rounded-lg border cursor-pointer transition ${status === s ? 'border-indigo-500 bg-indigo-600/20' : 'border-zinc-700 hover:border-zinc-600'}`}>
+                <label key={s} className={`flex-1 flex items-center justify-center gap-2 p-2.5 rounded-lg border cursor-pointer transition ${
+                  status === s
+                    ? 'border-[var(--accent)] bg-accent-subtle'
+                    : 'border-[var(--border)] hover:border-[var(--bg-elevated)]'
+                }`}>
                   <input type="radio" name="status" value={s} checked={status === s} onChange={() => setStatus(s)} className="sr-only" />
-                  <span className={`text-sm ${status === s ? 'text-indigo-400' : 'text-zinc-400'}`}>{s === 'active' ? '● Active' : '◐ Paused'}</span>
+                  <span className={`text-sm ${status === s ? 'text-accent' : 'text-secondary'}`}>
+                    {s === 'active' ? '● Active' : '◐ Paused'}
+                  </span>
                 </label>
               ))}
             </div>

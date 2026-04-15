@@ -16,8 +16,8 @@ interface ProjectsPanelProps {
 }
 
 const STATUS_CONFIG = {
-  active: { label: 'Active', dot: 'bg-emerald-500' },
-  paused: { label: 'Paused', dot: 'bg-amber-500' },
+  active: { label: 'Active', dot: 'bg-success' },
+  paused: { label: 'Paused', dot: 'bg-warning' },
   completed: { label: 'Done', dot: 'bg-blue-500' },
   archived: { label: 'Archived', dot: 'bg-zinc-600' },
 }
@@ -30,8 +30,8 @@ export function ProjectsPanel({ projects, agents, onCreateProject, onUpdateProje
     <>
       <div className="mb-4 flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <h2 className="text-base font-semibold text-zinc-100">Projects</h2>
-          <span className="text-xs text-zinc-600 bg-zinc-800 px-2 py-0.5 rounded-full">{projects.length}</span>
+          <h2 className="text-base font-semibold text-primary">Projects</h2>
+          <span className="text-xs text-muted bg-tertiary px-2 py-0.5 rounded-full">{projects.length}</span>
         </div>
         <button onClick={() => setShowNewModal(true)} className="btn btn-primary text-xs">
           + New project
@@ -44,8 +44,8 @@ export function ProjectsPanel({ projects, agents, onCreateProject, onUpdateProje
           onClick={() => onSelectProject(null)}
           className={`w-full text-left px-3 py-2 rounded-lg transition text-sm ${
             selectedProjectId === null
-              ? 'bg-indigo-600 text-white'
-              : 'hover:bg-zinc-800 text-zinc-400'
+              ? 'bg-accent text-white'
+              : 'hover:bg-tertiary text-secondary'
           }`}
         >
           <div className="flex items-center justify-between">
@@ -66,20 +66,20 @@ export function ProjectsPanel({ projects, agents, onCreateProject, onUpdateProje
                 onClick={() => onSelectProject(isSelected ? null : project.id)}
                 className={`w-full text-left px-3 py-2 rounded-lg transition text-sm flex items-center gap-3 ${
                   isSelected
-                    ? 'bg-indigo-600 text-white'
-                    : 'hover:bg-zinc-800 text-zinc-400'
+                    ? 'bg-accent text-white'
+                    : 'hover:bg-tertiary text-secondary'
                 }`}
               >
                 <div className={`w-2 h-2 rounded-full ${config.dot} shrink-0`} />
                 <div className="flex-1 min-w-0">
-                  <div className="truncate">{project.name}</div>
+                  <div className="truncate text-primary">{project.name}</div>
                   {owner && (
-                    <div className={`text-xs truncate ${isSelected ? 'text-indigo-200' : 'text-zinc-600'}`}>
+                    <div className={`text-xs truncate ${isSelected ? 'text-indigo-200' : 'text-muted'}`}>
                       {owner.emoji} {owner.name}
                     </div>
                   )}
                 </div>
-                <span className={`text-xs opacity-50 ${isSelected ? 'text-indigo-200' : 'text-zinc-600'}`}>
+                <span className={`text-xs opacity-50 ${isSelected ? 'text-indigo-200' : 'text-muted'}`}>
                   {config.label}
                 </span>
               </button>
@@ -88,7 +88,7 @@ export function ProjectsPanel({ projects, agents, onCreateProject, onUpdateProje
               <button
                 onClick={(e) => { e.stopPropagation(); setEditProject(project); }}
                 className={`absolute right-2 top-1/2 -translate-y-1/2 p-1.5 rounded opacity-0 group-hover:opacity-100 transition ${
-                  isSelected ? 'hover:bg-indigo-500 text-indigo-200' : 'hover:bg-zinc-700 text-zinc-500'
+                  isSelected ? 'hover:bg-indigo-500 text-indigo-200' : 'hover:bg-elevated text-muted'
                 }`}
                 title="Edit project"
               >
@@ -101,7 +101,7 @@ export function ProjectsPanel({ projects, agents, onCreateProject, onUpdateProje
         })}
 
         {projects.length === 0 && (
-          <div className="text-center py-8 text-zinc-600 text-sm">
+          <div className="text-center py-8 text-muted text-sm">
             No projects yet
           </div>
         )}

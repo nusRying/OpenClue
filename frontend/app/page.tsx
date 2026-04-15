@@ -28,7 +28,6 @@ export default function DashboardPage() {
   const [showTimeline, setShowTimeline] = useState(false)
   const { theme, toggleTheme } = useTheme()
 
-  // Real-time invalidation
   useRealtimeAgents()
   useRealtimeTasks()
   useRealtimeProjects()
@@ -67,10 +66,10 @@ export default function DashboardPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-zinc-950 flex items-center justify-center">
+      <div className="min-h-screen bg-primary flex items-center justify-center">
         <div className="text-center">
-          <div className="w-10 h-10 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin mx-auto mb-3" />
-          <div className="text-zinc-500 text-sm">Loading...</div>
+          <div className="w-10 h-10 border-2 border-[var(--accent)] border-t-transparent rounded-full animate-spin mx-auto mb-3" />
+          <div className="text-secondary text-sm">Loading...</div>
         </div>
       </div>
     )
@@ -89,9 +88,10 @@ export default function DashboardPage() {
   const inProgressTasks = tasks.filter((t: any) => t.status === 'in-progress').length
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-zinc-100">
-      {/* Header */}
-      <header className="sticky top-0 z-30 backdrop-blur-xl bg-gradient-to-b from-zinc-950/95 to-zinc-950/80 border-b border-zinc-800">
+    <div className="min-h-screen bg-primary text-primary">
+      {/* ─── Header ─────────────────────────────────────────────────────── */}
+      <header className="sticky top-0 z-30 backdrop-blur-xl border-b border-subtle"
+        style={{ background: 'linear-gradient(to bottom, var(--bg-primary), var(--bg-primary))' }}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6">
           <div className="flex items-center justify-between h-14">
             {/* Logo */}
@@ -100,13 +100,13 @@ export default function DashboardPage() {
                 MC
               </div>
               <div>
-                <h1 className="text-sm font-semibold text-zinc-100">Mission Control</h1>
+                <h1 className="text-sm font-semibold text-primary">Mission Control</h1>
                 <div className="flex items-center gap-1.5">
                   <span className="relative flex h-1.5 w-1.5">
                     <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
                     <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-500 shadow-sm shadow-emerald-500/50"></span>
                   </span>
-                  <span className="text-[10px] text-emerald-500/80 uppercase tracking-wider font-medium">Live</span>
+                  <span className="text-[10px] text-emerald-500 uppercase tracking-wider font-medium">Live</span>
                 </div>
               </div>
             </div>
@@ -114,18 +114,18 @@ export default function DashboardPage() {
             {/* Stats */}
             <div className="hidden md:flex items-center gap-5 text-xs">
               <div className="flex items-center gap-1.5">
-                <span className="text-base font-semibold text-zinc-100 tabular-nums">{agents.length}</span>
-                <span className="text-zinc-600">Agents</span>
+                <span className="text-base font-semibold text-primary tabular-nums">{agents.length}</span>
+                <span className="text-muted">Agents</span>
               </div>
-              <div className="w-px h-4 bg-zinc-800" />
+              <div className="w-px h-4 bg-[var(--border)]" />
               <div className="flex items-center gap-1.5">
-                <span className="text-base font-semibold text-emerald-400 tabular-nums">{activeProjects}</span>
-                <span className="text-zinc-600">Active</span>
+                <span className="text-base font-semibold text-success tabular-nums">{activeProjects}</span>
+                <span className="text-muted">Active</span>
               </div>
-              <div className="w-px h-4 bg-zinc-800" />
+              <div className="w-px h-4 bg-[var(--border)]" />
               <div className="flex items-center gap-1.5">
-                <span className="text-base font-semibold text-blue-400 tabular-nums">{inProgressTasks}</span>
-                <span className="text-zinc-600">Tasks</span>
+                <span className="text-base font-semibold text-[var(--accent)] tabular-nums">{inProgressTasks}</span>
+                <span className="text-muted">Tasks</span>
               </div>
             </div>
 
@@ -135,16 +135,16 @@ export default function DashboardPage() {
                 onClick={() => setShowTimeline(!showTimeline)}
                 className={`px-3 py-1.5 rounded-lg text-xs font-medium transition ${
                   showTimeline
-                    ? 'bg-indigo-600 text-white'
-                    : 'bg-zinc-800 text-zinc-400 hover:text-zinc-200 hover:bg-zinc-700'
+                    ? 'bg-[var(--accent)] text-white'
+                    : 'bg-tertiary text-secondary hover:text-primary hover:bg-elevated border border-[var(--border)]'
                 }`}
               >
                 Timeline
               </button>
               <button
                 onClick={toggleTheme}
-                className="p-2 rounded-lg bg-zinc-800 text-zinc-400 hover:text-zinc-200 hover:bg-zinc-700 transition"
-                title={theme === 'dark' ? 'Light mode' : 'Dark mode'}
+                className="p-2 rounded-lg bg-tertiary text-secondary hover:text-primary hover:bg-elevated border border-[var(--border)] transition"
+                title={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
               >
                 {theme === 'dark' ? (
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -161,7 +161,7 @@ export default function DashboardPage() {
         </div>
       </header>
 
-      {/* Main */}
+      {/* ─── Main ───────────────────────────────────────────────────────── */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 py-6">
         {showTimeline ? (
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -170,15 +170,15 @@ export default function DashboardPage() {
             </div>
             <div className="space-y-4">
               {/* Compact agents */}
-              <div className="bg-zinc-900 border border-zinc-800 rounded-xl overflow-hidden">
-                <div className="px-4 py-3 border-b border-zinc-800 flex items-center justify-between">
+              <div className="card overflow-hidden">
+                <div className="px-4 py-3 border-b border-subtle flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <span className="text-sm font-medium">Agents</span>
-                    <span className="text-xs text-zinc-600">{agents.length}</span>
+                    <span className="text-sm font-medium text-primary">Agents</span>
+                    <span className="text-xs text-muted">{agents.length}</span>
                   </div>
-                  <span className="text-xs text-emerald-500">{onlineAgents} online</span>
+                  <span className="text-xs text-success">{onlineAgents} online</span>
                 </div>
-                <div className="divide-y divide-zinc-800">
+                <div className="divide-y divide-[var(--border-subtle)]">
                   {agents.map((agent: any) => (
                     <AgentCard key={agent.id} agent={agent} compact />
                   ))}
@@ -186,9 +186,9 @@ export default function DashboardPage() {
               </div>
 
               {/* Activity */}
-              <div className="bg-zinc-900 border border-zinc-800 rounded-xl overflow-hidden">
-                <div className="px-4 py-3 border-b border-zinc-800">
-                  <span className="text-sm font-medium">Recent Activity</span>
+              <div className="card overflow-hidden">
+                <div className="px-4 py-3 border-b border-subtle">
+                  <span className="text-sm font-medium text-primary">Recent Activity</span>
                 </div>
                 <ActivityFeed events={activity.slice(0, 20)} compact />
               </div>
@@ -199,15 +199,15 @@ export default function DashboardPage() {
             {/* Left sidebar */}
             <div className="lg:col-span-1 space-y-4">
               {/* Agents */}
-              <div className="bg-zinc-900 border border-zinc-800 rounded-xl overflow-hidden">
-                <div className="px-4 py-3 border-b border-zinc-800 flex items-center justify-between">
+              <div className="card overflow-hidden">
+                <div className="px-4 py-3 border-b border-subtle flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <span className="text-sm font-medium">Agents</span>
-                    <span className="text-xs text-zinc-600">{agents.length}</span>
+                    <span className="text-sm font-medium text-primary">Agents</span>
+                    <span className="text-xs text-muted">{agents.length}</span>
                   </div>
-                  <span className="text-xs text-emerald-500">{onlineAgents} online</span>
+                  <span className="text-xs text-success">{onlineAgents} online</span>
                 </div>
-                <div className="divide-y divide-zinc-800">
+                <div className="divide-y divide-[var(--border-subtle)]">
                   {agents.map((agent: any) => (
                     <AgentCard key={agent.id} agent={agent} />
                   ))}
@@ -215,9 +215,9 @@ export default function DashboardPage() {
               </div>
 
               {/* Activity */}
-              <div className="bg-zinc-900 border border-zinc-800 rounded-xl overflow-hidden">
-                <div className="px-4 py-3 border-b border-zinc-800">
-                  <span className="text-sm font-medium">Recent Activity</span>
+              <div className="card overflow-hidden">
+                <div className="px-4 py-3 border-b border-subtle">
+                  <span className="text-sm font-medium text-primary">Recent Activity</span>
                 </div>
                 <ActivityFeed events={activity.slice(0, 20)} compact />
               </div>
@@ -226,7 +226,7 @@ export default function DashboardPage() {
             {/* Main content */}
             <div className="lg:col-span-3 space-y-6">
               {/* Projects panel */}
-              <div className="bg-zinc-900 border border-zinc-800 rounded-xl overflow-hidden p-4">
+              <div className="card p-4">
                 <ProjectsPanel
                   projects={projects}
                   agents={agents}
@@ -239,7 +239,7 @@ export default function DashboardPage() {
               </div>
 
               {/* Task board */}
-              <div className="bg-zinc-900 border border-zinc-800 rounded-xl overflow-hidden p-4">
+              <div className="card p-4">
                 <TaskBoard
                   tasks={tasks}
                   projects={projects}

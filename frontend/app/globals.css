@@ -5,21 +5,65 @@
 @tailwind utilities;
 
 :root {
+  /* ─── Dark mode (default) ──────────────────────────────────────────────── */
   --bg-primary: #09090b;
   --bg-secondary: #18181b;
   --bg-tertiary: #27272a;
   --bg-elevated: #3f3f46;
+  --bg-overlay: rgba(0, 0, 0, 0.7);
+
   --border: #3f3f46;
   --border-subtle: #27272a;
+
   --text-primary: #fafafa;
   --text-secondary: #a1a1aa;
   --text-muted: #71717a;
+
   --accent: #6366f1;
   --accent-hover: #818cf8;
+  --accent-bg: rgba(99, 102, 241, 0.15);
+
   --success: #22c55e;
+  --success-bg: rgba(34, 197, 94, 0.15);
   --warning: #f59e0b;
+  --warning-bg: rgba(245, 158, 11, 0.15);
   --error: #ef4444;
+  --error-bg: rgba(239, 68, 68, 0.15);
+
+  --card-bg: #18181b;
+  --card-border: #27272a;
+
   --radius: 0.5rem;
+}
+
+html.light {
+  /* ─── Light mode ───────────────────────────────────────────────────────── */
+  --bg-primary: #f4f4f5;
+  --bg-secondary: #ffffff;
+  --bg-tertiary: #e4e4e7;
+  --bg-elevated: #d4d4d8;
+  --bg-overlay: rgba(0, 0, 0, 0.5);
+
+  --border: #e4e4e7;
+  --border-subtle: #f4f4f5;
+
+  --text-primary: #09090b;
+  --text-secondary: #52525b;
+  --text-muted: #a1a1aa;
+
+  --accent: #4f46e5;
+  --accent-hover: #6366f1;
+  --accent-bg: rgba(79, 70, 229, 0.1);
+
+  --success: #16a34a;
+  --success-bg: rgba(22, 163, 74, 0.1);
+  --warning: #d97706;
+  --warning-bg: rgba(217, 119, 6, 0.1);
+  --error: #dc2626;
+  --error-bg: rgba(220, 38, 38, 0.1);
+
+  --card-bg: #ffffff;
+  --card-border: #e4e4e7;
 }
 
 * {
@@ -38,72 +82,47 @@ body {
   min-height: 100vh;
 }
 
-/* Scrollbar styling */
-::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
-}
+/* ─── Scrollbar ──────────────────────────────────────────────────────────── */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--bg-tertiary); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--bg-elevated); }
 
-::-webkit-scrollbar-track {
-  background: transparent;
-}
+/* ─── Utility classes that use CSS variables ─────────────────────────────── */
+.bg-primary { background-color: var(--bg-primary); }
+.bg-secondary { background-color: var(--bg-secondary); }
+.bg-tertiary { background-color: var(--bg-tertiary); }
+.bg-elevated { background-color: var(--bg-elevated); }
+.bg-card { background-color: var(--card-bg); }
 
-::-webkit-scrollbar-thumb {
-  background: var(--bg-tertiary);
-  border-radius: 3px;
-}
+.text-primary { color: var(--text-primary); }
+.text-secondary { color: var(--text-secondary); }
+.text-muted { color: var(--text-muted); }
 
-::-webkit-scrollbar-thumb:hover {
-  background: var(--bg-elevated);
-}
+.border-default { border-color: var(--border); }
+.border-subtle { border-color: var(--border-subtle); }
+.border-card { border-color: var(--card-border); }
 
-/* Dark mode classes */
-.dark {
-  --bg-primary: #09090b;
-  --bg-secondary: #18181b;
-  --bg-tertiary: #27272a;
-  --bg-elevated: #3f3f46;
-  --border: #3f3f46;
-  --border-subtle: #27272a;
-  --text-primary: #fafafa;
-  --text-secondary: #a1a1aa;
-  --text-muted: #71717a;
-}
+.bg-accent { background-color: var(--accent); }
+.bg-accent-hover { background-color: var(--accent-hover); }
+.bg-accent-subtle { background-color: var(--accent-bg); }
 
-.light {
-  --bg-primary: #f4f4f5;
-  --bg-secondary: #ffffff;
-  --bg-tertiary: #e4e4e7;
-  --bg-elevated: #d4d4d8;
-  --border: #e4e4e7;
-  --border-subtle: #f4f4f5;
-  --text-primary: #09090b;
-  --text-secondary: #52525b;
-  --text-muted: #a1a1aa;
-}
+.bg-success-subtle { background-color: var(--success-bg); }
+.bg-warning-subtle { background-color: var(--warning-bg); }
+.bg-error-subtle { background-color: var(--error-bg); }
 
-/* Light mode overrides */
-.light body {
-  background-color: #f4f4f5;
-  color: #09090b;
-}
+.text-accent { color: var(--accent); }
+.text-success { color: var(--success); }
+.text-warning { color: var(--warning); }
+.text-error { color: var(--error); }
 
-.light .bg-secondary {
-  background-color: #ffffff;
-}
-
-.light .bg-tertiary {
-  background-color: #e4e4e7;
-}
-
-/* Card base */
+/* ─── Component base styles ─────────────────────────────────────────────── */
 .card {
-  background: var(--bg-secondary);
-  border: 1px solid var(--border-subtle);
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
   border-radius: var(--radius);
 }
 
-/* Button base */
 .btn {
   display: inline-flex;
   align-items: center;
@@ -116,32 +135,24 @@ body {
   transition: all 0.15s ease;
   cursor: pointer;
   border: none;
+  font-family: inherit;
 }
 
-.btn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
+.btn:disabled { opacity: 0.5; cursor: not-allowed; }
 
 .btn-primary {
   background: var(--accent);
   color: white;
 }
-
-.btn-primary:hover:not(:disabled) {
-  background: var(--accent-hover);
-}
+.btn-primary:hover:not(:disabled) { background: var(--accent-hover); }
 
 .btn-secondary {
   background: var(--bg-tertiary);
   color: var(--text-primary);
+  border: 1px solid var(--border);
 }
+.btn-secondary:hover:not(:disabled) { background: var(--bg-elevated); }
 
-.btn-secondary:hover:not(:disabled) {
-  background: var(--bg-elevated);
-}
-
-/* Input base */
 .input {
   width: 100%;
   padding: 0.5rem 0.75rem;
@@ -152,34 +163,22 @@ body {
   font-size: 0.875rem;
   outline: none;
   transition: border-color 0.15s;
+  font-family: inherit;
 }
+.input:focus { border-color: var(--accent); }
+.input::placeholder { color: var(--text-muted); }
 
-.input:focus {
-  border-color: var(--accent);
-}
-
-.input::placeholder {
-  color: var(--text-muted);
-}
-
-/* Badge */
-.badge {
-  display: inline-flex;
-  align-items: center;
-  padding: 0.125rem 0.5rem;
-  border-radius: 9999px;
-  font-size: 0.75rem;
-  font-weight: 500;
-}
-
-/* Status dot */
-.status-dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 9999px;
-}
-
+/* ─── Status dots ───────────────────────────────────────────────────────── */
+.status-dot { width: 8px; height: 8px; border-radius: 9999px; }
 .status-online { background: #22c55e; }
 .status-idle { background: #f59e0b; }
 .status-offline { background: #71717a; }
 .status-busy { background: #ef4444; }
+
+/* ─── Tailwind dark layer ───────────────────────────────────────────────── */
+/* These ensure dark defaults when neither .dark nor .light is set */
+@layer base {
+  html {
+    @apply bg-zinc-950 text-zinc-100;
+  }
+}
