@@ -1,6 +1,5 @@
 FROM node:20-alpine
 
-# Add node group for non-root user
 RUN addgroup -g 1001 -S nodejs && adduser -S node -u 1001
 
 WORKDIR /app
@@ -12,8 +11,9 @@ COPY package.json ./
 RUN npm install
 
 # Copy application code
-COPY lib ./lib
-COPY routes ./routes
+COPY src/lib ./src/lib
+COPY src/routes ./src/routes
+COPY src/types.ts ./src/types.ts
 COPY index.ts ./
 COPY tsconfig.json ./
 

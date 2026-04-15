@@ -1,7 +1,7 @@
 import type { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import getSupabase from '../lib/supabase.js';
 import { sendTelegramMessage, eventPriority } from '../lib/telegram.js';
-import type { ActivityEvent, ToolCall, SessionEvent } from '../../shared/types.js';
+import type { ActivityEvent, ToolCall, SessionEvent } from '../src/types.js';
 
 const AGENT_TOKENS = new Map<string, string>([
   ['string', process.env.AGENT_TOKEN_STRING || 'string-secret'],

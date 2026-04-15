@@ -5,5 +5,10 @@ dist/
 .DS_Store
 
 # Next.js
-.next/
-out/
+frontend/.next/
+frontend/out/
+
+# Backend
+backend/dist/
+backend/node_modules/
+frontend/node_modules/

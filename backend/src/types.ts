@@ -1,5 +1,3 @@
-// Mission Control — Shared Types
-
 export type AgentStatus = "online" | "idle" | "busy" | "offline";
 export type ProjectStatus = "active" | "paused" | "completed" | "archived";
 export type TaskStatus = "pending" | "in-progress" | "completed" | "blocked";
@@ -17,9 +15,7 @@ export interface Agent {
   last_heartbeat: string;
   current_task?: string;
   skills: string[];
-  memory: {
-    has_memory_md: boolean;
-  };
+  memory: { has_memory_md: boolean };
 }
 
 export interface Project {
@@ -77,12 +73,4 @@ export interface SessionEvent {
   message: string;
   metadata: Record<string, unknown>;
   created_at: string;
-}
-
-export interface LiveDashboardData {
-  agents: Agent[];
-  projects: Project[];
-  tasks: Task[];
-  recentActivity: ActivityEvent[];
-  timestamp: string;
 }

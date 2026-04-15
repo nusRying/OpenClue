@@ -1,6 +1,6 @@
 import type { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import getSupabase from '../lib/supabase.js';
-import type { Agent, Project, Task, ActivityEvent } from '../../shared/types.js';
+import type { Agent, Project, Task, ActivityEvent } from '../src/types.js';
 
 export async function liveRouter(fastify: FastifyInstance) {
   const supabase = getSupabase();
