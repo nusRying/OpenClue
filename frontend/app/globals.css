@@ -65,8 +65,8 @@
 
     /* ─── Cards ───────────────────────────────────────────────────────────── */
     --card-bg: #18181b;
-    --card-border: #27272a;
-    --card-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    --card-border: #3f3f46;
+    --card-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
 
     /* ─── Column status backgrounds ──────────────────────────────────────── */
     --col-pending: rgba(113, 113, 122, 0.12);
@@ -152,7 +152,7 @@
     --priority-critical-bg: rgba(220, 38, 38, 0.12);
 
     --card-bg: #ffffff;
-    --card-border: #e4e4e7;
+    --card-border: #d4d4d8;
     --card-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
 
     --col-pending: rgba(113, 113, 122, 0.1);
@@ -209,6 +209,7 @@
     background: var(--card-bg);
     border: 1px solid var(--card-border);
     border-radius: var(--radius-lg);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
   }
 
   /* ─── Button ─────────────────────────────────────────────────────────────── */
