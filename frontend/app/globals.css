@@ -33,6 +33,10 @@
   --card-bg: #18181b;
   --card-border: #27272a;
 
+  --col-in-progress: rgba(59, 130, 246, 0.1);
+  --col-completed: rgba(34, 197, 94, 0.1);
+  --col-blocked: rgba(239, 68, 68, 0.1);
+
   --radius: 0.5rem;
 }
 
@@ -64,6 +68,10 @@ html.light {
 
   --card-bg: #ffffff;
   --card-border: #e4e4e7;
+
+  --col-in-progress: rgba(59, 130, 246, 0.08);
+  --col-completed: rgba(22, 163, 74, 0.08);
+  --col-blocked: rgba(220, 38, 38, 0.08);
 }
 
 * {
@@ -110,6 +118,20 @@ body {
 .bg-success-subtle { background-color: var(--success-bg); }
 .bg-warning-subtle { background-color: var(--warning-bg); }
 .bg-error-subtle { background-color: var(--error-bg); }
+.bg-info-subtle { background-color: var(--info-bg, rgba(59, 130, 246, 0.15)); }
+.bg-accent-subtle { background-color: var(--accent-bg); }
+
+/* Status column backgrounds */
+.col-pending { background-color: var(--bg-tertiary); }
+.col-in-progress { background-color: var(--col-in-progress, rgba(59, 130, 246, 0.1)); }
+.col-completed { background-color: var(--col-completed, rgba(34, 197, 94, 0.1)); }
+.col-blocked { background-color: var(--col-blocked, rgba(239, 68, 68, 0.1)); }
+
+/* Priority badge backgrounds */
+.badge-low { background-color: var(--bg-tertiary); color: var(--text-muted); }
+.badge-medium { background-color: var(--warning-bg); color: var(--warning); }
+.badge-high { background-color: rgba(249, 115, 22, 0.3); color: #f97316; }
+.badge-critical { background-color: var(--error-bg); color: var(--error); }
 
 .text-accent { color: var(--accent); }
 .text-success { color: var(--success); }

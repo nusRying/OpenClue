@@ -6,17 +6,17 @@ import { NewTaskModal } from '@/components/modals/NewTaskModal'
 import { EditTaskModal } from '@/components/modals/EditTaskModal'
 
 const COLUMNS: { id: TaskStatus; label: string; dotColor: string; colBg: string; colBorder: string }[] = [
-  { id: 'pending', label: 'To do', dotColor: 'bg-zinc-500', colBg: 'bg-[var(--bg-tertiary)]', colBorder: 'border-[var(--border)]' },
-  { id: 'in-progress', label: 'In progress', dotColor: 'bg-blue-500', colBg: 'bg-blue-900/10', colBorder: 'border-blue-700/50' },
-  { id: 'completed', label: 'Done', dotColor: 'bg-success', colBg: 'bg-success-bg', colBorder: 'border-success/30' },
-  { id: 'blocked', label: 'Blocked', dotColor: 'bg-error', colBg: 'bg-error-bg', colBorder: 'border-error/30' },
+  { id: 'pending', label: 'To do', dotColor: 'bg-zinc-500', colBg: 'col-pending', colBorder: 'border-[var(--border)]' },
+  { id: 'in-progress', label: 'In progress', dotColor: 'bg-blue-500', colBg: 'col-in-progress', colBorder: 'border-blue-500/30' },
+  { id: 'completed', label: 'Done', dotColor: 'bg-success', colBg: 'col-completed', colBorder: 'border-success/30' },
+  { id: 'blocked', label: 'Blocked', dotColor: 'bg-error', colBg: 'col-blocked', colBorder: 'border-error/30' },
 ]
 
 const PRIORITY_CONFIG = {
-  low: { label: 'Low', color: 'text-muted', bg: 'bg-tertiary' },
-  medium: { label: 'Medium', color: 'text-warning', bg: 'bg-warning-bg' },
-  high: { label: 'High', color: 'text-orange-400', bg: 'bg-orange-900/30' },
-  critical: { label: 'Critical', color: 'text-error', bg: 'bg-error-bg' },
+  low: { label: 'Low', color: 'text-muted', bg: 'badge-low' },
+  medium: { label: 'Medium', color: 'text-warning', bg: 'badge-medium' },
+  high: { label: 'High', color: 'text-orange-400', bg: 'badge-high' },
+  critical: { label: 'Critical', color: 'text-error', bg: 'badge-critical' },
 }
 
 interface Props {
