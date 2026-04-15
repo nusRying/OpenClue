@@ -7,8 +7,8 @@ WORKDIR /app
 # Build context is repo root (Coolify sets context to repo root, not backend/)
 # So all COPY paths must use backend/ prefix
 COPY backend/package.json ./backend/package.json
-COPY backend/src/lib ./backend/src/lib
-COPY backend/src/routes ./backend/src/routes
+COPY backend/lib ./backend/lib
+COPY backend/routes ./backend/routes
 COPY backend/src/types.ts ./backend/src/types.ts
 COPY backend/index.ts ./backend/index.ts
 COPY backend/tsconfig.json ./backend/tsconfig.json
