@@ -1,11 +1,9 @@
 FROM node:20-alpine
 
-RUN addgroup -g 1001 -S nodejs && adduser -S node -u 1001
-
 WORKDIR /app
 
 # Build context is repo root (Coolify sets context to repo root, not frontend/)
-# So all COPY paths must use frontend/ prefix
+# All COPY paths use frontend/ prefix
 COPY frontend/package.json ./frontend/package.json
 COPY frontend/app ./frontend/app
 COPY frontend/components ./frontend/components
@@ -20,9 +18,6 @@ COPY frontend/next-env.d.ts ./frontend/next-env.d.ts
 
 # Install dependencies and build
 RUN cd ./frontend && npm install && npm run build
-
-# Switch to non-root user
-USER node
 
 # Start
 CMD ["cd", "./frontend", "&&", "npm", "start"]
