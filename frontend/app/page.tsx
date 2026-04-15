@@ -1,12 +1,13 @@
 'use client'
 
 import { useCallback, useState } from 'react'
-import { useAgents, useProjects, useTasks, useActivity, useRealtimeAgents, useRealtimeTasks, useRealtimeProjects, useRealtimeActivity, useCreateProject, useCreateTask, useUpdateTaskStatus } from '@/hooks/useQueries'
+import { useAgents, useProjects, useTasks, useActivity, useRealtimeAgents, useRealtimeTasks, useRealtimeProjects, useRealtimeActivity, useCreateProject, useUpdateProject, useDeleteProject, useCreateTask, useUpdateTask, useDeleteTask, useUpdateTaskStatus } from '@/hooks/useQueries'
 import { AgentCard } from '@/components/agents/AgentCard'
 import { ProjectsPanel } from '@/components/projects/ProjectsPanel'
 import { TaskBoard } from '@/components/tasks/TaskBoard'
 import { ActivityFeed } from '@/components/dashboard/ActivityFeed'
-import type { Project } from '@/types'
+import { Timeline } from '@/components/timeline/Timeline'
+import type { Project, Task } from '@/types'
 
 export default function DashboardPage() {
   const { data: agentsData, isLoading: agentsLoading } = useAgents()
@@ -15,10 +16,15 @@ export default function DashboardPage() {
   const { data: activityData, isLoading: activityLoading } = useActivity()
 
   const createProject = useCreateProject()
+  const updateProject = useUpdateProject()
+  const deleteProject = useDeleteProject()
   const createTask = useCreateTask()
+  const updateTask = useUpdateTask()
+  const deleteTask = useDeleteTask()
   const updateTaskStatus = useUpdateTaskStatus()
 
   const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null)
+  const [showTimeline, setShowTimeline] = useState(false)
 
   // Real-time invalidation on Supabase changes
   useRealtimeAgents()
@@ -34,9 +40,26 @@ export default function DashboardPage() {
     createProject.mutate(project)
   }, [createProject])
 
-  const handleCreateTask = useCallback((task: Partial<any>) => {
+  const handleUpdateProject = useCallback((project: { id: string } & Partial<Project>) => {
+    updateProject.mutate(project)
+  }, [updateProject])
+
+  const handleDeleteProject = useCallback((id: string) => {
+    deleteProject.mutate(id)
+    if (selectedProjectId === id) setSelectedProjectId(null)
+  }, [deleteProject, selectedProjectId])
+
+  const handleCreateTask = useCallback((task: Partial<Task>) => {
     createTask.mutate(task)
   }, [createTask])
+
+  const handleUpdateTask = useCallback((task: { id: string } & Partial<Task>) => {
+    updateTask.mutate(task)
+  }, [updateTask])
+
+  const handleDeleteTask = useCallback((id: string) => {
+    deleteTask.mutate(id)
+  }, [deleteTask])
 
   const isLoading = agentsLoading || projectsLoading || tasksLoading || activityLoading
 
@@ -99,68 +122,109 @@ export default function DashboardPage() {
                 <div className="text-xl font-bold text-gray-900">{pendingTasks}</div>
                 <div className="text-xs text-gray-500">Pending</div>
               </div>
+              <button
+                onClick={() => setShowTimeline(!showTimeline)}
+                className={`px-3 py-1.5 rounded-lg text-sm font-medium transition ${
+                  showTimeline ? 'bg-indigo-100 text-indigo-700' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                }`}
+              >
+                📊 Timeline
+              </button>
             </div>
           </div>
         </div>
       </header>
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-          {/* Left sidebar: Agents */}
-          <div className="lg:col-span-1 space-y-4">
-            <div className="bg-white rounded-xl border overflow-hidden">
-              <div className="px-4 py-3 border-b bg-gray-50 flex items-center justify-between">
-                <div className="flex items-center gap-2">
+        {showTimeline ? (
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div className="lg:col-span-2">
+              <Timeline tasks={tasks} projects={projects} agents={agents} />
+            </div>
+            <div className="space-y-4">
+              <div className="bg-white rounded-xl border overflow-hidden">
+                <div className="px-4 py-3 border-b bg-gray-50 flex items-center gap-2">
                   <span className="text-lg">👥</span>
                   <h3 className="font-semibold">Agents</h3>
-                  <span className="text-xs bg-gray-200 text-gray-600 px-2 py-0.5 rounded">{agents.length}</span>
                 </div>
-                <span className="text-xs text-green-600 font-medium">{onlineAgents} online</span>
+                <div className="divide-y max-h-64 overflow-y-auto">
+                  {agents.map((agent: any) => (
+                    <AgentCard key={agent.id} agent={agent} />
+                  ))}
+                </div>
               </div>
-              <div className="divide-y max-h-[calc(100vh-300px)] overflow-y-auto">
-                {agents.map((agent: any) => (
-                  <AgentCard key={agent.id} agent={agent} />
-                ))}
-                {agents.length === 0 && (
-                  <div className="px-4 py-8 text-center text-gray-400 text-sm">
-                    No agents registered
+              <div className="bg-white rounded-xl border overflow-hidden">
+                <div className="px-4 py-3 border-b bg-gray-50 flex items-center gap-2">
+                  <span className="text-lg">⚡</span>
+                  <h3 className="font-semibold">Recent Activity</h3>
+                </div>
+                <div className="max-h-64 overflow-y-auto">
+                  <ActivityFeed events={activity.slice(0, 20)} compact />
+                </div>
+              </div>
+            </div>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+            {/* Left sidebar: Agents + Activity */}
+            <div className="lg:col-span-1 space-y-4">
+              <div className="bg-white rounded-xl border overflow-hidden">
+                <div className="px-4 py-3 border-b bg-gray-50 flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <span className="text-lg">👥</span>
+                    <h3 className="font-semibold">Agents</h3>
+                    <span className="text-xs bg-gray-200 text-gray-600 px-2 py-0.5 rounded">{agents.length}</span>
                   </div>
-                )}
+                  <span className="text-xs text-green-600 font-medium">{onlineAgents} online</span>
+                </div>
+                <div className="divide-y max-h-[calc(100vh-400px)] overflow-y-auto">
+                  {agents.map((agent: any) => (
+                    <AgentCard key={agent.id} agent={agent} />
+                  ))}
+                  {agents.length === 0 && (
+                    <div className="px-4 py-8 text-center text-gray-400 text-sm">
+                      No agents registered
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              <div className="bg-white rounded-xl border overflow-hidden">
+                <div className="px-4 py-3 border-b bg-gray-50 flex items-center gap-2">
+                  <span className="text-lg">⚡</span>
+                  <h3 className="font-semibold">Recent Activity</h3>
+                </div>
+                <div className="max-h-64 overflow-y-auto">
+                  <ActivityFeed events={activity.slice(0, 20)} compact />
+                </div>
               </div>
             </div>
 
-            {/* Activity feed in sidebar */}
-            <div className="bg-white rounded-xl border overflow-hidden">
-              <div className="px-4 py-3 border-b bg-gray-50 flex items-center gap-2">
-                <span className="text-lg">⚡</span>
-                <h3 className="font-semibold">Recent Activity</h3>
-              </div>
-              <div className="max-h-64 overflow-y-auto">
-                <ActivityFeed events={activity.slice(0, 20)} compact />
-              </div>
+            {/* Main content: Projects + Tasks */}
+            <div className="lg:col-span-3 space-y-6">
+              <ProjectsPanel
+                projects={projects}
+                agents={agents}
+                onCreateProject={handleCreateProject}
+                onUpdateProject={handleUpdateProject}
+                onDeleteProject={handleDeleteProject}
+                onSelectProject={setSelectedProjectId}
+                selectedProjectId={selectedProjectId}
+              />
+
+              <TaskBoard
+                tasks={tasks}
+                projects={projects}
+                agents={agents}
+                onStatusChange={handleStatusChange}
+                onCreateTask={handleCreateTask}
+                onUpdateTask={handleUpdateTask}
+                onDeleteTask={handleDeleteTask}
+                selectedProjectId={selectedProjectId}
+              />
             </div>
           </div>
-
-          {/* Main content: Projects + Tasks */}
-          <div className="lg:col-span-3 space-y-6">
-            {/* Projects panel with filter */}
-            <ProjectsPanel
-              projects={projects}
-              onCreateProject={handleCreateProject}
-              onSelectProject={setSelectedProjectId}
-              selectedProjectId={selectedProjectId}
-            />
-
-            {/* Task board with project filter */}
-            <TaskBoard
-              tasks={tasks}
-              projects={projects}
-              onStatusChange={handleStatusChange}
-              onCreateTask={handleCreateTask}
-              selectedProjectId={selectedProjectId}
-            />
-          </div>
-        </div>
+        )}
       </main>
     </div>
   )

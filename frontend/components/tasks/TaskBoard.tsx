@@ -1,8 +1,9 @@
 'use client'
 
 import { useState } from 'react'
-import type { Task, TaskStatus, Project } from '@/types'
+import type { Task, TaskStatus, Project, Agent } from '@/types'
 import { NewTaskModal } from '@/components/modals/NewTaskModal'
+import { EditTaskModal } from '@/components/modals/EditTaskModal'
 
 const COLUMNS: { id: TaskStatus; label: string; color: string }[] = [
   { id: 'pending', label: 'Pending', color: 'border-gray-300' },
@@ -28,14 +29,18 @@ const PRIORITY_BADGE = {
 interface Props {
   tasks: Task[]
   projects: Project[]
+  agents: Agent[]
   onStatusChange?: (taskId: string, newStatus: TaskStatus) => void
   onCreateTask: (task: Partial<Task>) => void
+  onUpdateTask: (task: { id: string } & Partial<Task>) => void
+  onDeleteTask: (id: string) => void
   selectedProjectId: string | null
 }
 
-export function TaskBoard({ tasks, projects, onStatusChange, onCreateTask, selectedProjectId }: Props) {
+export function TaskBoard({ tasks, projects, agents, onStatusChange, onCreateTask, onUpdateTask, onDeleteTask, selectedProjectId }: Props) {
   const [draggedTask, setDraggedTask] = useState<Task | null>(null)
-  const [showModal, setShowModal] = useState(false)
+  const [showNewModal, setShowNewModal] = useState(false)
+  const [editTask, setEditTask] = useState<Task | null>(null)
 
   const filteredTasks = selectedProjectId
     ? tasks.filter(t => t.project_id === selectedProjectId)
@@ -57,6 +62,7 @@ export function TaskBoard({ tasks, projects, onStatusChange, onCreateTask, selec
   }
 
   const selectedProject = projects.find(p => p.id === selectedProjectId)
+  const hasProjects = projects.length > 0
 
   return (
     <>
@@ -73,8 +79,8 @@ export function TaskBoard({ tasks, projects, onStatusChange, onCreateTask, selec
             )}
           </div>
           <button
-            onClick={() => setShowModal(true)}
-            disabled={projects.length === 0}
+            onClick={() => setShowNewModal(true)}
+            disabled={!hasProjects}
             className="text-sm bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1.5 rounded-lg font-medium transition flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <span>+</span> New Task
@@ -96,31 +102,42 @@ export function TaskBoard({ tasks, projects, onStatusChange, onCreateTask, selec
                 </span>
               </div>
               <div className="space-y-2">
-                {filteredTasks.filter(t => t.status === col.id).map(task => (
-                  <div
-                    key={task.id}
-                    draggable
-                    onDragStart={() => handleDragStart(task)}
-                    className={`bg-white rounded border p-3 cursor-grab active:cursor-grabbing hover:shadow-sm transition-shadow ${
-                      draggedTask?.id === task.id ? 'opacity-50' : ''
-                    }`}
-                  >
-                    <div className="font-medium text-sm leading-tight">{task.title}</div>
-                    {task.description && (
-                      <div className="text-xs text-gray-500 mt-1 line-clamp-2">{task.description}</div>
-                    )}
-                    <div className="flex items-center gap-2 mt-2 flex-wrap">
-                      <span className={`text-xs px-1.5 py-0.5 rounded ${PRIORITY_BADGE[task.priority]} ${PRIORITY_COLORS[task.priority]}`}>
-                        {task.priority}
-                      </span>
-                      {task.due_date && (
-                        <span className="text-xs text-gray-400">
-                          {new Date(task.due_date).toLocaleDateString()}
-                        </span>
+                {filteredTasks.filter(t => t.status === col.id).map(task => {
+                  const assignee = agents.find(a => a.id === task.assignee_id)
+                  return (
+                    <div
+                      key={task.id}
+                      draggable
+                      onDragStart={() => handleDragStart(task)}
+                      onClick={() => setEditTask(task)}
+                      className={`bg-white rounded border p-3 cursor-pointer hover:shadow-md transition-shadow ${
+                        draggedTask?.id === task.id ? 'opacity-50' : ''
+                      }`}
+                    >
+                      <div className="font-medium text-sm leading-tight">{task.title}</div>
+                      {task.description && (
+                        <div className="text-xs text-gray-500 mt-1 line-clamp-2">{task.description}</div>
                       )}
+                      <div className="flex items-center gap-2 mt-2 flex-wrap">
+                        <span className={`text-xs px-1.5 py-0.5 rounded ${PRIORITY_BADGE[task.priority]} ${PRIORITY_COLORS[task.priority]}`}>
+                          {task.priority}
+                        </span>
+                        {assignee && (
+                          <span className="text-xs text-gray-500">{assignee.emoji} {assignee.name}</span>
+                        )}
+                        {task.due_date && (
+                          <span className={`text-xs ${
+                            new Date(task.due_date) < new Date() && task.status !== 'completed'
+                              ? 'text-red-500 font-medium'
+                              : 'text-gray-400'
+                          }`}>
+                            {new Date(task.due_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                          </span>
+                        )}
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  )
+                })}
                 {filteredTasks.filter(t => t.status === col.id).length === 0 && (
                   <div className="text-center text-xs text-gray-400 py-6">
                     No tasks
@@ -131,7 +148,7 @@ export function TaskBoard({ tasks, projects, onStatusChange, onCreateTask, selec
           ))}
         </div>
 
-        {projects.length === 0 && (
+        {!hasProjects && (
           <div className="text-center text-sm text-gray-400 py-6">
             Create a project first to add tasks
           </div>
@@ -139,10 +156,19 @@ export function TaskBoard({ tasks, projects, onStatusChange, onCreateTask, selec
       </div>
 
       <NewTaskModal
-        isOpen={showModal}
-        onClose={() => setShowModal(false)}
+        isOpen={showNewModal}
+        onClose={() => setShowNewModal(false)}
         onCreate={onCreateTask}
         projects={projects}
+      />
+
+      <EditTaskModal
+        isOpen={!!editTask}
+        onClose={() => setEditTask(null)}
+        onSave={onUpdateTask}
+        onDelete={onDeleteTask}
+        task={editTask}
+        agents={agents}
       />
     </>
   )
