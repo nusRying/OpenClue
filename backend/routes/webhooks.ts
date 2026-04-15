@@ -23,7 +23,7 @@ async function resolveAgentUuid(supabase: ReturnType<typeof getSupabase>, agentN
   const { data } = await supabase
     .from('agents')
     .select('id')
-    .eq('name', agentName)
+    .ilike('name', agentName)
     .maybeSingle();
   return data?.id ?? null;
 }
