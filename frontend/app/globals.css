@@ -70,6 +70,14 @@
     --col-done: rgba(74, 222, 128, 0.12);
     --col-blocked: rgba(248, 113, 113, 0.12);
 
+    /* ─── Status badge borders (muted bg + color border) ────────────────────── */
+    --status-in-progress-bg: rgba(96, 165, 250, 0.15);
+    --status-in-progress-border: rgba(96, 165, 250, 0.3);
+    --status-completed-bg: var(--success-muted);
+    --status-completed-border: rgba(74, 222, 128, 0.3);
+    --status-blocked-bg: var(--error-muted);
+    --status-blocked-border: rgba(248, 113, 113, 0.3);
+
     /* ─── Input / Form ───────────────────────────────────────────────────── */
     --input-bg: #27272a;
     --input-border: #3f3f46;
@@ -138,6 +146,14 @@
     --col-in-progress: rgba(99, 102, 241, 0.1);
     --col-done: rgba(22, 163, 74, 0.1);
     --col-blocked: rgba(220, 38, 38, 0.1);
+
+    /* ─── Status badge borders (muted bg + color border) ────────────────────── */
+    --status-in-progress-bg: rgba(99, 102, 241, 0.12);
+    --status-in-progress-border: rgba(99, 102, 241, 0.25);
+    --status-completed-bg: rgba(22, 163, 74, 0.1);
+    --status-completed-border: rgba(22, 163, 74, 0.25);
+    --status-blocked-bg: rgba(220, 38, 38, 0.1);
+    --status-blocked-border: rgba(220, 38, 38, 0.25);
 
     --input-bg: #f4f4f5;
     --input-border: #e4e4e7;
