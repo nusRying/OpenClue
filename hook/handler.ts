@@ -8,6 +8,7 @@
 import type { HookHandler } from "openclaw/sdk/hook";
 
 const BACKEND_URL = process.env.MISSION_CONTROL_BACKEND_URL || "http://mission-control-backend:3001";
+const AGENT_TOKEN = process.env.MISSION_CONTROL_AGENT_TOKEN || process.env.AGENT_TOKEN_STRING || "string-secret";
 
 interface SessionEvent {
   sessionKey: string;
@@ -21,7 +22,10 @@ async function sendToBackend(event: SessionEvent): Promise<void> {
   try {
     await fetch(`${BACKEND_URL}/api/webhook/openclaw`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        "X-Agent-Token": AGENT_TOKEN,
+      },
       body: JSON.stringify({
         agent_id: event.agentId,
         event_type: event.event,
