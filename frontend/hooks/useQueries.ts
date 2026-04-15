@@ -155,6 +155,34 @@ export function useRealtimeActivity() {
 
 // ─── Mutations ───────────────────────────────────────────────────────────
 
+export function useCreateProject() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: async (project: Partial<Project>) => {
+      const { data, error } = await supabase.from('projects').insert(project).select().single()
+      if (error) throw error
+      return data
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['projects'] })
+    },
+  })
+}
+
+export function useUpdateProject() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: async ({ id, ...updates }: { id: string } & Partial<Project>) => {
+      const { data, error } = await supabase.from('projects').update(updates).eq('id', id).select().single()
+      if (error) throw error
+      return data
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['projects'] })
+    },
+  })
+}
+
 export function useCreateTask() {
   const queryClient = useQueryClient()
   return useMutation({

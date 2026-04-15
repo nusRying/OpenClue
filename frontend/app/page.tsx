@@ -1,11 +1,12 @@
 'use client'
 
-import { useCallback } from 'react'
-import { useAgents, useProjects, useTasks, useActivity, useRealtimeAgents, useRealtimeTasks, useRealtimeProjects, useRealtimeActivity, useUpdateTaskStatus } from '@/hooks/useQueries'
+import { useCallback, useState } from 'react'
+import { useAgents, useProjects, useTasks, useActivity, useRealtimeAgents, useRealtimeTasks, useRealtimeProjects, useRealtimeActivity, useCreateProject, useCreateTask, useUpdateTaskStatus } from '@/hooks/useQueries'
 import { AgentCard } from '@/components/agents/AgentCard'
-import { ProjectCard } from '@/components/projects/ProjectCard'
+import { ProjectsPanel } from '@/components/projects/ProjectsPanel'
 import { TaskBoard } from '@/components/tasks/TaskBoard'
 import { ActivityFeed } from '@/components/dashboard/ActivityFeed'
+import type { Project } from '@/types'
 
 export default function DashboardPage() {
   const { data: agentsData, isLoading: agentsLoading } = useAgents()
@@ -13,24 +14,39 @@ export default function DashboardPage() {
   const { data: tasksData, isLoading: tasksLoading } = useTasks()
   const { data: activityData, isLoading: activityLoading } = useActivity()
 
+  const createProject = useCreateProject()
+  const createTask = useCreateTask()
+  const updateTaskStatus = useUpdateTaskStatus()
+
+  const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null)
+
   // Real-time invalidation on Supabase changes
   useRealtimeAgents()
   useRealtimeTasks()
   useRealtimeProjects()
   useRealtimeActivity()
 
-  const updateTaskStatus = useUpdateTaskStatus()
-
   const handleStatusChange = useCallback((taskId: string, newStatus: string) => {
     updateTaskStatus.mutate({ id: taskId, status: newStatus })
   }, [updateTaskStatus])
+
+  const handleCreateProject = useCallback((project: Partial<Project>) => {
+    createProject.mutate(project)
+  }, [createProject])
+
+  const handleCreateTask = useCallback((task: Partial<any>) => {
+    createTask.mutate(task)
+  }, [createTask])
 
   const isLoading = agentsLoading || projectsLoading || tasksLoading || activityLoading
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gray-100 flex items-center justify-center">
-        <div className="text-gray-500">Loading Mission Control...</div>
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+          <div className="text-gray-500">Loading Mission Control...</div>
+        </div>
       </div>
     )
   }
@@ -40,131 +56,112 @@ export default function DashboardPage() {
   const tasks = tasksData?.tasks ?? []
   const activity = activityData?.activity ?? []
 
-  const onlineAgents = agents.filter((a: any) => a.status === 'online').length
+  const onlineAgents = agents.filter((a: any) => a.last_seen_at && (Date.now() - new Date(a.last_seen_at).getTime()) < 5 * 60 * 1000).length
+  const activeProjects = projects.filter((p: any) => p.status === 'active').length
+  const pendingTasks = tasks.filter((t: any) => t.status === 'pending').length
+  const inProgressTasks = tasks.filter((t: any) => t.status === 'in-progress').length
 
   return (
-    <div className="min-h-screen bg-gray-100">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
       {/* Header */}
-      <header className="bg-white border-b px-6 py-4 sticky top-0 z-10">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <span className="text-2xl">🎯</span>
-            <h1 className="text-xl font-bold">Mission Control</h1>
-            <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded">LIVE</span>
-          </div>
-          <div className="flex gap-6 text-sm text-gray-600">
-            <span>Agents: <strong className="text-gray-900">{agents.length}</strong></span>
-            <span>Projects: <strong className="text-gray-900">{projects.length}</strong></span>
-            <span>Tasks: <strong className="text-gray-900">{tasks.length}</strong></span>
+      <header className="bg-white border-b sticky top-0 z-20">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between h-16">
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-lg flex items-center justify-center">
+                <span className="text-white text-lg">🎯</span>
+              </div>
+              <div>
+                <h1 className="text-lg font-bold text-gray-900">Mission Control</h1>
+                <div className="flex items-center gap-2">
+                  <span className="relative flex h-2 w-2">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                    <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
+                  </span>
+                  <span className="text-xs text-gray-500">Live</span>
+                </div>
+              </div>
+            </div>
+            <div className="flex items-center gap-6 text-sm">
+              <div className="text-center">
+                <div className="text-xl font-bold text-gray-900">{agents.length}</div>
+                <div className="text-xs text-gray-500">Agents</div>
+              </div>
+              <div className="text-center">
+                <div className="text-xl font-bold text-gray-900">{activeProjects}</div>
+                <div className="text-xs text-gray-500">Active</div>
+              </div>
+              <div className="text-center">
+                <div className="text-xl font-bold text-gray-900">{inProgressTasks}</div>
+                <div className="text-xs text-gray-500">In Progress</div>
+              </div>
+              <div className="text-center">
+                <div className="text-xl font-bold text-gray-900">{pendingTasks}</div>
+                <div className="text-xs text-gray-500">Pending</div>
+              </div>
+            </div>
           </div>
         </div>
       </header>
 
-      <main className="p-6 space-y-6">
-        {/* Stats Row */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <StatCard
-            title="Online Agents"
-            value={onlineAgents}
-            subtitle={`of ${agents.length} total`}
-            icon="👥"
-            color="green"
-          />
-          <StatCard
-            title="Active Projects"
-            value={projects.filter((p: any) => p.status === 'active').length}
-            subtitle={`${projects.filter((p: any) => p.status === 'completed').length} completed`}
-            icon="📁"
-            color="blue"
-          />
-          <StatCard
-            title="Pending Tasks"
-            value={tasks.filter((t: any) => t.status === 'pending').length}
-            subtitle={`${tasks.filter((t: any) => t.status === 'in-progress').length} in progress`}
-            icon="📋"
-            color="yellow"
-          />
-        </div>
-
-        {/* Main Grid */}
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-          {/* Agents */}
-          <div className="lg:col-span-1 space-y-3">
-            <h2 className="text-lg font-semibold flex items-center gap-2">
-              👥 Agents <span className="text-xs text-gray-400 font-normal">{agents.length}</span>
-            </h2>
-            <div className="space-y-2 max-h-96 overflow-y-auto pr-1">
-              {agents.map((agent: any) => (
-                <AgentCard key={agent.id} agent={agent} />
-              ))}
-              {agents.length === 0 && (
-                <p className="text-sm text-gray-400 text-center py-4">No agents registered</p>
-              )}
-            </div>
-          </div>
-
-          {/* Projects + Tasks */}
-          <div className="lg:col-span-3 space-y-6">
-            {/* Projects */}
-            <div>
-              <h2 className="text-lg font-semibold flex items-center gap-2 mb-3">
-                📁 Projects <span className="text-xs text-gray-400 font-normal">{projects.length}</span>
-              </h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                {projects.map((project: any) => (
-                  <ProjectCard key={project.id} project={project} />
+          {/* Left sidebar: Agents */}
+          <div className="lg:col-span-1 space-y-4">
+            <div className="bg-white rounded-xl border overflow-hidden">
+              <div className="px-4 py-3 border-b bg-gray-50 flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <span className="text-lg">👥</span>
+                  <h3 className="font-semibold">Agents</h3>
+                  <span className="text-xs bg-gray-200 text-gray-600 px-2 py-0.5 rounded">{agents.length}</span>
+                </div>
+                <span className="text-xs text-green-600 font-medium">{onlineAgents} online</span>
+              </div>
+              <div className="divide-y max-h-[calc(100vh-300px)] overflow-y-auto">
+                {agents.map((agent: any) => (
+                  <AgentCard key={agent.id} agent={agent} />
                 ))}
-                {projects.length === 0 && (
-                  <p className="text-sm text-gray-400 col-span-2 text-center py-4">No projects yet</p>
+                {agents.length === 0 && (
+                  <div className="px-4 py-8 text-center text-gray-400 text-sm">
+                    No agents registered
+                  </div>
                 )}
               </div>
             </div>
 
-            {/* Task Board */}
-            <div>
-              <h2 className="text-lg font-semibold flex items-center gap-2 mb-3">
-                📋 Task Board <span className="text-xs text-gray-400 font-normal">{tasks.length}</span>
-              </h2>
-              <TaskBoard
-                tasks={tasks}
-                onStatusChange={handleStatusChange}
-              />
+            {/* Activity feed in sidebar */}
+            <div className="bg-white rounded-xl border overflow-hidden">
+              <div className="px-4 py-3 border-b bg-gray-50 flex items-center gap-2">
+                <span className="text-lg">⚡</span>
+                <h3 className="font-semibold">Recent Activity</h3>
+              </div>
+              <div className="max-h-64 overflow-y-auto">
+                <ActivityFeed events={activity.slice(0, 20)} compact />
+              </div>
             </div>
           </div>
-        </div>
 
-        {/* Activity Feed */}
-        <div>
-          <h2 className="text-lg font-semibold mb-3 flex items-center gap-2">
-            ⚡ Recent Activity <span className="text-xs text-gray-400 font-normal">live</span>
-          </h2>
-          <ActivityFeed events={activity} />
+          {/* Main content: Projects + Tasks */}
+          <div className="lg:col-span-3 space-y-6">
+            {/* Projects panel with filter */}
+            <ProjectsPanel
+              projects={projects}
+              onCreateProject={handleCreateProject}
+              onSelectProject={setSelectedProjectId}
+              selectedProjectId={selectedProjectId}
+            />
+
+            {/* Task board with project filter */}
+            <TaskBoard
+              tasks={tasks}
+              projects={projects}
+              onStatusChange={handleStatusChange}
+              onCreateTask={handleCreateTask}
+              selectedProjectId={selectedProjectId}
+            />
+          </div>
         </div>
       </main>
-    </div>
-  )
-}
-
-function StatCard({ title, value, subtitle, icon, color }: {
-  title: string
-  value: number
-  subtitle: string
-  icon: string
-  color: 'green' | 'blue' | 'yellow'
-}) {
-  const colors = {
-    green: 'bg-green-50 border-green-200',
-    blue: 'bg-blue-50 border-blue-200',
-    yellow: 'bg-yellow-50 border-yellow-200',
-  }
-  return (
-    <div className={`rounded-lg border p-4 ${colors[color]}`}>
-      <div className="flex items-center gap-2 mb-2">
-        <span>{icon}</span>
-        <span className="text-sm font-medium text-gray-600">{title}</span>
-      </div>
-      <div className="text-3xl font-bold text-gray-900">{value}</div>
-      <div className="text-xs text-gray-500 mt-1">{subtitle}</div>
     </div>
   )
 }

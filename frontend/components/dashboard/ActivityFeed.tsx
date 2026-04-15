@@ -23,17 +23,38 @@ function formatTime(ts: string): string {
   return `${Math.floor(hrs / 24)}d ago`
 }
 
-export function ActivityFeed({ events }: { events: ActivityEvent[] }) {
+interface Props {
+  events: ActivityEvent[]
+  compact?: boolean
+}
+
+export function ActivityFeed({ events, compact = false }: Props) {
   if (!events || events.length === 0) {
     return (
-      <div className="bg-white rounded-lg border p-6 text-center text-gray-500 text-sm">
+      <div className={`${compact ? 'p-4' : 'rounded-lg border p-6'} text-center text-gray-500 text-sm`}>
         No activity yet
       </div>
     )
   }
 
+  if (compact) {
+    return (
+      <div className="divide-y">
+        {events.map(event => (
+          <div key={event.id} className="px-4 py-2 flex items-start gap-2 text-xs hover:bg-gray-50">
+            <span className="shrink-0">{EVENT_ICONS[event.event_type] ?? '📌'}</span>
+            <div className="flex-1 min-w-0">
+              <p className="text-gray-700 leading-snug line-clamp-2">{event.message}</p>
+              <span className="text-gray-400">{formatTime(event.created_at)}</span>
+            </div>
+          </div>
+        ))}
+      </div>
+    )
+  }
+
   return (
-    <div className="bg-white rounded-lg border divide-y">
+    <div className="rounded-lg border divide-y">
       {events.map(event => (
         <div key={event.id} className="p-3 flex items-start gap-3 text-sm hover:bg-gray-50">
           <span className="text-lg shrink-0">{EVENT_ICONS[event.event_type] ?? '📌'}</span>
