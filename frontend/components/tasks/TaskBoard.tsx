@@ -6,8 +6,8 @@ import { NewTaskModal } from '@/components/modals/NewTaskModal'
 import { EditTaskModal } from '@/components/modals/EditTaskModal'
 
 const COLUMNS: { id: TaskStatus; label: string; dotColor: string; colBg: string; colBorder: string }[] = [
-  { id: 'pending', label: 'To do', dotColor: '#71717a', colBg: 'var(--col-pending)', colBorder: 'var(--border-subtle)' },
-  { id: 'in-progress', label: 'In progress', dotColor: '#60a5fa', colBg: 'var(--col-in-progress)', colBorder: 'rgba(96,165,250,0.3)' },
+  { id: 'pending', label: 'To do', dotColor: 'var(--priority-low)', colBg: 'var(--col-pending)', colBorder: 'var(--border-subtle)' },
+  { id: 'in-progress', label: 'In progress', dotColor: 'var(--info)', colBg: 'var(--col-in-progress)', colBorder: 'rgba(96,165,250,0.3)' },
   { id: 'completed', label: 'Done', dotColor: 'var(--success)', colBg: 'var(--col-done)', colBorder: 'rgba(74,222,128,0.3)' },
   { id: 'blocked', label: 'Blocked', dotColor: 'var(--error)', colBg: 'var(--col-blocked)', colBorder: 'rgba(248,113,113,0.3)' },
 ]

@@ -4,16 +4,16 @@ import { useState } from 'react'
 import type { ActivityEvent } from '@/types'
 
 const EVENT_CONFIG: Record<string, { color: string; bgColor: string; icon: string; label?: string }> = {
-  agent_status: { color: '#60a5fa', bgColor: 'var(--info-muted)', icon: '●', label: 'Status' },
+  agent_status: { color: 'var(--info)', bgColor: 'var(--info-muted)', icon: '●', label: 'Status' },
   task_created: { color: 'var(--success)', bgColor: 'var(--success-muted)', icon: '+', label: 'Created' },
   task_updated: { color: 'var(--warning)', bgColor: 'var(--warning-muted)', icon: '↺', label: 'Updated' },
-  task_assigned: { color: '#c084fc', bgColor: 'rgba(192,132,252,0.15)', icon: '→', label: 'Assigned' },
-  project_updated: { color: '#22d3ee', bgColor: 'rgba(34,211,238,0.15)', icon: '◆', label: 'Project' },
+  task_assigned: { color: 'var(--accent-purple)', bgColor: 'rgba(167,139,250,0.15)', icon: '→', label: 'Assigned' },
+  project_updated: { color: 'var(--accent-teal)', bgColor: 'rgba(45,212,191,0.15)', icon: '◆', label: 'Project' },
   'message:received': { color: 'var(--accent)', bgColor: 'var(--accent-muted)', icon: '↓', label: 'In' },
-  'message:sent': { color: '#a78bfa', bgColor: 'rgba(167,139,250,0.15)', icon: '↑', label: 'Out' },
-  'message:preprocessed': { color: '#2dd4bf', bgColor: 'rgba(45,212,191,0.15)', icon: '→', label: 'Preprocess' },
+  'message:sent': { color: 'var(--accent-purple)', bgColor: 'rgba(167,139,250,0.15)', icon: '↑', label: 'Out' },
+  'message:preprocessed': { color: 'var(--accent-teal)', bgColor: 'rgba(45,212,191,0.15)', icon: '→', label: 'Preprocess' },
   tool_start: { color: 'var(--text-tertiary)', bgColor: 'var(--bg-elevated)', icon: '▶', label: 'Tool' },
-  tool_end: { color: '#fb923c', bgColor: 'rgba(251,146,60,0.15)', icon: '■', label: 'Tool' },
+  tool_end: { color: 'var(--accent-orange)', bgColor: 'rgba(251,146,60,0.15)', icon: '■', label: 'Tool' },
   session_event: { color: 'var(--text-tertiary)', bgColor: 'var(--bg-elevated)', icon: '●', label: 'Event' },
   session_error: { color: 'var(--error)', bgColor: 'var(--error-muted)', icon: '!', label: 'Error' },
 }

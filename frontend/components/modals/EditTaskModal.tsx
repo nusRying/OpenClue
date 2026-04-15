@@ -71,7 +71,7 @@ export function EditTaskModal({ isOpen, onClose, onSave, onDelete, task, agents 
 
   const STATUS_BADGE: Record<string, { bg: string; color: string; border: string }> = {
     pending: { bg: 'var(--bg-elevated)', color: 'var(--text-tertiary)', border: 'var(--border-default)' },
-    'in-progress': { bg: 'rgba(96,165,250,0.15)', color: '#60a5fa', border: 'rgba(96,165,250,0.3)' },
+    'in-progress': { bg: 'rgba(96,165,250,0.15)', color: 'var(--info)', border: 'rgba(96,165,250,0.3)' },
     completed: { bg: 'var(--success-muted)', color: 'var(--success)', border: 'rgba(74,222,128,0.3)' },
     blocked: { bg: 'var(--error-muted)', color: 'var(--error)', border: 'rgba(248,113,113,0.3)' },
   }

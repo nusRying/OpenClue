@@ -124,12 +124,12 @@ export default function DashboardPage() {
                     <span style={{
                       position: 'absolute', inset: 0,
                       borderRadius: '50%',
-                      background: '#4ade80',
+                      background: 'var(--status-online)',
                       animation: 'ping 1.5s cubic-bezier(0, 0, 0.2, 1) infinite',
                     }} />
-                    <span style={{ position: 'relative', display: 'inline-flex', width: 6, height: 6, borderRadius: '50%', background: '#4ade80', boxShadow: '0 0 6px #4ade80' }} />
+                    <span style={{ position: 'relative', display: 'inline-flex', width: 6, height: 6, borderRadius: '50%', background: 'var(--status-online)', boxShadow: '0 0 6px var(--status-online)' }} />
                   </span>
-                  <span style={{ fontSize: '0.625rem', color: '#4ade80', textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: 500 }}>Live</span>
+                  <span style={{ fontSize: '0.625rem', color: 'var(--status-online)', textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: 500 }}>Live</span>
                 </div>
               </div>
             </div>

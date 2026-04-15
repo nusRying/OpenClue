@@ -23,9 +23,9 @@ function formatLastSeen(ts: string | null): string {
 }
 
 const STATUS_CONFIG = {
-  online: { label: 'Online', color: '#4ade80' },
-  idle: { label: 'Idle', color: '#fbbf24' },
-  offline: { label: 'Offline', color: '#71717a' },
+  online: { label: 'Online', color: 'var(--status-online)' },
+  idle: { label: 'Idle', color: 'var(--status-idle)' },
+  offline: { label: 'Offline', color: 'var(--status-offline)' },
 }
 
 const compactStyle: React.CSSProperties = {
