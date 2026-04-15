@@ -18,6 +18,16 @@ function verifyAgentToken(request: FastifyRequest): string | null {
   return null;
 }
 
+// Resolve agent name (e.g. "string") to UUID from agents table
+async function resolveAgentUuid(supabase: ReturnType<typeof getSupabase>, agentName: string): Promise<string | null> {
+  const { data } = await supabase
+    .from('agents')
+    .select('id')
+    .eq('name', agentName)
+    .maybeSingle();
+  return data?.id ?? null;
+}
+
 interface WebhookBody {
   agent_id?: string;
   event_type?: string;
@@ -39,13 +49,16 @@ export async function webhooksRouter(fastify: FastifyInstance) {
 
     const { event_type, message, metadata } = request.body as WebhookBody;
 
+    // Resolve agent name to UUID for database
+    const agentUuid = await resolveAgentUuid(supabase, agentId);
+
     // Log to activity_log
     const { data: activity, error: activityError } = await supabase
       .from('activity_log')
       .insert({
         event_type: event_type || 'session_event',
         message: message || `Session event from ${agentId}`,
-        agent_id: metadata?.agent_id as string || agentId,
+        agent_id: agentUuid || agentId,
         project_id: metadata?.project_id as string,
         task_id: metadata?.task_id as string,
         metadata: metadata || {},
@@ -79,10 +92,12 @@ export async function webhooksRouter(fastify: FastifyInstance) {
 
     const { tool_name, session_id, metadata } = request.body as WebhookBody;
 
+    const agentUuid = await resolveAgentUuid(supabase, agentId);
+
     const { data: toolCall, error } = await supabase
       .from('tool_calls')
       .insert({
-        agent_id: agentId,
+        agent_id: agentUuid || agentId,
         session_id: session_id as string || 'unknown',
         tool_name: tool_name as string || 'unknown',
         started_at: new Date().toISOString(),
@@ -110,11 +125,13 @@ export async function webhooksRouter(fastify: FastifyInstance) {
 
     const { tool_name, session_id, success, error_message, started_at, metadata } = request.body as WebhookBody;
 
+    const agentUuid = await resolveAgentUuid(supabase, agentId);
+
     // Find matching tool_start record
     const { data: existing } = await supabase
       .from('tool_calls')
       .select('id, started_at')
-      .eq('agent_id', agentId)
+      .eq('agent_id', agentUuid || agentId)
       .eq('tool_name', tool_name as string)
       .is('ended_at', null)
       .order('started_at', { ascending: false })
@@ -147,7 +164,7 @@ export async function webhooksRouter(fastify: FastifyInstance) {
         const { error: logError } = await supabase.from('activity_log').insert({
           event_type: 'tool_end',
           message: `❌ Tool *${tool_name}* failed: ${error_message || 'unknown error'}`,
-          agent_id: agentId,
+          agent_id: agentUuid || agentId,
           metadata: { tool_name, duration_ms: durationMs, error_message },
         });
 
@@ -167,7 +184,7 @@ export async function webhooksRouter(fastify: FastifyInstance) {
     const { data: toolCall, error } = await supabase
       .from('tool_calls')
       .insert({
-        agent_id: agentId,
+        agent_id: agentUuid || agentId,
         session_id: session_id as string || 'unknown',
         tool_name: tool_name as string || 'unknown',
         started_at: startedAt,
