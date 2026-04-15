@@ -31,16 +31,25 @@ export function NewProjectModal({ isOpen, onClose, onCreate }: {
   }
 
   return (
-    <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-      <div className="card w-full max-w-md shadow-2xl">
-        <div className="px-6 py-4 border-b border-[var(--border-subtle)]">
-          <h2 className="text-base font-semibold text-primary">New Project</h2>
-          <p className="text-xs text-muted mt-0.5">Create a new project to track work</p>
+    <div style={{
+      position: 'fixed', inset: 0,
+      background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)',
+      display: 'flex', alignItems: 'center', justifyContent: 'center',
+      zIndex: 50, padding: '1rem',
+    }}>
+      <div className="card" style={{ width: '100%', maxWidth: 440, boxShadow: '0 25px 50px -12px rgba(0,0,0,0.5)' }}>
+        {/* Header */}
+        <div style={{ padding: '1.25rem 1.5rem', borderBottom: '1px solid var(--border-subtle)' }}>
+          <h2 style={{ fontSize: '0.9375rem', fontWeight: 600, color: 'var(--text-primary)', margin: 0 }}>New Project</h2>
+          <p style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)', margin: '4px 0 0' }}>Create a new project to track work</p>
         </div>
 
-        <form onSubmit={handleSubmit} className="p-6 space-y-4">
+        {/* Form */}
+        <form onSubmit={handleSubmit} style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
           <div>
-            <label className="block text-xs font-medium text-secondary mb-1.5">Project Name *</label>
+            <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 500, color: 'var(--text-secondary)', marginBottom: '0.375rem' }}>
+              Project Name *
+            </label>
             <input
               type="text"
               value={name}
@@ -53,27 +62,40 @@ export function NewProjectModal({ isOpen, onClose, onCreate }: {
           </div>
 
           <div>
-            <label className="block text-xs font-medium text-secondary mb-1.5">Description</label>
+            <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 500, color: 'var(--text-secondary)', marginBottom: '0.375rem' }}>
+              Description
+            </label>
             <textarea
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               placeholder="What is this project about?"
               rows={3}
-              className="input resize-none"
+              className="input"
+              style={{ resize: 'vertical' }}
             />
           </div>
 
           <div>
-            <label className="block text-xs font-medium text-secondary mb-1.5">Status</label>
-            <div className="flex gap-2">
+            <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 500, color: 'var(--text-secondary)', marginBottom: '0.375rem' }}>
+              Status
+            </label>
+            <div style={{ display: 'flex', gap: '0.5rem' }}>
               {(['active', 'paused'] as const).map((s) => (
-                <label key={s} className={`flex-1 flex items-center justify-center gap-2 p-2.5 rounded-lg border cursor-pointer transition ${
-                  status === s
-                    ? 'border-[var(--accent)] bg-accent-subtle'
-                    : 'border-[var(--border)] hover:border-[var(--bg-elevated)]'
-                }`}>
-                  <input type="radio" name="status" value={s} checked={status === s} onChange={() => setStatus(s)} className="sr-only" />
-                  <span className={`text-sm ${status === s ? 'text-accent' : 'text-secondary'}`}>
+                <label key={s} style={{
+                  flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem',
+                  padding: '0.625rem',
+                  borderRadius: 'var(--radius-md)',
+                  border: `1px solid ${status === s ? 'var(--accent)' : 'var(--border-default)'}`,
+                  background: status === s ? 'var(--accent-muted)' : 'transparent',
+                  cursor: 'pointer',
+                  transition: 'all 0.15s',
+                }}>
+                  <input type="radio" name="new-project-status" value={s} checked={status === s} onChange={() => setStatus(s)} style={{ display: 'none' }} />
+                  <span style={{
+                    fontSize: '0.8125rem',
+                    color: status === s ? 'var(--accent)' : 'var(--text-secondary)',
+                    fontWeight: 500,
+                  }}>
                     {s === 'active' ? '● Active' : '◐ Paused'}
                   </span>
                 </label>
@@ -81,9 +103,9 @@ export function NewProjectModal({ isOpen, onClose, onCreate }: {
             </div>
           </div>
 
-          <div className="flex gap-3 pt-2">
-            <button type="button" onClick={onClose} className="btn btn-secondary flex-1">Cancel</button>
-            <button type="submit" disabled={!name.trim() || isSubmitting} className="btn btn-primary flex-1">
+          <div style={{ display: 'flex', gap: '0.75rem', paddingTop: '0.5rem' }}>
+            <button type="button" onClick={onClose} className="btn btn-secondary" style={{ flex: 1 }}>Cancel</button>
+            <button type="submit" disabled={!name.trim() || isSubmitting} className="btn btn-primary" style={{ flex: 1 }}>
               {isSubmitting ? 'Creating...' : 'Create'}
             </button>
           </div>

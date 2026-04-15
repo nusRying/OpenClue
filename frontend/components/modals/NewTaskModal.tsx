@@ -42,34 +42,73 @@ export function NewTaskModal({ isOpen, onClose, onCreate, projects }: {
   }
 
   return (
-    <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-      <div className="card w-full max-w-lg shadow-2xl">
-        <div className="px-6 py-4 border-b border-[var(--border-subtle)]">
-          <h2 className="text-base font-semibold text-primary">New Task</h2>
+    <div style={{
+      position: 'fixed', inset: 0,
+      background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)',
+      display: 'flex', alignItems: 'center', justifyContent: 'center',
+      zIndex: 50, padding: '1rem',
+    }}>
+      <div className="card" style={{ width: '100%', maxWidth: 480, boxShadow: '0 25px 50px -12px rgba(0,0,0,0.5)' }}>
+        <div style={{ padding: '1.25rem 1.5rem', borderBottom: '1px solid var(--border-subtle)' }}>
+          <h2 style={{ fontSize: '0.9375rem', fontWeight: 600, color: 'var(--text-primary)', margin: 0 }}>New Task</h2>
         </div>
 
-        <form onSubmit={handleSubmit} className="p-6 space-y-4">
+        <form onSubmit={handleSubmit} style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
           <div>
-            <label className="block text-xs font-medium text-secondary mb-1.5">Title *</label>
-            <input type="text" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Task title" className="input" autoFocus required />
+            <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 500, color: 'var(--text-secondary)', marginBottom: '0.375rem' }}>
+              Title *
+            </label>
+            <input
+              type="text"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              placeholder="Task title"
+              className="input"
+              autoFocus
+              required
+            />
           </div>
 
           <div>
-            <label className="block text-xs font-medium text-secondary mb-1.5">Description</label>
-            <textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={3} placeholder="Optional details..." className="input resize-none" />
+            <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 500, color: 'var(--text-secondary)', marginBottom: '0.375rem' }}>
+              Description
+            </label>
+            <textarea
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              placeholder="Optional details..."
+              rows={3}
+              className="input"
+              style={{ resize: 'vertical' }}
+            />
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
             <div>
-              <label className="block text-xs font-medium text-secondary mb-1.5">Project</label>
-              <select value={projectId} onChange={(e) => setProjectId(e.target.value)} className="input bg-[var(--bg-secondary)]">
+              <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 500, color: 'var(--text-secondary)', marginBottom: '0.375rem' }}>
+                Project
+              </label>
+              <select
+                value={projectId}
+                onChange={(e) => setProjectId(e.target.value)}
+                className="input"
+                style={{ background: 'var(--bg-surface)' }}
+              >
                 <option value="">No project</option>
                 {projects.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
               </select>
             </div>
+
             <div>
-              <label className="block text-xs font-medium text-secondary mb-1.5">Priority</label>
-              <select value={priority} onChange={(e) => setPriority(e.target.value as any)} className="input bg-[var(--bg-secondary)]">
+              <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 500, color: 'var(--text-secondary)', marginBottom: '0.375rem' }}>
+                Priority
+              </label>
+              <select
+                value={priority}
+                onChange={(e) => setPriority(e.target.value as any)}
+                className="input"
+                style={{ background: 'var(--bg-surface)' }}
+              >
                 <option value="low">Low</option>
                 <option value="medium">Medium</option>
                 <option value="high">High</option>
@@ -79,13 +118,20 @@ export function NewTaskModal({ isOpen, onClose, onCreate, projects }: {
           </div>
 
           <div>
-            <label className="block text-xs font-medium text-secondary mb-1.5">Due Date</label>
-            <input type="date" value={dueDate} onChange={(e) => setDueDate(e.target.value)} className="input" />
+            <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 500, color: 'var(--text-secondary)', marginBottom: '0.375rem' }}>
+              Due Date
+            </label>
+            <input
+              type="date"
+              value={dueDate}
+              onChange={(e) => setDueDate(e.target.value)}
+              className="input"
+            />
           </div>
 
-          <div className="flex gap-3 pt-2">
-            <button type="button" onClick={onClose} className="btn btn-secondary flex-1">Cancel</button>
-            <button type="submit" disabled={!title.trim() || isSubmitting} className="btn btn-primary flex-1">
+          <div style={{ display: 'flex', gap: '0.75rem', paddingTop: '0.5rem' }}>
+            <button type="button" onClick={onClose} className="btn btn-secondary" style={{ flex: 1 }}>Cancel</button>
+            <button type="submit" disabled={!title.trim() || isSubmitting} className="btn btn-primary" style={{ flex: 1 }}>
               {isSubmitting ? 'Creating...' : 'Create task'}
             </button>
           </div>

@@ -66,11 +66,19 @@ export default function DashboardPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-primary flex items-center justify-center">
-        <div className="text-center">
-          <div className="w-10 h-10 border-2 border-[var(--accent)] border-t-transparent rounded-full animate-spin mx-auto mb-3" />
-          <div className="text-secondary text-sm">Loading...</div>
+      <div style={{ background: 'var(--bg-base)', minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <div style={{ textAlign: 'center' }}>
+          <div style={{
+            width: 40, height: 40,
+            border: '2px solid var(--accent)',
+            borderTopColor: 'transparent',
+            borderRadius: '50%',
+            animation: 'spin 0.7s linear infinite',
+            margin: '0 auto 12px'
+          }} />
+          <p style={{ color: 'var(--text-secondary)', fontSize: '0.875rem' }}>Loading...</p>
         </div>
+        <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
       </div>
     )
   }
@@ -88,71 +96,105 @@ export default function DashboardPage() {
   const inProgressTasks = tasks.filter((t: any) => t.status === 'in-progress').length
 
   return (
-    <div className="min-h-screen bg-primary text-primary">
+    <div style={{ background: 'var(--bg-base)', color: 'var(--text-primary)', minHeight: '100vh' }}>
       {/* ─── Header ─────────────────────────────────────────────────────── */}
-      <header className="sticky top-0 z-30 backdrop-blur-xl border-b border-subtle"
-        style={{ background: 'linear-gradient(to bottom, var(--bg-primary), var(--bg-primary))' }}>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6">
-          <div className="flex items-center justify-between h-14">
+      <header style={{
+        position: 'sticky', top: 0, zIndex: 30,
+        backdropFilter: 'blur(12px)',
+        WebkitBackdropFilter: 'blur(12px)',
+        background: 'color-mix(in srgb, var(--bg-base) 85%, transparent)',
+        borderBottom: '1px solid var(--border-subtle)',
+      }}>
+        <div style={{ maxWidth: '1280px', margin: '0 auto', padding: '0 1rem' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', height: '3.5rem' }}>
             {/* Logo */}
-            <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center font-bold text-sm text-white">
-                MC
-              </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+              <div style={{
+                width: 32, height: 32,
+                borderRadius: 8,
+                background: 'linear-gradient(135deg, #6366f1, #8b5cf6)',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                fontWeight: 700, fontSize: '0.8125rem', color: 'white',
+                flexShrink: 0,
+              }}>MC</div>
               <div>
-                <h1 className="text-sm font-semibold text-primary">Mission Control</h1>
-                <div className="flex items-center gap-1.5">
-                  <span className="relative flex h-1.5 w-1.5">
-                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                    <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-500 shadow-sm shadow-emerald-500/50"></span>
+                <p style={{ fontSize: '0.875rem', fontWeight: 600, color: 'var(--text-primary)', lineHeight: 1.2 }}>Mission Control</p>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.375rem', marginTop: 2 }}>
+                  <span style={{ position: 'relative', display: 'inline-flex', width: 6, height: 6 }}>
+                    <span style={{
+                      position: 'absolute', inset: 0,
+                      borderRadius: '50%',
+                      background: '#4ade80',
+                      animation: 'ping 1.5s cubic-bezier(0, 0, 0.2, 1) infinite',
+                    }} />
+                    <span style={{ position: 'relative', display: 'inline-flex', width: 6, height: 6, borderRadius: '50%', background: '#4ade80', boxShadow: '0 0 6px #4ade80' }} />
                   </span>
-                  <span className="text-[10px] text-emerald-500 uppercase tracking-wider font-medium">Live</span>
+                  <span style={{ fontSize: '0.625rem', color: '#4ade80', textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: 500 }}>Live</span>
                 </div>
               </div>
             </div>
 
             {/* Stats */}
-            <div className="hidden md:flex items-center gap-5 text-xs">
-              <div className="flex items-center gap-1.5">
-                <span className="text-base font-semibold text-primary tabular-nums">{agents.length}</span>
-                <span className="text-muted">Agents</span>
-              </div>
-              <div className="w-px h-4 bg-[var(--border)]" />
-              <div className="flex items-center gap-1.5">
-                <span className="text-base font-semibold text-success tabular-nums">{activeProjects}</span>
-                <span className="text-muted">Active</span>
-              </div>
-              <div className="w-px h-4 bg-[var(--border)]" />
-              <div className="flex items-center gap-1.5">
-                <span className="text-base font-semibold text-[var(--accent)] tabular-nums">{inProgressTasks}</span>
-                <span className="text-muted">Tasks</span>
-              </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '1.25rem' }}>
+              {[
+                { value: agents.length, label: 'Agents' },
+                { value: activeProjects, label: 'Active', color: 'var(--success)' },
+                { value: inProgressTasks, label: 'In progress', color: 'var(--info)' },
+              ].map(({ value, label, color }) => (
+                <div key={label} style={{ display: 'flex', alignItems: 'baseline', gap: '0.375rem' }}>
+                  <span style={{ fontSize: '1.125rem', fontWeight: 600, color: color || 'var(--text-primary)' }}>{value}</span>
+                  <span style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)' }}>{label}</span>
+                </div>
+              ))}
             </div>
 
             {/* Actions */}
-            <div className="flex items-center gap-2">
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
               <button
                 onClick={() => setShowTimeline(!showTimeline)}
-                className={`px-3 py-1.5 rounded-lg text-xs font-medium transition ${
-                  showTimeline
-                    ? 'bg-[var(--accent)] text-white'
-                    : 'bg-tertiary text-secondary hover:text-primary hover:bg-elevated border border-[var(--border)]'
-                }`}
+                style={{
+                  padding: '0.375rem 0.75rem',
+                  borderRadius: 'var(--radius-md)',
+                  fontSize: '0.8125rem',
+                  fontWeight: 500,
+                  border: '1px solid var(--border-default)',
+                  background: showTimeline ? 'var(--accent-solid)' : 'var(--bg-elevated)',
+                  color: showTimeline ? 'white' : 'var(--text-secondary)',
+                  cursor: 'pointer',
+                  transition: 'all 0.15s',
+                }}
               >
                 Timeline
               </button>
               <button
                 onClick={toggleTheme}
-                className="p-2 rounded-lg bg-tertiary text-secondary hover:text-primary hover:bg-elevated border border-[var(--border)] transition"
-                title={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+                title={theme === 'dark' ? 'Light mode' : 'Dark mode'}
+                style={{
+                  width: 36, height: 36,
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  borderRadius: 'var(--radius-md)',
+                  border: '1px solid var(--border-default)',
+                  background: 'var(--bg-elevated)',
+                  color: 'var(--text-secondary)',
+                  cursor: 'pointer',
+                  transition: 'all 0.15s',
+                }}
               >
                 {theme === 'dark' ? (
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+                    <circle cx="12" cy="12" r="5" />
+                    <line x1="12" y1="1" x2="12" y2="3" />
+                    <line x1="12" y1="21" x2="12" y2="23" />
+                    <line x1="4.22" y1="4.22" x2="5.64" y2="5.64" />
+                    <line x1="18.36" y1="18.36" x2="19.78" y2="19.78" />
+                    <line x1="1" y1="12" x2="3" y2="12" />
+                    <line x1="21" y1="12" x2="23" y2="12" />
+                    <line x1="4.22" y1="19.78" x2="5.64" y2="18.36" />
+                    <line x1="18.36" y1="5.64" x2="19.78" y2="4.22" />
                   </svg>
                 ) : (
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
                   </svg>
                 )}
               </button>
@@ -161,53 +203,51 @@ export default function DashboardPage() {
         </div>
       </header>
 
-      {/* ─── Main ───────────────────────────────────────────────────────── */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 py-6">
+      <style>{`@keyframes ping { 75%, 100% { transform: scale(2); opacity: 0; } }`}</style>
+
+      {/* ─── Main ────────────────────────────────────────────────────────── */}
+      <main style={{ maxWidth: '1280px', margin: '0 auto', padding: '1.5rem 1rem' }}>
         {showTimeline ? (
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <div className="lg:col-span-2">
-              <Timeline tasks={tasks} projects={projects} agents={agents} onBack={() => setShowTimeline(false)} />
-            </div>
-            <div className="space-y-4">
+          <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '1.5rem' }}>
+            <Timeline tasks={tasks} projects={projects} agents={agents} onBack={() => setShowTimeline(false)} />
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
               {/* Compact agents */}
-              <div className="card overflow-hidden">
-                <div className="px-4 py-3 border-b border-subtle flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm font-medium text-primary">Agents</span>
-                    <span className="text-xs text-muted">{agents.length}</span>
-                  </div>
-                  <span className="text-xs text-success">{onlineAgents} online</span>
+              <div className="card" style={{ overflow: 'hidden' }}>
+                <div style={{ padding: '0.75rem 1rem', borderBottom: '1px solid var(--border-subtle)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <span style={{ fontSize: '0.875rem', fontWeight: 500 }}>Agents</span>
+                  <span style={{ fontSize: '0.75rem', color: 'var(--success)' }}>{onlineAgents} online</span>
                 </div>
-                <div className="divide-y divide-[var(--border-subtle)]">
+                <div style={{ maxHeight: 'calc(100vh - 22rem)', overflowY: 'auto' }}>
                   {agents.map((agent: any) => (
                     <AgentCard key={agent.id} agent={agent} compact />
                   ))}
                 </div>
               </div>
-
               {/* Activity */}
-              <div className="card overflow-hidden">
-                <div className="px-4 py-3 border-b border-subtle">
-                  <span className="text-sm font-medium text-primary">Recent Activity</span>
+              <div className="card" style={{ overflow: 'hidden', flex: 1 }}>
+                <div style={{ padding: '0.75rem 1rem', borderBottom: '1px solid var(--border-subtle)' }}>
+                  <span style={{ fontSize: '0.875rem', fontWeight: 500 }}>Recent Activity</span>
                 </div>
-                <ActivityFeed events={activity.slice(0, 20)} compact />
+                <div style={{ maxHeight: 'calc(100vh - 22rem)', overflowY: 'auto' }}>
+                  <ActivityFeed events={activity.slice(0, 30)} compact />
+                </div>
               </div>
             </div>
           </div>
         ) : (
-          <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+          <div style={{ display: 'grid', gridTemplateColumns: '280px 1fr', gap: '1.5rem', alignItems: 'start' }}>
             {/* Left sidebar */}
-            <div className="lg:col-span-1 space-y-4">
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', position: 'sticky', top: '5rem' }}>
               {/* Agents */}
-              <div className="card overflow-hidden">
-                <div className="px-4 py-3 border-b border-subtle flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm font-medium text-primary">Agents</span>
-                    <span className="text-xs text-muted">{agents.length}</span>
+              <div className="card" style={{ overflow: 'hidden' }}>
+                <div style={{ padding: '0.75rem 1rem', borderBottom: '1px solid var(--border-subtle)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                    <span style={{ fontSize: '0.875rem', fontWeight: 500 }}>Agents</span>
+                    <span className="badge" style={{ background: 'var(--bg-elevated)', color: 'var(--text-tertiary)' }}>{agents.length}</span>
                   </div>
-                  <span className="text-xs text-success">{onlineAgents} online</span>
+                  <span style={{ fontSize: '0.75rem', color: 'var(--success)' }}>{onlineAgents} online</span>
                 </div>
-                <div className="divide-y divide-[var(--border-subtle)]">
+                <div>
                   {agents.map((agent: any) => (
                     <AgentCard key={agent.id} agent={agent} />
                   ))}
@@ -215,18 +255,20 @@ export default function DashboardPage() {
               </div>
 
               {/* Activity */}
-              <div className="card overflow-hidden">
-                <div className="px-4 py-3 border-b border-subtle">
-                  <span className="text-sm font-medium text-primary">Recent Activity</span>
+              <div className="card" style={{ overflow: 'hidden' }}>
+                <div style={{ padding: '0.75rem 1rem', borderBottom: '1px solid var(--border-subtle)' }}>
+                  <span style={{ fontSize: '0.875rem', fontWeight: 500 }}>Recent Activity</span>
                 </div>
-                <ActivityFeed events={activity.slice(0, 20)} compact />
+                <div style={{ maxHeight: '320px', overflowY: 'auto' }}>
+                  <ActivityFeed events={activity.slice(0, 20)} compact />
+                </div>
               </div>
             </div>
 
             {/* Main content */}
-            <div className="lg:col-span-3 space-y-6">
-              {/* Projects panel */}
-              <div className="card p-4">
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+              {/* Projects */}
+              <div className="card" style={{ padding: '1rem' }}>
                 <ProjectsPanel
                   projects={projects}
                   agents={agents}
@@ -238,8 +280,8 @@ export default function DashboardPage() {
                 />
               </div>
 
-              {/* Task board */}
-              <div className="card p-4">
+              {/* Tasks */}
+              <div className="card" style={{ padding: '1rem' }}>
                 <TaskBoard
                   tasks={tasks}
                   projects={projects}

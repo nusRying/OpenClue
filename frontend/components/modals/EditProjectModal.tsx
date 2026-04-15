@@ -16,6 +16,7 @@ export function EditProjectModal({ isOpen, onClose, onSave, onDelete, project }:
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [showDelete, setShowDelete] = useState(false)
 
+  // Sync state when project changes
   if (project && (name !== project.name || description !== (project.description || '') || status !== project.status)) {
     setName(project.name)
     setDescription(project.description || '')
@@ -47,31 +48,54 @@ export function EditProjectModal({ isOpen, onClose, onSave, onDelete, project }:
     }
   }
 
+  const STATUS_OPTIONS = ['active', 'paused', 'completed', 'archived'] as const
+
   return (
-    <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-      <div className="card w-full max-w-md shadow-2xl">
-        <div className="px-6 py-4 border-b border-[var(--border-subtle)]">
-          <h2 className="text-base font-semibold text-primary">Edit Project</h2>
+    <div style={{
+      position: 'fixed', inset: 0,
+      background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)',
+      display: 'flex', alignItems: 'center', justifyContent: 'center',
+      zIndex: 50, padding: '1rem',
+    }}>
+      <div className="card" style={{ width: '100%', maxWidth: 440, boxShadow: '0 25px 50px -12px rgba(0,0,0,0.5)' }}>
+        <div style={{ padding: '1.25rem 1.5rem', borderBottom: '1px solid var(--border-subtle)' }}>
+          <h2 style={{ fontSize: '0.9375rem', fontWeight: 600, color: 'var(--text-primary)', margin: 0 }}>Edit Project</h2>
         </div>
 
-        <form onSubmit={handleSubmit} className="p-6 space-y-4">
+        <form onSubmit={handleSubmit} style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
           <div>
-            <label className="block text-xs font-medium text-secondary mb-1.5">Project Name *</label>
+            <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 500, color: 'var(--text-secondary)', marginBottom: '0.375rem' }}>
+              Project Name *
+            </label>
             <input type="text" value={name} onChange={(e) => setName(e.target.value)} className="input" autoFocus required />
           </div>
+
           <div>
-            <label className="block text-xs font-medium text-secondary mb-1.5">Description</label>
-            <textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={3} className="input resize-none" />
+            <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 500, color: 'var(--text-secondary)', marginBottom: '0.375rem' }}>
+              Description
+            </label>
+            <textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={3} className="input" style={{ resize: 'vertical' }} />
           </div>
+
           <div>
-            <label className="block text-xs font-medium text-secondary mb-1.5">Status</label>
-            <div className="grid grid-cols-2 gap-2">
-              {(['active', 'paused', 'completed', 'archived'] as const).map((s) => (
-                <label key={s} className={`flex items-center gap-2 p-2.5 rounded-lg border cursor-pointer transition ${
-                  status === s ? 'border-[var(--accent)] bg-accent-subtle' : 'border-[var(--border)] hover:border-[var(--bg-elevated)]'
-                }`}>
-                  <input type="radio" name="edit-status" value={s} checked={status === s} onChange={() => setStatus(s)} className="sr-only" />
-                  <span className={`text-xs ${status === s ? 'text-accent' : 'text-secondary'}`}>
+            <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 500, color: 'var(--text-secondary)', marginBottom: '0.375rem' }}>
+              Status
+            </label>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.375rem' }}>
+              {STATUS_OPTIONS.map((s) => (
+                <label key={s} style={{
+                  display: 'flex', alignItems: 'center', padding: '0.5rem 0.75rem',
+                  borderRadius: 'var(--radius-md)',
+                  border: `1px solid ${status === s ? 'var(--accent)' : 'var(--border-default)'}`,
+                  background: status === s ? 'var(--accent-muted)' : 'transparent',
+                  cursor: 'pointer', transition: 'all 0.15s',
+                }}>
+                  <input type="radio" name="edit-project-status" value={s} checked={status === s} onChange={() => setStatus(s)} style={{ display: 'none' }} />
+                  <span style={{
+                    fontSize: '0.8125rem',
+                    color: status === s ? 'var(--accent)' : 'var(--text-secondary)',
+                    fontWeight: 500,
+                  }}>
                     {s.charAt(0).toUpperCase() + s.slice(1)}
                   </span>
                 </label>
@@ -79,13 +103,20 @@ export function EditProjectModal({ isOpen, onClose, onSave, onDelete, project }:
             </div>
           </div>
 
-          <div className="flex gap-3 pt-2">
-            <button type="button" onClick={handleDelete} className={`btn text-xs ${showDelete ? 'bg-error text-white hover:bg-red-700' : 'btn-secondary'}`}>
+          <div style={{ display: 'flex', gap: '0.75rem', paddingTop: '0.5rem', alignItems: 'center' }}>
+            <button
+              type="button"
+              onClick={handleDelete}
+              className={showDelete ? 'btn-danger' : 'btn-secondary'}
+              style={{ fontSize: '0.8125rem', padding: '0.5rem 0.75rem' }}
+            >
               {showDelete ? 'Confirm delete?' : 'Delete'}
             </button>
-            <div className="flex-1" />
+            <div style={{ flex: 1 }} />
             <button type="button" onClick={onClose} className="btn btn-secondary">Cancel</button>
-            <button type="submit" disabled={!name.trim() || isSubmitting} className="btn btn-primary">Save</button>
+            <button type="submit" disabled={!name.trim() || isSubmitting} className="btn btn-primary">
+              Save
+            </button>
           </div>
         </form>
       </div>

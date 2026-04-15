@@ -23,9 +23,22 @@ function formatLastSeen(ts: string | null): string {
 }
 
 const STATUS_CONFIG = {
-  online: { label: 'Online', color: 'bg-emerald-500' },
-  idle: { label: 'Idle', color: 'bg-amber-500' },
-  offline: { label: 'Offline', color: 'bg-zinc-600' },
+  online: { label: 'Online', color: '#4ade80' },
+  idle: { label: 'Idle', color: '#fbbf24' },
+  offline: { label: 'Offline', color: '#71717a' },
+}
+
+const compactStyle: React.CSSProperties = {
+  display: 'flex', alignItems: 'center', gap: '0.75rem',
+  padding: '0.5rem 0.75rem',
+  transition: 'background 0.15s',
+  cursor: 'default',
+}
+
+const cardStyle: React.CSSProperties = {
+  padding: '1rem',
+  transition: 'box-shadow 0.15s, border-color 0.15s',
+  border: '1px solid var(--card-border)',
 }
 
 export function AgentCard({ agent, compact = false }: { agent: Agent; compact?: boolean }) {
@@ -34,51 +47,80 @@ export function AgentCard({ agent, compact = false }: { agent: Agent; compact?: 
 
   if (compact) {
     return (
-      <div className="flex items-center gap-3 px-3 py-2 hover:bg-tertiary transition rounded-lg">
-        <div className="relative">
-          <div className="w-8 h-8 rounded-full bg-elevated flex items-center justify-center text-sm text-primary">
+      <div style={compactStyle} className="agent-compact-row">
+        <style>{`.agent-compact-row:hover { background: var(--bg-elevated); }`}</style>
+        <div style={{ position: 'relative' }}>
+          <div style={{
+            width: 32, height: 32, borderRadius: '50%',
+            background: 'var(--bg-overlay)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            fontSize: '0.875rem',
+            color: 'var(--text-primary)',
+          }}>
             {agent.emoji}
           </div>
-          <div className={`absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full ${s.color} border-2 border-[var(--bg-secondary)]`} />
+          <div style={{
+            position: 'absolute', bottom: -2, right: -2,
+            width: 10, height: 10, borderRadius: '50%',
+            background: s.color,
+            border: '2px solid var(--bg-surface)',
+          }} />
         </div>
-        <div className="flex-1 min-w-0">
-          <div className="text-sm font-medium text-primary truncate">{agent.name}</div>
-          <div className="text-xs text-muted">{s.label}</div>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <p style={{ fontSize: '0.8125rem', fontWeight: 500, color: 'var(--text-primary)', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+            {agent.name}
+          </p>
+          <p style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)', margin: 0 }}>{s.label}</p>
         </div>
       </div>
     )
   }
 
   return (
-    <div className="card p-4 hover:shadow-lg transition-all">
-      <div className="flex items-start gap-3">
-        <div className="relative">
-          <div className="w-10 h-10 rounded-full bg-elevated flex items-center justify-center text-lg text-primary">
+    <div style={cardStyle} className="agent-card-row">
+      <style>{`.agent-card-row:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.15); }`}</style>
+      <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.75rem' }}>
+        <div style={{ position: 'relative' }}>
+          <div style={{
+            width: 40, height: 40, borderRadius: '50%',
+            background: 'var(--bg-overlay)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            fontSize: '1.125rem',
+            color: 'var(--text-primary)',
+          }}>
             {agent.emoji}
           </div>
-          <div className={`absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full ${s.color} border-2 border-[var(--card-bg)]`} />
+          <div style={{
+            position: 'absolute', bottom: -2, right: -2,
+            width: 12, height: 12, borderRadius: '50%',
+            background: s.color,
+            border: '2px solid var(--card-bg)',
+          }} />
         </div>
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2">
-            <span className="font-semibold text-primary">{agent.name}</span>
-            <span className={`text-xs ${
-              status === 'online' ? 'text-success' :
-              status === 'idle' ? 'text-warning' : 'text-muted'
-            }`}>{s.label}</span>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <span style={{ fontWeight: 600, color: 'var(--text-primary)', fontSize: '0.9375rem' }}>{agent.name}</span>
+            <span style={{ fontSize: '0.6875rem', fontWeight: 500, color: s.color }}>{s.label}</span>
           </div>
-          <div className="text-xs text-muted mt-0.5">{agent.role}</div>
+          <p style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)', margin: '2px 0 0' }}>{agent.role}</p>
         </div>
       </div>
 
-      <div className="mt-3 pt-3 border-t border-subtle grid grid-cols-2 gap-2 text-xs">
+      <div style={{
+        display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem',
+        marginTop: '0.75rem', paddingTop: '0.75rem',
+        borderTop: '1px solid var(--border-subtle)',
+      }}>
         <div>
-          <span className="text-muted">Last seen</span>
-          <div className="text-primary mt-0.5">{formatLastSeen(agent.last_seen_at)}</div>
+          <p style={{ fontSize: '0.6875rem', color: 'var(--text-tertiary)', margin: '0 0 2px' }}>Last seen</p>
+          <p style={{ fontSize: '0.8125rem', color: 'var(--text-primary)', margin: 0 }}>{formatLastSeen(agent.last_seen_at)}</p>
         </div>
         {agent.current_task && (
           <div>
-            <span className="text-muted">Task</span>
-            <div className="text-primary mt-0.5 truncate">{agent.current_task}</div>
+            <p style={{ fontSize: '0.6875rem', color: 'var(--text-tertiary)', margin: '0 0 2px' }}>Task</p>
+            <p style={{ fontSize: '0.8125rem', color: 'var(--text-primary)', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+              {agent.current_task}
+            </p>
           </div>
         )}
       </div>

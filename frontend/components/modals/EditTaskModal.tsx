@@ -20,7 +20,14 @@ export function EditTaskModal({ isOpen, onClose, onSave, onDelete, task, agents 
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [showDelete, setShowDelete] = useState(false)
 
-  if (task && (title !== task.title || description !== (task.description || '') || status !== task.status || priority !== task.priority || assigneeId !== (task.assignee_id || '') || dueDate !== (task.due_date ? task.due_date.split('T')[0] : ''))) {
+  if (task && (
+    title !== task.title ||
+    description !== (task.description || '') ||
+    status !== task.status ||
+    priority !== task.priority ||
+    assigneeId !== (task.assignee_id || '') ||
+    dueDate !== (task.due_date ? task.due_date.split('T')[0] : '')
+  )) {
     setTitle(task.title)
     setDescription(task.description || '')
     setStatus(task.status)
@@ -62,52 +69,98 @@ export function EditTaskModal({ isOpen, onClose, onSave, onDelete, task, agents 
     }
   }
 
+  const STATUS_BADGE: Record<string, { bg: string; color: string; border: string }> = {
+    pending: { bg: 'var(--bg-elevated)', color: 'var(--text-tertiary)', border: 'var(--border-default)' },
+    'in-progress': { bg: 'rgba(96,165,250,0.15)', color: '#60a5fa', border: 'rgba(96,165,250,0.3)' },
+    completed: { bg: 'var(--success-muted)', color: 'var(--success)', border: 'rgba(74,222,128,0.3)' },
+    blocked: { bg: 'var(--error-muted)', color: 'var(--error)', border: 'rgba(248,113,113,0.3)' },
+  }
+
+  const statusBadge = STATUS_BADGE[status] || STATUS_BADGE.pending
+
   return (
-    <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-      <div className="card w-full max-w-lg shadow-2xl">
-        <div className="px-6 py-4 border-b border-[var(--border-subtle)] flex items-center justify-between">
-          <h2 className="text-base font-semibold text-primary">Edit Task</h2>
-          <span className={`text-xs px-2 py-0.5 rounded border ${
-            status === 'completed' ? 'bg-success-bg text-success border-success/30' :
-            status === 'in-progress' ? 'bg-blue-900/30 text-blue-400 border-blue-700/50' :
-            status === 'blocked' ? 'bg-error-bg text-error border-error/30' :
-            'bg-tertiary text-muted border-[var(--border)]'
-          }`}>{status.replace('-', ' ')}</span>
+    <div style={{
+      position: 'fixed', inset: 0,
+      background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)',
+      display: 'flex', alignItems: 'center', justifyContent: 'center',
+      zIndex: 50, padding: '1rem',
+    }}>
+      <div className="card" style={{ width: '100%', maxWidth: 520, boxShadow: '0 25px 50px -12px rgba(0,0,0,0.5)' }}>
+        <div style={{
+          padding: '1.25rem 1.5rem',
+          borderBottom: '1px solid var(--border-subtle)',
+          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+        }}>
+          <h2 style={{ fontSize: '0.9375rem', fontWeight: 600, color: 'var(--text-primary)', margin: 0 }}>Edit Task</h2>
+          <span style={{
+            fontSize: '0.625rem', fontWeight: 500, padding: '2px 8px', borderRadius: '99px',
+            background: statusBadge.bg, color: statusBadge.color,
+            border: `1px solid ${statusBadge.border}`,
+          }}>
+            {status.replace('-', ' ')}
+          </span>
         </div>
 
-        <form onSubmit={handleSubmit} className="p-6 space-y-4">
+        <form onSubmit={handleSubmit} style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
           <div>
-            <label className="block text-xs font-medium text-secondary mb-1.5">Title *</label>
+            <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 500, color: 'var(--text-secondary)', marginBottom: '0.375rem' }}>
+              Title *
+            </label>
             <input type="text" value={title} onChange={(e) => setTitle(e.target.value)} className="input" autoFocus required />
           </div>
 
           <div>
-            <label className="block text-xs font-medium text-secondary mb-1.5">Description</label>
-            <textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={3} className="input resize-none" />
+            <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 500, color: 'var(--text-secondary)', marginBottom: '0.375rem' }}>
+              Description
+            </label>
+            <textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={3} className="input" style={{ resize: 'vertical' }} />
           </div>
 
-          <div className="grid grid-cols-3 gap-3">
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '0.75rem' }}>
             <div>
-              <label className="block text-xs font-medium text-secondary mb-1.5">Status</label>
-              <select value={status} onChange={(e) => setStatus(e.target.value as any)} className="input bg-[var(--bg-secondary)]">
+              <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 500, color: 'var(--text-secondary)', marginBottom: '0.375rem' }}>
+                Status
+              </label>
+              <select
+                value={status}
+                onChange={(e) => setStatus(e.target.value as any)}
+                className="input"
+                style={{ background: 'var(--bg-surface)' }}
+              >
                 <option value="pending">To do</option>
                 <option value="in-progress">In progress</option>
                 <option value="completed">Done</option>
                 <option value="blocked">Blocked</option>
               </select>
             </div>
+
             <div>
-              <label className="block text-xs font-medium text-secondary mb-1.5">Priority</label>
-              <select value={priority} onChange={(e) => setPriority(e.target.value as any)} className="input bg-[var(--bg-secondary)]">
+              <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 500, color: 'var(--text-secondary)', marginBottom: '0.375rem' }}>
+                Priority
+              </label>
+              <select
+                value={priority}
+                onChange={(e) => setPriority(e.target.value as any)}
+                className="input"
+                style={{ background: 'var(--bg-surface)' }}
+              >
                 <option value="low">Low</option>
                 <option value="medium">Medium</option>
                 <option value="high">High</option>
                 <option value="critical">Critical</option>
               </select>
             </div>
+
             <div>
-              <label className="block text-xs font-medium text-secondary mb-1.5">Assignee</label>
-              <select value={assigneeId} onChange={(e) => setAssigneeId(e.target.value)} className="input bg-[var(--bg-secondary)]">
+              <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 500, color: 'var(--text-secondary)', marginBottom: '0.375rem' }}>
+                Assignee
+              </label>
+              <select
+                value={assigneeId}
+                onChange={(e) => setAssigneeId(e.target.value)}
+                className="input"
+                style={{ background: 'var(--bg-surface)' }}
+              >
                 <option value="">Unassigned</option>
                 {agents.map((a) => <option key={a.id} value={a.id}>{a.emoji} {a.name}</option>)}
               </select>
@@ -115,17 +168,31 @@ export function EditTaskModal({ isOpen, onClose, onSave, onDelete, task, agents 
           </div>
 
           <div>
-            <label className="block text-xs font-medium text-secondary mb-1.5">Due Date</label>
-            <input type="date" value={dueDate} onChange={(e) => setDueDate(e.target.value)} className="input" />
+            <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 500, color: 'var(--text-secondary)', marginBottom: '0.375rem' }}>
+              Due Date
+            </label>
+            <input
+              type="date"
+              value={dueDate}
+              onChange={(e) => setDueDate(e.target.value)}
+              className="input"
+            />
           </div>
 
-          <div className="flex gap-3 pt-2">
-            <button type="button" onClick={handleDelete} className={`btn text-xs ${showDelete ? 'bg-error text-white hover:bg-red-700' : 'btn-secondary'}`}>
+          <div style={{ display: 'flex', gap: '0.75rem', paddingTop: '0.5rem', alignItems: 'center' }}>
+            <button
+              type="button"
+              onClick={handleDelete}
+              className={showDelete ? 'btn-danger' : 'btn-secondary'}
+              style={{ fontSize: '0.8125rem', padding: '0.5rem 0.75rem' }}
+            >
               {showDelete ? 'Confirm delete?' : 'Delete'}
             </button>
-            <div className="flex-1" />
+            <div style={{ flex: 1 }} />
             <button type="button" onClick={onClose} className="btn btn-secondary">Cancel</button>
-            <button type="submit" disabled={!title.trim() || isSubmitting} className="btn btn-primary">Save</button>
+            <button type="submit" disabled={!title.trim() || isSubmitting} className="btn btn-primary">
+              Save
+            </button>
           </div>
         </form>
       </div>

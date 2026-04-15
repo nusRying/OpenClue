@@ -5,6 +5,13 @@ import type { Project, Agent } from '@/types'
 import { NewProjectModal } from '@/components/modals/NewProjectModal'
 import { EditProjectModal } from '@/components/modals/EditProjectModal'
 
+const STATUS_CONFIG = {
+  active: { label: 'Active', color: 'var(--success)' },
+  paused: { label: 'Paused', color: 'var(--warning)' },
+  completed: { label: 'Done', color: 'var(--info)' },
+  archived: { label: 'Archived', color: 'var(--text-tertiary)' },
+}
+
 interface ProjectsPanelProps {
   projects: Project[]
   agents: Agent[]
@@ -15,43 +22,42 @@ interface ProjectsPanelProps {
   selectedProjectId: string | null
 }
 
-const STATUS_CONFIG = {
-  active: { label: 'Active', dot: 'bg-success' },
-  paused: { label: 'Paused', dot: 'bg-warning' },
-  completed: { label: 'Done', dot: 'bg-blue-500' },
-  archived: { label: 'Archived', dot: 'bg-zinc-600' },
-}
-
 export function ProjectsPanel({ projects, agents, onCreateProject, onUpdateProject, onDeleteProject, onSelectProject, selectedProjectId }: ProjectsPanelProps) {
   const [showNewModal, setShowNewModal] = useState(false)
   const [editProject, setEditProject] = useState<Project | null>(null)
 
   return (
     <>
-      <div className="mb-4 flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <h2 className="text-base font-semibold text-primary">Projects</h2>
-          <span className="text-xs text-muted bg-tertiary px-2 py-0.5 rounded-full">{projects.length}</span>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+          <h2 style={{ fontSize: '0.9375rem', fontWeight: 600, color: 'var(--text-primary)', margin: 0 }}>Projects</h2>
+          <span className="badge" style={{ background: 'var(--bg-elevated)', color: 'var(--text-tertiary)' }}>{projects.length}</span>
         </div>
-        <button onClick={() => setShowNewModal(true)} className="btn btn-primary text-xs">
+        <button onClick={() => setShowNewModal(true)} className="btn btn-primary" style={{ fontSize: '0.8125rem' }}>
           + New project
         </button>
       </div>
 
-      <div className="space-y-1">
-        {/* All projects filter */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+        {/* All projects */}
         <button
           onClick={() => onSelectProject(null)}
-          className={`w-full text-left px-3 py-2 rounded-lg transition text-sm ${
-            selectedProjectId === null
-              ? 'bg-accent text-white'
-              : 'hover:bg-tertiary text-secondary'
-          }`}
+          style={{
+            display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+            padding: '0.5rem 0.75rem',
+            borderRadius: 'var(--radius-md)',
+            border: 'none',
+            background: selectedProjectId === null ? 'var(--accent-solid)' : 'transparent',
+            color: selectedProjectId === null ? 'white' : 'var(--text-secondary)',
+            fontSize: '0.875rem', fontWeight: 500,
+            cursor: 'pointer', textAlign: 'left',
+            transition: 'all 0.15s',
+            width: '100%',
+          }}
+          className="project-filter-btn"
         >
-          <div className="flex items-center justify-between">
-            <span>All projects</span>
-            <span className="text-xs opacity-60">{projects.length}</span>
-          </div>
+          <span>All projects</span>
+          <span style={{ opacity: 0.6, fontSize: '0.75rem' }}>{projects.length}</span>
         </button>
 
         {/* Project list */}
@@ -61,39 +67,71 @@ export function ProjectsPanel({ projects, agents, onCreateProject, onUpdateProje
           const owner = agents.find(a => a.id === project.owner_agent_id)
 
           return (
-            <div key={project.id} className="group relative">
+            <div key={project.id} style={{ position: 'relative' }} className="project-row-group">
               <button
                 onClick={() => onSelectProject(isSelected ? null : project.id)}
-                className={`w-full text-left px-3 py-2 rounded-lg transition text-sm flex items-center gap-3 ${
-                  isSelected
-                    ? 'bg-accent text-white'
-                    : 'hover:bg-tertiary text-secondary'
-                }`}
+                style={{
+                  display: 'flex', alignItems: 'center', gap: '0.625rem',
+                  padding: '0.5rem 0.75rem',
+                  borderRadius: 'var(--radius-md)',
+                  border: 'none',
+                  background: isSelected ? 'var(--accent-solid)' : 'transparent',
+                  color: 'var(--text-secondary)',
+                  fontSize: '0.875rem',
+                  cursor: 'pointer', textAlign: 'left',
+                  transition: 'all 0.15s',
+                  width: '100%',
+                }}
+                className="project-filter-btn"
               >
-                <div className={`w-2 h-2 rounded-full ${config.dot} shrink-0`} />
-                <div className="flex-1 min-w-0">
-                  <div className="truncate text-primary">{project.name}</div>
+                <div style={{ width: 8, height: 8, borderRadius: '50%', background: config.color, flexShrink: 0 }} />
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{
+                    color: isSelected ? 'white' : 'var(--text-primary)',
+                    fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+                  }}>
+                    {project.name}
+                  </div>
                   {owner && (
-                    <div className={`text-xs truncate ${isSelected ? 'text-indigo-200' : 'text-muted'}`}>
+                    <div style={{
+                      fontSize: '0.6875rem',
+                      color: isSelected ? 'rgba(255,255,255,0.6)' : 'var(--text-tertiary)',
+                      marginTop: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+                    }}>
                       {owner.emoji} {owner.name}
                     </div>
                   )}
                 </div>
-                <span className={`text-xs opacity-50 ${isSelected ? 'text-indigo-200' : 'text-muted'}`}>
+                <span style={{
+                  fontSize: '0.6875rem',
+                  color: isSelected ? 'rgba(255,255,255,0.5)' : 'var(--text-tertiary)',
+                  flexShrink: 0,
+                }}>
                   {config.label}
                 </span>
               </button>
 
-              {/* Edit button on hover */}
+              {/* Edit button */}
               <button
                 onClick={(e) => { e.stopPropagation(); setEditProject(project); }}
-                className={`absolute right-2 top-1/2 -translate-y-1/2 p-1.5 rounded opacity-0 group-hover:opacity-100 transition ${
-                  isSelected ? 'hover:bg-indigo-500 text-indigo-200' : 'hover:bg-elevated text-muted'
-                }`}
                 title="Edit project"
+                style={{
+                  position: 'absolute', right: '0.5rem', top: '50%', transform: 'translateY(-50%)',
+                  width: 28, height: 28,
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  borderRadius: 'var(--radius-sm)',
+                  border: 'none',
+                  background: 'transparent',
+                  color: 'var(--text-tertiary)',
+                  cursor: 'pointer',
+                  opacity: 0,
+                  transition: 'all 0.15s',
+                }}
+                className="project-edit-btn"
               >
-                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                  <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
                 </svg>
               </button>
             </div>
@@ -101,11 +139,17 @@ export function ProjectsPanel({ projects, agents, onCreateProject, onUpdateProje
         })}
 
         {projects.length === 0 && (
-          <div className="text-center py-8 text-muted text-sm">
-            No projects yet
+          <div style={{ textAlign: 'center', padding: '2rem 1rem', color: 'var(--text-tertiary)' }}>
+            <p style={{ fontSize: '0.875rem', margin: 0 }}>No projects yet</p>
           </div>
         )}
       </div>
+
+      <style>{`
+        .project-row-group:hover .project-filter-btn { background: var(--bg-elevated); color: var(--text-primary); }
+        .project-row-group:hover .project-edit-btn { opacity: 1 !important; }
+        .project-filter-btn:hover { background: var(--bg-elevated) !important; color: var(--text-primary) !important; }
+      `}</style>
 
       <NewProjectModal
         isOpen={showNewModal}
