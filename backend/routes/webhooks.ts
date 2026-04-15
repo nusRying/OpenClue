@@ -28,6 +28,15 @@ async function resolveAgentUuid(supabase: ReturnType<typeof getSupabase>, agentN
   return data?.id ?? null;
 }
 
+// Extract agent name from sessionKey (format: agent:mehzam:telegram:group:...)
+function extractAgentFromSessionKey(sessionKey: string): string | null {
+  const parts = sessionKey.split(':');
+  if (parts.length >= 2 && parts[0] === 'agent') {
+    return parts[1];
+  }
+  return null;
+}
+
 interface WebhookBody {
   agent_id?: string;
   event_type?: string;
@@ -48,10 +57,16 @@ export async function webhooksRouter(fastify: FastifyInstance) {
     }
 
     const { event_type, message, metadata, context } = request.body as WebhookBody;
-    const messageText = context?.content || message || `Session event from ${agentId}`;
+
+    // Use sessionKey to identify the agent (authoritative), fall back to token
+    const sessionKey = (metadata?.sessionKey as string) || '';
+    const sessionAgent = extractAgentFromSessionKey(sessionKey);
+    const agentName = sessionAgent || agentId;
+
+    const messageText = context?.content || message || `Session event from ${agentName}`;
 
     // Resolve agent name to UUID for database
-    const agentUuid = await resolveAgentUuid(supabase, agentId);
+    const agentUuid = await resolveAgentUuid(supabase, agentName);
 
     // Update agent's last_seen_at
     if (agentUuid) {
@@ -67,7 +82,7 @@ export async function webhooksRouter(fastify: FastifyInstance) {
       .insert({
         event_type: event_type || 'session_event',
         message: messageText,
-        agent_id: agentUuid || agentId,
+        agent_id: agentUuid || agentName,
         project_id: metadata?.project_id as string,
         task_id: metadata?.task_id as string,
         metadata: metadata || {},
@@ -84,7 +99,7 @@ export async function webhooksRouter(fastify: FastifyInstance) {
     if (event_type) {
       const priority = eventPriority(event_type, metadata);
       if (priority !== 'low') {
-        await sendTelegramMessage({ message: messageText, priority, metadata });
+        await sendTelegramMessage({ message: messageText, priority, metadata: { ...metadata, agentName } });
       }
     }
 
@@ -100,13 +115,16 @@ export async function webhooksRouter(fastify: FastifyInstance) {
     }
 
     const { tool_name, session_id, metadata } = request.body as WebhookBody;
+    const sessionKey = (metadata?.sessionKey as string) || '';
+    const sessionAgent = extractAgentFromSessionKey(sessionKey);
+    const agentName = sessionAgent || agentId;
 
-    const agentUuid = await resolveAgentUuid(supabase, agentId);
+    const agentUuid = await resolveAgentUuid(supabase, agentName);
 
     const { data: toolCall, error } = await supabase
       .from('tool_calls')
       .insert({
-        agent_id: agentUuid || agentId,
+        agent_id: agentUuid || agentName,
         session_id: session_id as string || 'unknown',
         tool_name: tool_name as string || 'unknown',
         started_at: new Date().toISOString(),
@@ -133,14 +151,17 @@ export async function webhooksRouter(fastify: FastifyInstance) {
     }
 
     const { tool_name, session_id, success, error_message, started_at, metadata } = request.body as WebhookBody;
+    const sessionKey = (metadata?.sessionKey as string) || '';
+    const sessionAgent = extractAgentFromSessionKey(sessionKey);
+    const agentName = sessionAgent || agentId;
 
-    const agentUuid = await resolveAgentUuid(supabase, agentId);
+    const agentUuid = await resolveAgentUuid(supabase, agentName);
 
     // Find matching tool_start record
     const { data: existing } = await supabase
       .from('tool_calls')
       .select('id, started_at')
-      .eq('agent_id', agentUuid || agentId)
+      .eq('agent_id', agentUuid || agentName)
       .eq('tool_name', tool_name as string)
       .is('ended_at', null)
       .order('started_at', { ascending: false })
@@ -173,15 +194,15 @@ export async function webhooksRouter(fastify: FastifyInstance) {
         const { error: logError } = await supabase.from('activity_log').insert({
           event_type: 'tool_end',
           message: `❌ Tool *${tool_name}* failed: ${error_message || 'unknown error'}`,
-          agent_id: agentUuid || agentId,
-          metadata: { tool_name, duration_ms: durationMs, error_message },
+          agent_id: agentUuid || agentName,
+          metadata: { tool_name, duration_ms: durationMs, error_message, agentName },
         });
 
         if (!logError) {
           await sendTelegramMessage({
-            message: `🔴 Agent *${agentId}* — tool *${tool_name}* failed after ${durationMs}ms`,
+            message: `🔴 Agent *${agentName}* — tool *${tool_name}* failed after ${durationMs}ms`,
             priority: 'high',
-            metadata: { tool_name, durationMs, error_message },
+            metadata: { tool_name, durationMs, error_message, agentName },
           });
         }
       }
@@ -193,7 +214,7 @@ export async function webhooksRouter(fastify: FastifyInstance) {
     const { data: toolCall, error } = await supabase
       .from('tool_calls')
       .insert({
-        agent_id: agentUuid || agentId,
+        agent_id: agentUuid || agentName,
         session_id: session_id as string || 'unknown',
         tool_name: tool_name as string || 'unknown',
         started_at: startedAt,
