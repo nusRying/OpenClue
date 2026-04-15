@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import type { Task, Agent } from '@/types'
+import type { Task, Agent, TaskStatus, Priority } from '@/types'
 
 export function EditTaskModal({ isOpen, onClose, onSave, onDelete, task, agents }: {
   isOpen: boolean
@@ -126,7 +126,7 @@ export function EditTaskModal({ isOpen, onClose, onSave, onDelete, task, agents 
               </label>
               <select
                 value={status}
-                onChange={(e) => setStatus(e.target.value as any)}
+                onChange={(e) => setStatus(e.target.value as TaskStatus)}
                 className="input"
               >
                 <option value="pending">To do</option>
@@ -142,7 +142,7 @@ export function EditTaskModal({ isOpen, onClose, onSave, onDelete, task, agents 
               </label>
               <select
                 value={priority}
-                onChange={(e) => setPriority(e.target.value as any)}
+                onChange={(e) => setPriority(e.target.value as Priority)}
                 className="input"
               >
                 <option value="low">Low</option>

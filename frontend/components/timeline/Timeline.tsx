@@ -197,7 +197,6 @@ export function Timeline({ tasks, projects, agents, onBack, selectedProjectId }:
           })}
         </div>
       )}
-      <style>{`.timeline-card:hover { border-color: var(--border-default); }`}</style>
     </div>
   )
 }

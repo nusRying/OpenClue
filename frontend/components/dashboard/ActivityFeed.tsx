@@ -63,7 +63,6 @@ function EventRow({ event, compact }: { event: ActivityEvent; compact?: boolean 
       className="activity-row"
       onClick={hasSecondary && !expanded ? () => setExpanded(true) : undefined}
     >
-      <style>{`.activity-row:hover { background: var(--bg-elevated); }`}</style>
       <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.625rem' }}>
         {/* Icon */}
         <div style={{

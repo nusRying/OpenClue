@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import { StrictMode } from 'react'
 import './globals.css'
 import { Providers } from '@/components/providers/Providers'
 
@@ -16,7 +17,9 @@ export default function RootLayout({
     <html lang="en" className="dark">
       <body>
         <Providers>
-          {children}
+          <StrictMode>
+            {children}
+          </StrictMode>
         </Providers>
       </body>
     </html>

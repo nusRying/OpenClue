@@ -1,18 +1,20 @@
 'use client'
 
 import { useState } from 'react'
-import type { Task, Project } from '@/types'
+import type { Task, Project, Agent } from '@/types'
 
-export function NewTaskModal({ isOpen, onClose, onCreate, projects }: {
+export function NewTaskModal({ isOpen, onClose, onCreate, projects, agents }: {
   isOpen: boolean
   onClose: () => void
   onCreate: (task: Partial<Task>) => void
   projects: Project[]
+  agents: Agent[]
 }) {
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
   const [projectId, setProjectId] = useState('')
   const [priority, setPriority] = useState<'low' | 'medium' | 'high' | 'critical'>('medium')
+  const [assigneeId, setAssigneeId] = useState('')
   const [dueDate, setDueDate] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [titleError, setTitleError] = useState(false)
@@ -30,12 +32,14 @@ export function NewTaskModal({ isOpen, onClose, onCreate, projects }: {
         description: description.trim(),
         project_id: projectId || undefined,
         priority,
+        assignee_id: assigneeId || undefined,
         due_date: dueDate || undefined,
         status: 'pending',
       })
       setTitle('')
       setDescription('')
       setPriority('medium')
+      setAssigneeId('')
       setDueDate('')
       setProjectId('')
       onClose()
@@ -97,7 +101,7 @@ export function NewTaskModal({ isOpen, onClose, onCreate, projects }: {
             />
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '0.75rem' }}>
             <div>
               <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 500, color: 'var(--text-secondary)', marginBottom: '0.375rem' }}>
                 Project
@@ -118,13 +122,27 @@ export function NewTaskModal({ isOpen, onClose, onCreate, projects }: {
               </label>
               <select
                 value={priority}
-                onChange={(e) => setPriority(e.target.value as any)}
+                onChange={(e) => setPriority(e.target.value as 'low' | 'medium' | 'high' | 'critical')}
                 className="input"
               >
                 <option value="low">Low</option>
                 <option value="medium">Medium</option>
                 <option value="high">High</option>
                 <option value="critical">Critical</option>
+              </select>
+            </div>
+
+            <div>
+              <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 500, color: 'var(--text-secondary)', marginBottom: '0.375rem' }}>
+                Assignee
+              </label>
+              <select
+                value={assigneeId}
+                onChange={(e) => setAssigneeId(e.target.value)}
+                className="input"
+              >
+                <option value="">Unassigned</option>
+                {agents.map((a) => <option key={a.id} value={a.id}>{a.emoji} {a.name}</option>)}
               </select>
             </div>
           </div>

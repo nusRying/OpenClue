@@ -326,4 +326,20 @@
     resize: vertical;
     min-height: 80px;
   }
+
+  /* ─── Hover utility classes ─────────────────────────────────────────────── */
+  .agent-compact-row:hover { background: var(--bg-elevated); }
+  .agent-card-row:hover { box-shadow: var(--card-shadow); }
+  .activity-row:hover { background: var(--bg-elevated); }
+  .task-card:hover { background: var(--bg-elevated); border-color: var(--border-default); }
+  .task-card:active { cursor: grabbing; }
+  .timeline-card:hover { border-color: var(--border-default); }
+  .project-row-group:hover .project-filter-btn { background: var(--bg-elevated); color: var(--text-primary); }
+  .project-row-group:hover .project-edit-btn { opacity: 1 !important; }
+  .project-filter-btn:hover { background: var(--bg-elevated) !important; color: var(--text-primary) !important; }
+
+  /* ─── Animations ────────────────────────────────────────────────────────── */
+  @keyframes ping { 75%, 100% { transform: scale(2); opacity: 0; } }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  @keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
 }

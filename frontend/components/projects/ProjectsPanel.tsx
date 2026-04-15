@@ -149,12 +149,6 @@ export function ProjectsPanel({ projects, agents, onCreateProject, onUpdateProje
         )}
       </div>
 
-      <style>{`
-        .project-row-group:hover .project-filter-btn { background: var(--bg-elevated); color: var(--text-primary); }
-        .project-row-group:hover .project-edit-btn { opacity: 1 !important; }
-        .project-filter-btn:hover { background: var(--bg-elevated) !important; color: var(--text-primary) !important; }
-      `}</style>
-
       <NewProjectModal
         isOpen={showNewModal}
         onClose={() => setShowNewModal(false)}

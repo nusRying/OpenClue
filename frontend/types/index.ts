@@ -54,10 +54,4 @@ export interface ActivityEvent {
   created_at: string;
 }
 
-export interface DashboardSnapshot {
-  agents: Agent[];
-  projects: Project[];
-  tasks: Task[];
-  recentActivity: ActivityEvent[];
-  timestamp: string;
-}
+

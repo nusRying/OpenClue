@@ -161,12 +161,7 @@ export function TaskBoard({ tasks, projects, agents, onStatusChange, onCreateTas
                         transition: 'all 0.15s',
                         opacity: draggedTask?.id === task.id ? 0.4 : 1,
                       }}
-                      className="task-card"
-                    >
-                      <style>{`
-                        .task-card:hover { background: var(--bg-elevated); border-color: var(--border-default); }
-                        .task-card:active { cursor: grabbing; }
-                      `}</style>
+                      className="task-card">
 
                       <p style={{ fontSize: '0.8125rem', fontWeight: 500, color: 'var(--text-primary)', margin: 0, lineHeight: 1.4 }}>
                         {task.title}
@@ -227,6 +222,7 @@ export function TaskBoard({ tasks, projects, agents, onStatusChange, onCreateTas
         onClose={() => setShowNewModal(false)}
         onCreate={onCreateTask}
         projects={projects}
+        agents={agents}
       />
 
       <EditTaskModal
