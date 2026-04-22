@@ -1,5 +1,5 @@
 {
-  "name": "OC Backend - Unified Task Gateway",
+  "name": "OpenClue - Complete Unified Backend",
   "nodes": [
     {
       "parameters": {
@@ -7,22 +7,41 @@
         "path": "mission-control-webhook",
         "options": {}
       },
-      "id": "webhook-entry",
-      "name": "Webhook",
+      "id": "webhook-outbound",
+      "name": "Outbound (Task Notification)",
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 1,
       "position": [
         100,
-        300
+        100
+      ]
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "mission-control-events",
+        "options": {}
+      },
+      "id": "webhook-inbound",
+      "name": "Inbound (Agent Events)",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [
+        100,
+        400
       ]
     },
     {
       "parameters": {
         "method": "POST",
-        "url": "http://YOUR_OPENCLAW_GATEWAY_URL:3000/hooks/{{ $json.metadata.agent_id || 'main' }}",
+        "url": "http://tofyq3lga15o3184lxde506q:18789/hooks/n8n-{{ $json.metadata.agent_id || 'main' }}",
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer 46cf3441242627eabf8eb5c32d2e0d7f"
+            },
             {
               "name": "Content-Type",
               "value": "application/json"
@@ -34,23 +53,153 @@
         "jsonBody": "={\n  \"message\": \"{{ $json.message }}\",\n  \"sessionKey\": \"{{ $json.sessionKey }}\",\n  \"to\": \"{{ $json.to }}\",\n  \"channel\": \"{{ $json.channel || 'telegram' }}\"\n}",
         "options": {}
       },
-      "id": "http-request-gateway",
+      "id": "forward-to-gateway",
       "name": "Forward to OpenClaw",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.1,
       "position": [
-        400,
-        300
+        350,
+        100
+      ]
+    },
+    {
+      "parameters": {
+        "dataType": "string",
+        "value1": "={{ $json.event_type }}",
+        "rules": {
+          "rules": [
+            {
+              "value2": "message:sent",
+              "output": 1
+            },
+            {
+              "value2": "message:received",
+              "output": 1
+            },
+            {
+              "operation": "startsWith",
+              "value2": "session_",
+              "output": 2
+            }
+          ]
+        }
+      },
+      "id": "type-switch",
+      "name": "Route by Event Type",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 1,
+      "position": [
+        350,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://kxhnjmkxbylxmxjapiad.supabase.co/rest/v1/rpc/append_conversation_message",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "apikey",
+              "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imt4aG5qbWt4YnlseG14amFwaWFkIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3Njg2ODIyOSwiZXhwIjoyMDkyNDQ0MjI5fQ.UKJtj4jTz3PUVcu6Aq0jA88ts87tmI0NwicBEK7rqaY"
+            },
+            {
+              "name": "Authorization",
+              "value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imt4aG5qbWt4YnlseG14amFwaWFkIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3Njg2ODIyOSwiZXhwIjoyMDkyNDQ0MjI5fQ.UKJtj4jTz3PUVcu6Aq0jA88ts87tmI0NwicBEK7rqaY"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"p_session_key\": \"{{ $json.metadata.sessionKey }}\",\n  \"p_message\": {\n    \"role\": \"{{ $json.event_type === 'message:sent' ? 'agent' : 'user' }}\",\n    \"content\": \"{{ $json.message }}\",\n    \"timestamp\": \"{{ new Date().toISOString() }}\"\n  },\n  \"p_agent_id\": \"{{ $json.metadata.agentId }}\",\n  \"p_client_name\": \"{{ $json.metadata.senderName || 'Client' }}\"\n}",
+        "options": {}
+      },
+      "id": "supabase-conversation",
+      "name": "Log to Conversations",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        600,
+        350
+      ]
+    },
+    {
+      "parameters": {
+        "method": "PATCH",
+        "url": "=https://kxhnjmkxbylxmxjapiad.supabase.co/rest/v1/agents?name=eq.{{ $json.metadata.resolvedAgent || $json.metadata.agentId }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "apikey",
+              "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imt4aG5qbWt4YnlseG14amFwaWFkIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3Njg2ODIyOSwiZXhwIjoyMDkyNDQ0MjI5fQ.UKJtj4jTz3PUVcu6Aq0jA88ts87tmI0NwicBEK7rqaY"
+            },
+            {
+              "name": "Authorization",
+              "value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imt4aG5qbWt4YnlseG14amFwaWFkIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3Njg2ODIyOSwiZXhwIjoyMDkyNDQ0MjI5fQ.UKJtj4jTz3PUVcu6Aq0jA88ts87tmI0NwicBEK7rqaY"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"status\": \"{{ $json.event_type === 'session_start' ? 'online' : ($json.event_type === 'session_end' ? 'offline' : 'busy') }}\",\n  \"last_heartbeat\": \"{{ new Date().toISOString() }}\"\n}",
+        "options": {}
+      },
+      "id": "supabase-agent-status",
+      "name": "Update Agent Status",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        600,
+        450
       ]
     }
   ],
   "pinData": {},
   "connections": {
-    "Webhook": {
+    "Outbound (Task Notification)": {
       "main": [
         [
           {
-            "node": "Forward to OpenClaw",
+            "node": "forward-to-gateway",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Inbound (Agent Events)": {
+      "main": [
+        [
+          {
+            "node": "Route by Event Type",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Route by Event Type": {
+      "main": [
+        [
+          {
+            "node": "Log to Conversations",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Update Agent Status",
             "type": "main",
             "index": 0
           }
@@ -62,7 +211,7 @@
   "settings": {
     "executionOrder": "v1"
   },
-  "versionId": "unified-v1",
+  "versionId": "full-prod-v1",
   "meta": {
     "instanceId": "openclue-n8n"
   }

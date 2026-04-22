@@ -7,7 +7,7 @@
 
 import type { HookHandler } from "openclaw/sdk/hook";
 
-const BACKEND_URL = process.env.MISSION_CONTROL_BACKEND_URL || "http://mission-control-backend:3001";
+const N8N_URL = process.env.MISSION_CONTROL_N8N_URL || "http://n8n:5678/webhook";
 const AGENT_TOKEN = process.env.MISSION_CONTROL_AGENT_TOKEN || process.env.AGENT_TOKEN_STRING || "string-secret";
 
 // Map Telegram user IDs to agent names
@@ -54,7 +54,7 @@ interface WebhookPayload {
 
 async function sendToBackend(payload: WebhookPayload): Promise<void> {
   try {
-    await fetch(`${BACKEND_URL}/api/webhook/openclaw`, {
+    await fetch(`${N8N_URL}/mission-control-events`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

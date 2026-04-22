@@ -1,24 +1,47 @@
-FROM node:20-alpine
+# 1. Install dependencies only when needed
+FROM node:20-alpine AS deps
+RUN apk add --no-cache libc6-compat
+WORKDIR /app
+COPY package.json package-lock.json* ./
+RUN npm ci
 
+# 2. Rebuild the source code only when needed
+FROM node:20-alpine AS builder
+WORKDIR /app
+COPY --from=deps /app/node_modules ./node_modules
+COPY . .
+
+# Build-time environment variables (REQUIRED for Next.js client-side)
+ARG NEXT_PUBLIC_SUPABASE_URL
+ARG NEXT_PUBLIC_SUPABASE_ANON_KEY
+ARG NEXT_PUBLIC_N8N_BASE_URL
+ENV NEXT_PUBLIC_SUPABASE_URL=$NEXT_PUBLIC_SUPABASE_URL
+ENV NEXT_PUBLIC_SUPABASE_ANON_KEY=$NEXT_PUBLIC_SUPABASE_ANON_KEY
+ENV NEXT_PUBLIC_N8N_BASE_URL=$NEXT_PUBLIC_N8N_BASE_URL
+
+RUN npm run build
+
+# 3. Production image, copy all the files and run next
+FROM node:20-alpine AS runner
 WORKDIR /app
 
-# Build context is repo root (Coolify sets context to repo root, not frontend/)
-# All COPY paths use frontend/ prefix
-COPY frontend/package.json ./frontend/package.json
-COPY frontend/app ./frontend/app
-COPY frontend/components ./frontend/components
-COPY frontend/hooks ./frontend/hooks
-COPY frontend/lib ./frontend/lib
-COPY frontend/types ./frontend/types
-COPY frontend/next.config.js ./frontend/next.config.js
-COPY frontend/tailwind.config.ts ./frontend/tailwind.config.ts
-COPY frontend/postcss.config.js ./frontend/postcss.config.js
-COPY frontend/tsconfig.json ./frontend/tsconfig.json
-COPY frontend/next-env.d.ts ./frontend/next-env.d.ts
+ENV NODE_ENV=production
 
-# Install dependencies and build
-RUN cd ./frontend && npm install && npm run build
+RUN addgroup -g 1001 -S nodejs
+RUN adduser -S nextjs -u 1001
 
-# Start
-# Note: Basic Auth is handled via middleware. Set AUTH_USER and AUTH_PASS env vars.
-CMD cd ./frontend && npx next start -p 3000
+COPY --from=builder /app/public ./public
+
+# Automatically leverage output traces to reduce image size
+# https://nextjs.org/docs/advanced-features/output-file-tracing
+COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
+COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
+
+USER nextjs
+
+EXPOSE 3000
+
+ENV PORT=3000
+ENV HOSTNAME="0.0.0.0"
+
+CMD ["node", "server.js"]
