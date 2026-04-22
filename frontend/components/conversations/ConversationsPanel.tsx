@@ -20,8 +20,8 @@ function cleanMessageContent(content: string | undefined): string {
 
   try {
     let current = content.trim()
-    const jsonMatch = current.match(/^(?:.*?:?\s*)?({.*})$/s)
-    if (jsonMatch) current = jsonMatch[1]
+    const jsonMatch = current.match(/^(?:.*?:?\s*)?({[\s\S]*})$/)
+    if (jsonMatch && jsonMatch[1]) current = jsonMatch[1]
 
     if (current.startsWith('{') && current.endsWith('}')) {
       let parsed = JSON.parse(current)
