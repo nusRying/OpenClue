@@ -85,3 +85,24 @@ export function useRealtimeActivity() {
     }
   }, [queryClient])
 }
+
+export function useRealtimeConversations() {
+  const queryClient = useQueryClient()
+  const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null)
+
+  useEffect(() => {
+    if (channelRef.current) return
+    channelRef.current = supabase
+      .channel('conversations-realtime')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'conversations' }, () => {
+        queryClient.invalidateQueries({ queryKey: ['conversations'] })
+      })
+      .subscribe()
+    return () => {
+      if (channelRef.current) {
+        supabase.removeChannel(channelRef.current)
+        channelRef.current = null
+      }
+    }
+  }, [queryClient])
+}

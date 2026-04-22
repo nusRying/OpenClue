@@ -125,15 +125,36 @@ CREATE INDEX IF NOT EXISTS idx_session_events_type ON session_events(event_type)
 CREATE INDEX IF NOT EXISTS idx_session_events_created ON session_events(created_at DESC);
 
 -- ============================================================
+-- TABLE: conversations
+-- ============================================================
+CREATE TABLE IF NOT EXISTS conversations (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  session_key TEXT NOT NULL UNIQUE,
+  client_id TEXT,
+  client_name TEXT,
+  agent_id UUID REFERENCES agents(id) ON DELETE SET NULL,
+  channel TEXT DEFAULT 'telegram' CHECK (channel IN ('telegram', 'whatsapp', 'web')),
+  messages JSONB DEFAULT '[]',
+  status TEXT DEFAULT 'active' CHECK (status IN ('active', 'archived')),
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_conversations_session ON conversations(session_key);
+CREATE INDEX IF NOT EXISTS idx_conversations_agent ON conversations(agent_id);
+CREATE INDEX IF NOT EXISTS idx_conversations_client ON conversations(client_id);
+
+-- ============================================================
 -- ENABLE REALTIME
 -- ============================================================
--- Enable realtime for all 6 tables
+-- Enable realtime for all 7 tables
 ALTER PUBLICATION supabase_realtime ADD TABLE agents;
 ALTER PUBLICATION supabase_realtime ADD TABLE projects;
 ALTER PUBLICATION supabase_realtime ADD TABLE tasks;
 ALTER PUBLICATION supabase_realtime ADD TABLE activity_log;
 ALTER PUBLICATION supabase_realtime ADD TABLE tool_calls;
 ALTER PUBLICATION supabase_realtime ADD TABLE session_events;
+ALTER PUBLICATION supabase_realtime ADD TABLE conversations;
 
 -- ============================================================
 -- ROW LEVEL SECURITY (RLS)
@@ -147,11 +168,13 @@ ALTER TABLE tasks ENABLE ROW LEVEL SECURITY;
 ALTER TABLE activity_log ENABLE ROW LEVEL SECURITY;
 ALTER TABLE tool_calls ENABLE ROW LEVEL SECURITY;
 ALTER TABLE session_events ENABLE ROW LEVEL SECURITY;
+ALTER TABLE conversations ENABLE ROW LEVEL SECURITY;
 
 -- Public access (KUT is the only user)
 CREATE POLICY "public_all_agents" ON agents FOR ALL USING (true) WITH CHECK (true);
 CREATE POLICY "public_all_projects" ON projects FOR ALL USING (true) WITH CHECK (true);
 CREATE POLICY "public_all_tasks" ON tasks FOR ALL USING (true) WITH CHECK (true);
+CREATE POLICY "public_all_conversations" ON conversations FOR ALL USING (true) WITH CHECK (true);
 CREATE POLICY "public_insert_activity" ON activity_log FOR INSERT WITH CHECK (true);
 CREATE POLICY "public_insert_tool_calls" ON tool_calls FOR INSERT WITH CHECK (true);
 CREATE POLICY "public_insert_session_events" ON session_events FOR INSERT WITH CHECK (true);

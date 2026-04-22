@@ -54,4 +54,22 @@ export interface ActivityEvent {
   created_at: string;
 }
 
+export interface Conversation {
+  id: string;
+  session_key: string;
+  client_id?: string;
+  client_name?: string;
+  agent_id?: string;
+  channel: 'telegram' | 'whatsapp' | 'web';
+  messages: Array<{
+    role: 'user' | 'agent' | 'system';
+    content: string;
+    timestamp: string;
+    metadata?: Record<string, unknown>;
+  }>;
+  status: 'active' | 'archived';
+  created_at: string;
+  updated_at: string;
+}
+
 

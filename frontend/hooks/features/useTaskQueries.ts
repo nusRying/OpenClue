@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '@/lib/supabase'
+import { triggerN8nWebhook } from '@/lib/n8n'
 import type { Task } from '@/types'
 
 export function useTasks(filters?: { project_id?: string; assignee_id?: string; status?: string }) {
@@ -23,6 +24,12 @@ export function useCreateTask() {
     mutationFn: async (task: Partial<Task>) => {
       const { data, error } = await supabase.from('tasks').insert(task).select().single()
       if (error) throw error
+      
+      // Trigger n8n webhook if assigned
+      if (data.assignee_id) {
+        triggerN8nWebhook(data.id, 'create')
+      }
+      
       return data
     },
     onError: (err) => { console.error('[useCreateTask]', err) },
@@ -36,6 +43,12 @@ export function useUpdateTask() {
     mutationFn: async ({ id, ...updates }: { id: string } & Partial<Task>) => {
       const { data, error } = await supabase.from('tasks').update(updates).eq('id', id).select().single()
       if (error) throw error
+
+      // Trigger n8n webhook if assignee changed or task updated significantly
+      if (data.assignee_id) {
+        triggerN8nWebhook(data.id, 'update')
+      }
+
       return data
     },
     onError: (err) => { console.error('[useUpdateTask]', err) },
@@ -66,6 +79,12 @@ export function useUpdateTaskStatus() {
         .select()
         .single()
       if (error) throw error
+
+      // Trigger n8n webhook for status change
+      if (data.assignee_id) {
+        triggerN8nWebhook(data.id, 'status_change')
+      }
+
       return data
     },
     onError: (err) => { console.error('[useUpdateTaskStatus]', err) },

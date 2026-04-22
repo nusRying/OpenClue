@@ -1,0 +1,2068 @@
+1
+00:00:03,010 --> 00:00:04,432
+Let's use our old method.
+
+2
+00:00:04,472 --> 00:00:09,819
+Let me share my screen.
+
+3
+00:00:09,839 --> 00:00:10,079
+Okay.
+
+4
+00:00:14,645 --> 00:00:15,386
+You see my screen.
+
+5
+00:00:20,952 --> 00:00:23,816
+So this is the gateway.
+
+6
+00:00:26,139 --> 00:00:26,239
+Okay.
+
+7
+00:00:27,541 --> 00:00:28,562
+And this is the.
+
+8
+00:00:32,546 --> 00:00:35,611
+Let's do it.
+
+9
+00:00:35,631 --> 00:00:36,011
+Agents.
+
+10
+00:00:41,780 --> 00:00:42,982
+If there is any other agents.
+
+11
+00:00:43,363 --> 00:00:43,543
+Okay.
+
+12
+00:00:44,645 --> 00:00:46,087
+And then if there's any other agents.
+
+13
+00:00:47,469 --> 00:00:47,649
+Okay.
+
+14
+00:00:48,170 --> 00:00:50,834
+And this is the, it's actually smart structure.
+
+15
+00:00:52,116 --> 00:00:57,084
+Let's say this is the user.
+
+16
+00:01:00,389 --> 00:01:00,850
+Okay.
+
+17
+00:01:01,666 --> 00:01:13,442
+So basically, the gateway is the connector between the agents, the requests.
+
+18
+00:01:13,782 --> 00:01:19,470
+Anything you do, the gateway directs your requests.
+
+19
+00:01:25,739 --> 00:01:27,721
+It's basically like that's right.
+
+20
+00:01:28,322 --> 00:01:31,186
+So if you go, the gateway has many information.
+
+21
+00:01:31,586 --> 00:01:33,809
+I'll show you a file, which is the open cloud Jason.
+
+22
+00:01:36,932 --> 00:01:37,974
+Stop sharing.
+
+23
+00:01:37,994 --> 00:01:38,935
+Let me just do here.
+
+24
+00:01:39,676 --> 00:01:43,961
+Let me just do the whole window together.
+
+25
+00:01:43,981 --> 00:01:46,764
+No, where is it?
+
+26
+00:01:51,009 --> 00:01:52,732
+Let me just do a task.
+
+27
+00:01:52,752 --> 00:01:52,852
+Okay.
+
+28
+00:01:57,017 --> 00:01:58,098
+You see the Jason here?
+
+29
+00:02:02,914 --> 00:02:03,715
+This is the gateway.
+
+30
+00:02:05,817 --> 00:02:06,118
+Okay.
+
+31
+00:02:06,238 --> 00:02:08,581
+So they see this, the agent is the workspace.
+
+32
+00:02:08,621 --> 00:02:09,702
+This is the model I'm using.
+
+33
+00:02:10,583 --> 00:02:10,903
+Okay.
+
+34
+00:02:12,005 --> 00:02:14,167
+Uh, this is the list of agents I have.
+
+35
+00:02:14,848 --> 00:02:15,909
+These are the list of agents.
+
+36
+00:02:16,410 --> 00:02:19,253
+This is string, digits, promo.
+
+37
+00:02:19,754 --> 00:02:25,020
+This is the bind the binding binding, which, which means it's like a connecting information to each other.
+
+38
+00:02:25,060 --> 00:02:26,381
+Okay.
+
+39
+00:02:29,004 --> 00:02:30,546
+So the agent ID mean.
+
+40
+00:02:30,786 --> 00:02:36,793
+It has a channel in telegram and it has an account ID, which is main bot here.
+
+41
+00:02:38,975 --> 00:02:39,255
+Okay.
+
+42
+00:02:39,616 --> 00:02:42,259
+String it's called string bots and so on.
+
+43
+00:02:42,719 --> 00:02:45,122
+This is the gateway information, the gateway token.
+
+44
+00:02:48,266 --> 00:02:55,173
+Uh, you know, just like the type of, uh, type of, uh, what do you call it?
+
+45
+00:02:55,193 --> 00:02:57,156
+Exactly.
+
+46
+00:02:57,176 --> 00:02:57,956
+It's a conflict file.
+
+47
+00:02:59,198 --> 00:02:59,378
+Okay.
+
+48
+00:02:59,746 --> 00:03:17,465
+Now, if you want to create a webhook, just like NA10, if you want to create something like this, this one, this webhook trigger is a webhook that receives information, right?
+
+49
+00:03:19,006 --> 00:03:20,708
+It receives requests.
+
+50
+00:03:21,189 --> 00:03:25,493
+So what you do, you go to the config file, you add it here.
+
+51
+00:03:25,513 --> 00:03:26,354
+You see it's a hook.
+
+52
+00:03:29,474 --> 00:03:29,915
+Do you see it?
+
+53
+00:03:31,637 --> 00:03:34,480
+And then you add, you add something called mappings.
+
+54
+00:03:39,226 --> 00:03:45,134
+So if you want to talk, I, I, I tried to make it dynamic, but it didn't work.
+
+55
+00:03:45,775 --> 00:03:48,458
+I wanted to make only one mapping.
+
+56
+00:03:48,478 --> 00:03:52,263
+And then I, I, I do the directing from my request.
+
+57
+00:03:52,283 --> 00:03:57,810
+So right now, if you see, I'm doing one, two, three, four mapping for each agent.
+
+58
+00:03:59,650 --> 00:04:03,136
+I wanted to do only one.
+
+59
+00:04:03,196 --> 00:04:13,473
+So how many agents do I have?
+
+60
+00:04:13,614 --> 00:04:14,355
+I have four, right?
+
+61
+00:04:14,715 --> 00:04:15,938
+There is one called promo.
+
+62
+00:04:15,958 --> 00:04:20,906
+One is main and the other one is digit and the other one is string.
+
+63
+00:04:21,347 --> 00:04:21,868
+I have four.
+
+64
+00:04:22,449 --> 00:04:22,769
+Okay.
+
+65
+00:04:25,233 --> 00:04:25,454
+Okay.
+
+66
+00:04:25,474 --> 00:04:25,714
+Let's,
+
+67
+00:04:27,010 --> 00:04:29,133
+Yeah, so it distinguishes between agents.
+
+68
+00:04:29,153 --> 00:04:35,721
+So if I want to send a message to promo, OK, this is a placeholder.
+
+69
+00:04:36,922 --> 00:04:38,124
+I write the request here.
+
+70
+00:04:38,845 --> 00:04:39,686
+You see the request.
+
+71
+00:04:40,447 --> 00:04:41,508
+I change it to promo.
+
+72
+00:04:42,089 --> 00:04:43,471
+You see the request here, promo.
+
+73
+00:04:44,632 --> 00:04:45,093
+Do you see it?
+
+74
+00:04:51,901 --> 00:04:52,722
+What do you see now?
+
+75
+00:04:59,938 --> 00:05:00,899
+Do you see N8n here?
+
+76
+00:05:00,920 --> 00:05:06,488
+Do you see HTB request node?
+
+77
+00:05:09,994 --> 00:05:10,314
+Okay.
+
+78
+00:05:10,334 --> 00:05:12,377
+Now do you see the link?
+
+79
+00:05:12,658 --> 00:05:15,662
+I go to Hawks, which is the one in the config file.
+
+80
+00:05:16,684 --> 00:05:19,288
+And then I go to N8n promo, which is this one.
+
+81
+00:05:20,350 --> 00:05:21,271
+N8n promo.
+
+82
+00:05:21,291 --> 00:05:21,872
+This is the path.
+
+83
+00:05:21,912 --> 00:05:22,333
+Do you see it?
+
+84
+00:05:26,840 --> 00:05:28,402
+What I'm trying to say in the map.
+
+85
+00:05:29,250 --> 00:05:34,616
+I'm telling the agent, I'm going to send you a message right here.
+
+86
+00:05:34,696 --> 00:05:36,018
+DC, I'm going to send you a message.
+
+87
+00:05:37,359 --> 00:05:37,680
+Okay.
+
+88
+00:05:38,801 --> 00:05:39,902
+This is the session key.
+
+89
+00:05:39,962 --> 00:05:41,564
+I don't want you to create a new session.
+
+90
+00:05:42,065 --> 00:05:48,292
+Use this session key and respond in this telegram ID and topic.
+
+91
+00:05:49,754 --> 00:05:56,882
+So if I go to promo hooks then promo, and then I send a message.
+
+92
+00:05:58,306 --> 00:06:01,590
+respond with, let's say, give me a call.
+
+93
+00:06:01,610 --> 00:06:03,011
+Let's say your name, Omer.
+
+94
+00:06:03,692 --> 00:06:03,872
+Okay.
+
+95
+00:06:06,876 --> 00:06:09,479
+If I execute it's sending.
+
+96
+00:06:10,660 --> 00:06:11,361
+Now let me show you.
+
+97
+00:06:12,903 --> 00:06:14,905
+You should see Promo responding here.
+
+98
+00:06:17,708 --> 00:06:18,609
+Just give it a second.
+
+99
+00:06:22,794 --> 00:06:23,134
+Do you see?
+
+100
+00:06:23,154 --> 00:06:26,578
+Do you see your name here?
+
+101
+00:06:29,698 --> 00:06:34,964
+If I want Digit to respond, I will say Digit.
+
+102
+00:06:35,806 --> 00:06:36,647
+I change it to Digit.
+
+103
+00:06:37,508 --> 00:06:40,491
+Now it's going to go to this hook in a state.
+
+104
+00:06:40,511 --> 00:06:41,553
+It's going to go to this hook.
+
+105
+00:06:41,573 --> 00:06:42,193
+Do you see Digit?
+
+106
+00:06:45,357 --> 00:06:47,240
+And then it's going to respond in topic number three.
+
+107
+00:06:47,860 --> 00:06:49,562
+It's going to use agent ID Digit.
+
+108
+00:06:51,885 --> 00:06:52,226
+Okay.
+
+109
+00:06:53,187 --> 00:06:56,591
+Now if I execute, executed, I go to Telegram.
+
+110
+00:06:56,931 --> 00:06:57,893
+I go to Digit.
+
+111
+00:06:57,913 --> 00:06:58,994
+Just wait a second here.
+
+112
+00:07:00,002 --> 00:07:00,423
+You see?
+
+113
+00:07:03,847 --> 00:07:04,347
+You see the name?
+
+114
+00:07:15,841 --> 00:07:16,302
+Exactly.
+
+115
+00:07:16,342 --> 00:07:22,530
+So this is very, very configurable.
+
+116
+00:07:22,590 --> 00:07:25,453
+You can play it as much as you want.
+
+117
+00:07:26,014 --> 00:07:27,276
+Actually, it's a very smart idea.
+
+118
+00:07:27,776 --> 00:07:29,298
+You can do whatever you want.
+
+119
+00:07:30,178 --> 00:07:36,908
+Okay, my target is, instead of using a backend, let me just go back in here.
+
+120
+00:07:40,673 --> 00:07:41,154
+Where is it?
+
+121
+00:07:43,998 --> 00:07:45,319
+Do you see the front end, the backend?
+
+122
+00:07:49,746 --> 00:07:51,048
+Now we don't need this one.
+
+123
+00:07:51,308 --> 00:07:52,229
+We don't need the backend.
+
+124
+00:07:53,171 --> 00:07:54,292
+We just do the front end.
+
+125
+00:07:54,733 --> 00:07:58,418
+We connect it to super base and anything is going to be the backend for us.
+
+126
+00:08:08,834 --> 00:08:09,254
+What is it?
+
+127
+00:08:21,128 --> 00:08:26,194
+Because the idea is the backend was coded by the agent.
+
+128
+00:08:26,414 --> 00:08:29,278
+The agent is not like reliable to do.
+
+129
+00:08:29,738 --> 00:08:30,059
+Okay.
+
+130
+00:08:31,340 --> 00:08:36,466
+I mean, if every time I tell the agent to update the backend, it misses many other things.
+
+131
+00:08:39,842 --> 00:08:40,283
+Okay.
+
+132
+00:08:40,543 --> 00:08:42,046
+So my idea is the following.
+
+133
+00:08:42,627 --> 00:08:45,272
+I tell the agent to only build the front end as I want.
+
+134
+00:08:45,993 --> 00:08:46,294
+Okay.
+
+135
+00:08:48,858 --> 00:08:53,767
+And then if I create, if I create a, let's hope it's work, it's still working.
+
+136
+00:08:54,188 --> 00:08:57,454
+You see here now it's still connected to the super base.
+
+137
+00:09:00,379 --> 00:09:02,162
+Now I can create a task.
+
+138
+00:09:16,226 --> 00:09:17,067
+Exactly.
+
+139
+00:09:17,107 --> 00:09:25,435
+So if I want to send an update or create a project in SuperBase, I'm not going to use the backend that created by the agent.
+
+140
+00:09:25,455 --> 00:09:26,536
+I'm going to use N8n.
+
+141
+00:09:29,318 --> 00:09:29,759
+You got it?
+
+142
+00:09:35,764 --> 00:09:37,406
+We had a problem before with this.
+
+143
+00:09:37,466 --> 00:09:38,387
+Do you know what's the problem?
+
+144
+00:09:40,709 --> 00:09:44,232
+If main creates an agent, creates a task.
+
+145
+00:09:45,434 --> 00:09:45,874
+Okay.
+
+146
+00:09:47,042 --> 00:09:50,245
+and assigns the task to, let's say string.
+
+147
+00:09:54,049 --> 00:09:54,409
+Okay.
+
+148
+00:09:55,490 --> 00:10:00,255
+It, it assigns the task and it assigns the task to string and it's written in Subabase.
+
+149
+00:10:00,275 --> 00:10:00,615
+Correct?
+
+150
+00:10:03,318 --> 00:10:09,824
+I can make Subabase do a post request to N8n through here.
+
+151
+00:10:11,025 --> 00:10:15,730
+And then from here, I can link this one to promo to work on the task.
+
+152
+00:10:19,618 --> 00:10:22,322
+Please, if you don't understand me, tell me, don't worry.
+
+153
+00:10:22,362 --> 00:10:24,024
+Don't worry about saying you don't understand.
+
+154
+00:10:24,044 --> 00:10:24,745
+Tell me so I can.
+
+155
+00:10:28,631 --> 00:10:29,272
+In the past.
+
+156
+00:10:30,593 --> 00:10:44,974
+Okay.
+
+157
+00:10:44,994 --> 00:10:45,995
+I'll tell you, I'll tell you.
+
+158
+00:10:47,898 --> 00:10:48,178
+Uh,
+
+159
+00:10:49,634 --> 00:10:50,395
+Let me just go back.
+
+160
+00:10:50,996 --> 00:10:54,560
+Let me show you what is super base.
+
+161
+00:10:55,261 --> 00:10:59,106
+This super base.
+
+162
+00:11:05,014 --> 00:11:10,582
+Just give me a second.
+
+163
+00:11:10,622 --> 00:11:10,962
+Okay.
+
+164
+00:11:28,162 --> 00:11:38,193
+So if I go to super base, okay, these are our agents, correct?
+
+165
+00:11:43,719 --> 00:11:57,394
+Now, if main creates a task, creates a project, okay, and then creates a task and assigns this task to
+
+166
+00:11:57,890 --> 00:12:01,654
+Which agent, let's see.
+
+167
+00:12:04,136 --> 00:12:05,057
+What is the assignee?
+
+168
+00:12:08,180 --> 00:12:09,181
+There is no assignee.
+
+169
+00:12:09,221 --> 00:12:11,063
+We should add assignee assignee.
+
+170
+00:12:12,324 --> 00:12:24,816
+Uh, we should, we should add a column, which assignee assignee ID.
+
+171
+00:12:27,078 --> 00:12:27,378
+Yeah.
+
+172
+00:12:27,778 --> 00:12:31,982
+So this one, uh, just give me a second.
+
+173
+00:12:32,002 --> 00:12:32,423
+I'm sorry.
+
+174
+00:12:38,789 --> 00:12:39,090
+Okay.
+
+175
+00:12:39,190 --> 00:12:43,314
+This is the assignee, the assignee ID, which is, which, which refers back, let's say this one.
+
+176
+00:12:44,075 --> 00:12:48,880
+Uh, if you go to agent, which agent B seven, three, nine B seven, three, nine.
+
+177
+00:12:51,923 --> 00:12:52,323
+What does it be?
+
+178
+00:12:52,343 --> 00:12:54,566
+So this is the, this is for a string, I think.
+
+179
+00:12:54,586 --> 00:12:54,866
+Right.
+
+180
+00:12:58,850 --> 00:13:00,813
+V7, uh, nine three.
+
+181
+00:13:01,073 --> 00:13:01,955
+This is for promo.
+
+182
+00:13:02,315 --> 00:13:02,556
+Okay.
+
+183
+00:13:02,576 --> 00:13:03,777
+So this, this, yeah.
+
+184
+00:13:03,797 --> 00:13:05,881
+So this task is for, for promo.
+
+185
+00:13:05,901 --> 00:13:06,081
+Okay.
+
+186
+00:13:06,662 --> 00:13:18,640
+Once this created, once this thing created to send a push to the way book in it, in, in it, in here, it's going to send it here.
+
+187
+00:13:21,865 --> 00:13:24,208
+Like this, it's going to send it here.
+
+188
+00:13:24,849 --> 00:13:28,114
+And then from here, a request is going to be made.
+
+189
+00:13:28,418 --> 00:13:32,706
+to promo, telling promo about the task and what they should do.
+
+190
+00:13:33,813 --> 00:13:34,578
+You got the idea?
+
+191
+00:14:02,914 --> 00:14:05,017
+Uh, yeah, I understand.
+
+192
+00:14:05,117 --> 00:14:06,599
+I understand what's saying.
+
+193
+00:14:06,620 --> 00:14:20,360
+This is just, uh, this is just for, if you go to the mapping, if you go to the mapping, okay, this is for us to communicate because I don't want the agent to work in the background without me knowing.
+
+194
+00:14:21,241 --> 00:14:27,931
+I'm telling, I'm telling, if you go to the open claw, uh, look, look here, this is the open claw, uh, system.
+
+195
+00:14:29,433 --> 00:14:29,874
+Okay.
+
+196
+00:14:31,010 --> 00:14:32,152
+There are many sessions.
+
+197
+00:14:32,172 --> 00:14:33,533
+You can create many sessions.
+
+198
+00:14:33,634 --> 00:14:35,035
+I don't want to create many sessions.
+
+199
+00:14:35,496 --> 00:14:39,301
+I want to use one session for us to communicate between us and the, and the agent.
+
+200
+00:14:41,444 --> 00:14:41,785
+Okay.
+
+201
+00:14:43,106 --> 00:14:44,088
+Do you know how it's going to help us?
+
+202
+00:14:44,648 --> 00:14:45,670
+I'll tell you how it's going to help us.
+
+203
+00:14:47,292 --> 00:14:50,577
+Our next plan is to make promo talk to clients.
+
+204
+00:14:54,983 --> 00:14:56,064
+Every conversation.
+
+205
+00:14:58,467 --> 00:15:00,530
+Yeah, every conversation with a
+
+206
+00:15:00,770 --> 00:15:03,233
+client is going to be considered as a session.
+
+207
+00:15:04,835 --> 00:15:05,195
+Okay.
+
+208
+00:15:07,278 --> 00:15:14,146
+If the, what I want to do, I want to save all the conversation that's happening between the client and the agent.
+
+209
+00:15:14,667 --> 00:15:20,774
+So, and basically I can check it and I see that the agent is not like doing something bad.
+
+210
+00:15:24,639 --> 00:15:25,340
+You get the idea.
+
+211
+00:15:25,380 --> 00:15:30,226
+Are you sure?
+
+212
+00:15:44,546 --> 00:15:52,115
+Now that's going to be, that's going to be in the, uh, uh, in the, uh, I don't use this much.
+
+213
+00:15:52,496 --> 00:15:53,417
+I just see the sessions.
+
+214
+00:15:53,457 --> 00:15:55,019
+I don't, I don't actually use it at all.
+
+215
+00:15:55,680 --> 00:15:59,024
+This is for me just to check out the sessions, but it's something I don't care about.
+
+216
+00:15:59,064 --> 00:15:59,625
+Okay.
+
+217
+00:16:01,607 --> 00:16:04,511
+If you go here, if I go here, we just send a message to promo, right?
+
+218
+00:16:05,212 --> 00:16:05,773
+Let me show you.
+
+219
+00:16:06,754 --> 00:16:10,498
+This is the last message was to digit sending the name.
+
+220
+00:16:10,538 --> 00:16:10,739
+Right?
+
+221
+00:16:11,259 --> 00:16:13,362
+So if I go to here, I go to dig it.
+
+222
+00:16:13,954 --> 00:16:14,455
+Do you see it?
+
+223
+00:16:15,817 --> 00:16:16,277
+Do you see it?
+
+224
+00:16:16,658 --> 00:16:19,262
+This is the request that happened from N18.
+
+225
+00:16:19,282 --> 00:16:27,013
+Do you see respond with Omer?
+
+226
+00:16:27,053 --> 00:16:27,614
+Do you see it here?
+
+227
+00:16:31,660 --> 00:16:34,885
+I am trying to find a way to remove this whole thing as well.
+
+228
+00:16:35,045 --> 00:16:38,230
+I just want this one, this part, the one I sent.
+
+229
+00:16:39,772 --> 00:16:43,858
+But I couldn't find a way to remove it.
+
+230
+00:16:48,994 --> 00:16:49,415
+Okay.
+
+231
+00:17:02,615 --> 00:17:05,139
+Yeah, I'm, I'm, I'm trying to find a way.
+
+232
+00:17:05,159 --> 00:17:08,003
+I don't know if it's going to be applicable or not.
+
+233
+00:17:08,023 --> 00:17:09,906
+I just want to remove the whole message.
+
+234
+00:17:09,926 --> 00:17:17,338
+You know, if I, if I do, uh, I'm, I want to try and test it, but, uh, let me just see here.
+
+235
+00:17:17,358 --> 00:17:17,618
+Okay.
+
+236
+00:17:17,890 --> 00:17:18,631
+We just go here.
+
+237
+00:17:18,671 --> 00:17:19,952
+Where's the mission in the front end?
+
+238
+00:17:20,513 --> 00:17:24,077
+I say create project this thing in it.
+
+239
+00:17:24,477 --> 00:17:34,007
+And this is a project to test, to test and it's system.
+
+240
+00:17:35,669 --> 00:17:38,152
+So it's going to be active.
+
+241
+00:17:38,172 --> 00:17:38,272
+Okay.
+
+242
+00:17:39,934 --> 00:17:42,637
+That should be testing, testing, testing.
+
+243
+00:17:44,318 --> 00:17:47,762
+Now, if I go to it's right here, do you see it?
+
+244
+00:17:50,338 --> 00:17:50,598
+Okay.
+
+245
+00:17:52,842 --> 00:18:01,394
+If I go here, I change this one to, uh, there should be a signing as well.
+
+246
+00:18:03,117 --> 00:18:03,478
+Okay.
+
+247
+00:18:04,018 --> 00:18:07,243
+And now, now this thing, if you see, there is a missing gap.
+
+248
+00:18:07,263 --> 00:18:07,724
+Do you see it?
+
+249
+00:18:08,164 --> 00:18:10,288
+I created the project here, right?
+
+250
+00:18:13,192 --> 00:18:14,995
+But it wasn't delivered to the agents.
+
+251
+00:18:15,716 --> 00:18:17,298
+No agent knows about this project.
+
+252
+00:18:18,402 --> 00:18:21,065
+There is no way for the agents to understand what's going on.
+
+253
+00:18:21,486 --> 00:18:45,697
+Now, if I create a task testing and it insists temp for all agents, all agents must respond with let's say agent name one, two, three.
+
+254
+00:18:45,717 --> 00:18:46,738
+Now I do it here.
+
+255
+00:18:48,322 --> 00:18:58,020
+How critical I have to have a find a way to, uh, assign to make, I can choose multiple, multiple agents, create a task.
+
+256
+00:18:59,864 --> 00:19:09,362
+Now it creates the task, but the agents, they don't know about the, uh, about what's going on.
+
+257
+00:19:14,338 --> 00:19:18,364
+No, no, no, they don't have any way of communicating with the system.
+
+258
+00:19:21,248 --> 00:19:25,454
+If I change it to main, they don't know about it.
+
+259
+00:19:25,855 --> 00:19:26,175
+Nothing.
+
+260
+00:19:29,840 --> 00:19:39,194
+So if I do here, if I come here, I go to integrations, I think API.
+
+261
+00:19:41,016 --> 00:19:42,098
+Let me see.
+
+262
+00:19:48,258 --> 00:19:49,280
+What is webhook?
+
+263
+00:19:52,664 --> 00:19:53,125
+Webhook.
+
+264
+00:19:57,011 --> 00:19:57,191
+Okay.
+
+265
+00:19:57,572 --> 00:19:58,553
+Create a new webhook.
+
+266
+00:19:59,434 --> 00:20:05,203
+If I see, uh, system comes.
+
+267
+00:20:08,227 --> 00:20:08,948
+Say public.
+
+268
+00:20:11,853 --> 00:20:12,494
+We'll do task.
+
+269
+00:20:16,079 --> 00:20:18,042
+Anything.
+
+270
+00:20:18,062 --> 00:20:18,162
+Okay.
+
+271
+00:20:19,714 --> 00:20:23,779
+post, let's go to any 10, take this one.
+
+272
+00:20:25,702 --> 00:20:27,064
+Uh, no, I will use internal one.
+
+273
+00:20:31,129 --> 00:20:32,430
+Uh, I'll do this one for the time being.
+
+274
+00:20:33,051 --> 00:20:36,816
+Okay.
+
+275
+00:20:36,836 --> 00:20:36,936
+Okay.
+
+276
+00:20:37,878 --> 00:20:39,059
+And then content type.
+
+277
+00:20:41,662 --> 00:20:42,343
+Parameters.
+
+278
+00:20:42,924 --> 00:20:44,466
+What's the parameter I should do?
+
+279
+00:20:51,266 --> 00:20:52,367
+How can I give it a test?
+
+280
+00:21:06,160 --> 00:21:08,342
+Let me just, uh, I'll show you, we're just in a second.
+
+281
+00:21:08,382 --> 00:21:09,043
+I'll do D here.
+
+282
+00:21:09,984 --> 00:21:11,065
+Okay.
+
+283
+00:21:11,085 --> 00:21:21,234
+You create a task, create a task, this thing, so this system, assigning main.
+
+284
+00:21:21,634 --> 00:21:24,797
+Project testing unit in create a task.
+
+285
+00:21:26,919 --> 00:21:27,059
+Okay.
+
+286
+00:21:27,079 --> 00:21:28,020
+We received the DC.
+
+287
+00:21:29,502 --> 00:21:29,962
+We got it.
+
+288
+00:21:33,826 --> 00:21:35,587
+Now what we do is we come here.
+
+289
+00:21:36,208 --> 00:21:36,648
+Do you see it?
+
+290
+00:21:37,429 --> 00:21:38,310
+You get the idea now.
+
+291
+00:21:43,515 --> 00:21:45,177
+This is a message.
+
+292
+00:21:46,678 --> 00:21:50,802
+Generated from mission.
+
+293
+00:21:51,010 --> 00:21:56,295
+control system.
+
+294
+00:21:56,315 --> 00:22:01,420
+You are assigned this task.
+
+295
+00:22:02,881 --> 00:22:03,041
+Okay.
+
+296
+00:22:03,602 --> 00:22:12,850
+Now what we do is description.
+
+297
+00:22:13,331 --> 00:22:14,392
+Let's do description here.
+
+298
+00:22:16,154 --> 00:22:20,978
+Task name, task titles.
+
+299
+00:22:25,154 --> 00:22:32,361
+Telegram.
+
+300
+00:22:43,913 --> 00:22:48,338
+Telegram is like a session.
+
+301
+00:22:50,099 --> 00:22:52,722
+If I remove this, just...
+
+302
+00:22:55,522 --> 00:22:56,063
+Let me show you.
+
+303
+00:22:56,083 --> 00:22:57,244
+I'll show you real quick.
+
+304
+00:22:57,404 --> 00:23:02,110
+If I remove this session key, if I remove it, do you know what's going to happen?
+
+305
+00:23:04,172 --> 00:23:05,975
+It's going to send a message to the agent.
+
+306
+00:23:06,716 --> 00:23:07,056
+Okay.
+
+307
+00:23:08,237 --> 00:23:09,959
+But we, we didn't know about it.
+
+308
+00:23:10,901 --> 00:23:15,146
+And then in sessions here is going to create a new session called hook.
+
+309
+00:23:19,551 --> 00:23:20,252
+You get the idea?
+
+310
+00:23:21,574 --> 00:23:25,298
+The key is I'm telling this, the agent.
+
+311
+00:23:25,666 --> 00:23:31,054
+Do not create new session work on the job using this session.
+
+312
+00:23:33,217 --> 00:23:43,753
+If I want, if I want the agent, if I want the agent to respond to me in another, like, uh, in another like a channel, like maybe WhatsApp or telegram or whatsoever, I would change it here.
+
+313
+00:23:43,893 --> 00:23:44,454
+Do you see it here?
+
+314
+00:23:47,518 --> 00:23:54,549
+Look, look, I'm going to, I'm going to change a, I'm going to change a digit to one.
+
+315
+00:23:55,009 --> 00:23:55,410
+Okay.
+
+316
+00:23:56,098 --> 00:23:58,504
+No, I have to, I have to say it's not going to work here.
+
+317
+00:23:59,407 --> 00:24:04,621
+If I change it here, if I put WhatsApp, telegram whatsoever, it's going to give me the response in this, in this channel.
+
+318
+00:24:10,216 --> 00:24:11,058
+You got the idea?
+
+319
+00:24:28,322 --> 00:24:28,923
+Exactly.
+
+320
+00:24:28,963 --> 00:24:49,053
+Let's say task requests, job to be done job, task to be done, do dates.
+
+321
+00:24:58,026 --> 00:24:58,226
+Okay.
+
+322
+00:25:01,666 --> 00:25:04,330
+We see the assignee here.
+
+323
+00:25:07,113 --> 00:25:09,556
+We can do an F statement in the link.
+
+324
+00:25:11,339 --> 00:25:12,380
+If the assignee.
+
+325
+00:25:17,106 --> 00:25:17,927
+Okay, we do here.
+
+326
+00:25:20,331 --> 00:25:21,092
+An F statement.
+
+327
+00:25:27,620 --> 00:25:29,042
+I think you do it like this, right?
+
+328
+00:25:32,386 --> 00:25:38,612
+So basically we put the, if the assignee is this, we put digit, if the assignee is this, we put promo, so on.
+
+329
+00:25:41,896 --> 00:25:45,019
+Let me just give it a test since we are here.
+
+330
+00:25:45,039 --> 00:25:53,708
+Okay.
+
+331
+00:25:53,728 --> 00:25:59,954
+The respond with five, five, six, five.
+
+332
+00:26:02,850 --> 00:26:03,691
+I remove this thing.
+
+333
+00:26:04,713 --> 00:26:04,813
+Okay.
+
+334
+00:26:05,954 --> 00:26:10,440
+Now, if you play that, it's going to be two digits.
+
+335
+00:26:12,924 --> 00:26:13,064
+Yeah.
+
+336
+00:26:13,584 --> 00:26:14,185
+Execute.
+
+337
+00:26:17,229 --> 00:26:18,691
+We should see now the code.
+
+338
+00:26:22,617 --> 00:26:24,279
+Five, six, six, seven, six.
+
+339
+00:26:25,541 --> 00:26:25,981
+Do you see it?
+
+340
+00:26:31,429 --> 00:26:32,530
+Now, if we go.
+
+341
+00:26:32,930 --> 00:26:36,034
+to the sessions to digit.
+
+342
+00:26:37,075 --> 00:26:37,876
+Do you see our message?
+
+343
+00:26:44,663 --> 00:26:45,664
+You get the whole idea now.
+
+344
+00:26:50,890 --> 00:26:57,778
+If I change the status of the message to, sorry, just give me a second.
+
+345
+00:27:02,146 --> 00:27:12,824
+If I change the status to blocked, just before I do, you don't see my screen.
+
+346
+00:27:20,476 --> 00:27:21,057
+You see it now.
+
+347
+00:27:25,004 --> 00:27:25,805
+I'll stop this one.
+
+348
+00:27:26,306 --> 00:27:28,009
+Now I'm going to activate the webhook.
+
+349
+00:27:28,349 --> 00:27:28,850
+Now look.
+
+350
+00:27:29,858 --> 00:27:30,739
+I'm going to go here.
+
+351
+00:27:30,779 --> 00:27:32,320
+I'm going to change the status to blocked.
+
+352
+00:27:33,161 --> 00:27:33,321
+Okay.
+
+353
+00:27:38,206 --> 00:27:38,707
+Do you see it?
+
+354
+00:27:39,447 --> 00:27:40,208
+We received it here.
+
+355
+00:27:42,871 --> 00:27:49,037
+Status blocked, which means please the agent so-and-so stop working on it or whatsoever.
+
+356
+00:27:51,379 --> 00:27:51,739
+You get it?
+
+357
+00:27:51,779 --> 00:27:58,546
+The whole thing is clear now.
+
+358
+00:28:04,994 --> 00:28:05,955
+Everything is in here.
+
+359
+00:28:13,527 --> 00:28:14,689
+I'm going to remove this.
+
+360
+00:28:26,167 --> 00:28:33,458
+Now we need to build the, I need to build the, the, uh, the front page, the front end.
+
+361
+00:28:33,986 --> 00:28:34,847
+I need to change this one.
+
+362
+00:28:34,867 --> 00:28:36,850
+This one is not practical.
+
+363
+00:28:37,550 --> 00:28:38,552
+I need multiple pages.
+
+364
+00:28:39,673 --> 00:28:39,953
+OK.
+
+365
+00:28:45,460 --> 00:28:47,122
+I don't know how to explain this for you.
+
+366
+00:28:51,628 --> 00:28:52,208
+Let me show you.
+
+367
+00:28:53,490 --> 00:28:55,092
+OK, I'll show you everything.
+
+368
+00:28:55,252 --> 00:29:00,018
+Please, if you have a note, write it down so you can work with it.
+
+369
+00:29:06,210 --> 00:29:06,590
+Okay.
+
+370
+00:29:08,753 --> 00:29:11,576
+Uh, first of all, I need to see my agents here.
+
+371
+00:29:12,517 --> 00:29:12,817
+Okay.
+
+372
+00:29:15,080 --> 00:29:16,041
+It doesn't have to be here.
+
+373
+00:29:16,081 --> 00:29:17,563
+Just give me like a nice layout.
+
+374
+00:29:18,624 --> 00:29:19,825
+Cool.
+
+375
+00:29:19,845 --> 00:29:24,871
+I want to see recent activity or recent activity is in here and integration.
+
+376
+00:29:24,911 --> 00:29:25,311
+Do you see it?
+
+377
+00:29:25,792 --> 00:29:26,933
+It's here in activity log.
+
+378
+00:29:30,798 --> 00:29:31,198
+Okay.
+
+379
+00:29:33,200 --> 00:29:34,802
+And I want to see.
+
+380
+00:29:37,026 --> 00:29:40,712
+Uh, just like this, create a project tasks.
+
+381
+00:29:42,234 --> 00:29:42,515
+Okay.
+
+382
+00:29:43,035 --> 00:29:45,279
+This should be in, in a different page.
+
+383
+00:29:45,359 --> 00:29:47,042
+They should be like a projects page here.
+
+384
+00:29:50,848 --> 00:29:53,752
+And they should be like, uh, uh, yeah, projects page.
+
+385
+00:29:54,093 --> 00:29:57,298
+And then you open the projects, you see all the projects, you see all the tasks.
+
+386
+00:30:09,890 --> 00:30:13,134
+Yeah, but I need, I need a few other things.
+
+387
+00:30:13,374 --> 00:30:15,878
+I also need like a timeline.
+
+388
+00:30:16,278 --> 00:30:17,380
+You see the timeline in here.
+
+389
+00:30:17,400 --> 00:30:18,481
+Okay.
+
+390
+00:30:18,982 --> 00:30:21,625
+I like a calendar.
+
+391
+00:30:21,645 --> 00:30:22,446
+I don't want it like this.
+
+392
+00:30:23,087 --> 00:30:23,628
+I'll show you.
+
+393
+00:30:25,049 --> 00:30:25,650
+I'll show you one.
+
+394
+00:30:25,670 --> 00:30:26,351
+Just give me a second.
+
+395
+00:30:29,776 --> 00:30:32,159
+I think, I think I sent you before, right?
+
+396
+00:30:34,241 --> 00:30:34,802
+Oh, wait.
+
+397
+00:30:39,106 --> 00:30:51,886
+Give me a second, I'll send it to you.
+
+398
+00:30:51,906 --> 00:30:53,330
+I'll send it in WhatsApp, okay?
+
+399
+00:31:15,170 --> 00:31:16,191
+The season, what's up?
+
+400
+00:31:24,140 --> 00:31:26,002
+This is the, this is a campaign page.
+
+401
+00:31:28,985 --> 00:31:29,906
+This is the dashboard.
+
+402
+00:31:32,269 --> 00:31:32,569
+Okay.
+
+403
+00:31:33,250 --> 00:31:34,051
+This is the timeline.
+
+404
+00:31:34,091 --> 00:31:34,912
+I want something like this.
+
+405
+00:31:40,218 --> 00:31:40,658
+Okay.
+
+406
+00:31:45,314 --> 00:31:48,921
+I also need this is going to be also in the super base.
+
+407
+00:31:51,747 --> 00:31:59,743
+Um, uh, I also need something like, uh, what is it?
+
+408
+00:31:59,763 --> 00:32:02,428
+Do you see the telegram?
+
+409
+00:32:06,296 --> 00:32:07,378
+This is telegram page.
+
+410
+00:32:12,354 --> 00:32:15,138
+DC this is like agent, where is it?
+
+411
+00:32:18,523 --> 00:32:19,224
+Oh, it failed.
+
+412
+00:32:19,244 --> 00:32:19,945
+Just give me a second.
+
+413
+00:32:30,100 --> 00:32:34,707
+DC the, like here we have agent digit is sending this message at this time, right?
+
+414
+00:32:40,035 --> 00:32:42,098
+I want this, I want a page like this.
+
+415
+00:32:42,594 --> 00:32:49,663
+It shows me the conversation going on between either agents, between me and the agents, between the client and the agents whatsoever.
+
+416
+00:32:51,486 --> 00:32:54,910
+Okay.
+
+417
+00:32:54,930 --> 00:32:58,675
+But for the, I mean, the key is going to be in the super base, right?
+
+418
+00:33:04,923 --> 00:33:05,444
+Exactly.
+
+419
+00:33:05,524 --> 00:33:10,290
+So what's going to happen is what's going to happen is going to be there like a new, a new, uh,
+
+420
+00:33:10,882 --> 00:33:12,383
+Uh, what is it?
+
+421
+00:33:12,504 --> 00:33:18,129
+And you like table and then I don't want each conversation in a row.
+
+422
+00:33:19,991 --> 00:33:21,913
+I want each session in a row.
+
+423
+00:33:23,514 --> 00:33:24,215
+You get the idea.
+
+424
+00:33:28,639 --> 00:33:30,521
+So let's say Amir is a client.
+
+425
+00:33:30,801 --> 00:33:34,425
+You talk to agent promo in session, what's up whatsoever.
+
+426
+00:33:34,605 --> 00:33:39,890
+X, X, X, then it's going to be creating a row here called X, X, what's up.
+
+427
+00:33:40,450 --> 00:33:42,373
+a client name is maybe Omero.
+
+428
+00:33:42,413 --> 00:33:43,836
+This is the client ID.
+
+429
+00:33:44,297 --> 00:33:45,339
+This is the agent ID.
+
+430
+00:33:45,679 --> 00:33:47,102
+And then it's going to be like a Jason.
+
+431
+00:33:47,122 --> 00:33:48,504
+Do you see the metadata Jason here?
+
+432
+00:33:50,427 --> 00:33:57,580
+Each message is going to be represented by like the time and everything and when was it sent and everything.
+
+433
+00:34:02,208 --> 00:34:03,410
+You get it?
+
+434
+00:34:09,282 --> 00:34:18,977
+Also, the mission control has access to the super base.
+
+435
+00:34:18,997 --> 00:34:24,225
+For example, if I create a project, it's reflected directly in the super base.
+
+436
+00:34:24,245 --> 00:34:34,361
+So there are many ways to create a project, either from mission control or from telegram by the main agent to create a project.
+
+437
+00:34:34,381 --> 00:34:35,122
+You get it?
+
+438
+00:34:42,210 --> 00:34:43,212
+Uh, that's it.
+
+439
+00:34:43,452 --> 00:34:46,297
+If you need any mappings for the roots, just let me know.
+
+440
+00:34:47,178 --> 00:34:49,421
+And I will do the necessary changes.
+
+441
+00:34:58,135 --> 00:35:09,874
+Share what I'll send you, I'll send you the, the hooking part.
+
+442
+00:35:16,066 --> 00:35:45,938
+now there is another hook which is the internal one you see it the internal one there are two hooks here by the way there are two hooks there is one internal and there is one external this one is internal okay and this one and this one is external you might ask what's the difference
+
+443
+00:35:46,338 --> 00:35:51,185
+If I write a message, look here, I'm going to send a message in telegram.
+
+444
+00:35:51,205 --> 00:35:51,465
+Okay.
+
+445
+00:36:07,487 --> 00:36:08,248
+Do you see my message?
+
+446
+00:36:08,268 --> 00:36:08,528
+I sent.
+
+447
+00:36:08,548 --> 00:36:08,868
+Hello.
+
+448
+00:36:09,569 --> 00:36:10,150
+Hello.
+
+449
+00:36:10,210 --> 00:36:13,034
+You see it received it.
+
+450
+00:36:13,415 --> 00:36:14,516
+It's my message.
+
+451
+00:36:14,937 --> 00:36:16,018
+This is how you track.
+
+452
+00:36:16,226 --> 00:36:21,854
+conversation between clients and agents.
+
+453
+00:36:24,938 --> 00:36:27,782
+If I say, what time is it now?
+
+454
+00:36:32,107 --> 00:36:34,090
+Now, the booth is going to send me a message.
+
+455
+00:36:34,470 --> 00:36:36,213
+I'm going to receive it here in the webhook.
+
+456
+00:36:36,233 --> 00:36:36,433
+Look.
+
+457
+00:36:37,394 --> 00:36:37,955
+Just give me a second.
+
+458
+00:36:41,940 --> 00:36:42,581
+Wait a second.
+
+459
+00:36:45,265 --> 00:36:46,066
+Another one.
+
+460
+00:36:46,338 --> 00:36:48,681
+On it sent three messages.
+
+461
+00:36:50,943 --> 00:36:51,203
+Look.
+
+462
+00:36:53,706 --> 00:36:54,287
+Session key.
+
+463
+00:36:54,307 --> 00:36:55,208
+That's the session key.
+
+464
+00:36:55,228 --> 00:36:56,029
+Okay.
+
+465
+00:36:57,270 --> 00:36:58,051
+This is the message.
+
+466
+00:37:00,233 --> 00:37:00,674
+You got it.
+
+467
+00:37:07,301 --> 00:37:08,863
+Account ID.
+
+468
+00:37:08,883 --> 00:37:09,984
+Conversation ID.
+
+469
+00:37:11,826 --> 00:37:12,968
+The channel is telegram.
+
+470
+00:37:14,069 --> 00:37:15,090
+The message ID.
+
+471
+00:37:15,650 --> 00:37:18,956
+Is group through group ID and so on.
+
+472
+00:37:23,464 --> 00:37:23,745
+Nice.
+
+473
+00:37:28,774 --> 00:37:29,796
+There is many possibilities.
+
+474
+00:37:29,856 --> 00:37:33,042
+Can you think of like possibilities to work on?
+
+475
+00:37:56,450 --> 00:37:58,534
+But can you understand many possibilities in here?
+
+476
+00:37:58,594 --> 00:37:59,836
+We can, we can do a lot.
+
+477
+00:38:12,537 --> 00:38:13,138
+Say again.
+
+478
+00:38:26,882 --> 00:38:27,763
+We can do that, yes.
+
+479
+00:38:29,045 --> 00:38:33,691
+It's going to be like, yes, yes, lots and lots of possibilities.
+
+480
+00:38:35,554 --> 00:38:40,721
+If I see here, this is my message.
+
+481
+00:38:40,761 --> 00:38:46,088
+This is my message, telegram, account ID, metadata, sender ID.
+
+482
+00:38:46,109 --> 00:38:49,053
+You see, this is the information of me I'm sending.
+
+483
+00:38:49,093 --> 00:38:49,713
+This is my ID.
+
+484
+00:38:51,396 --> 00:38:52,377
+And then you go here.
+
+485
+00:38:54,400 --> 00:38:55,922
+This is an internal tool.
+
+486
+00:38:57,602 --> 00:38:58,884
+session status content.
+
+487
+00:39:02,628 --> 00:39:02,928
+Okay.
+
+488
+00:39:04,330 --> 00:39:08,615
+And then it's another one.
+
+489
+00:39:16,425 --> 00:39:18,827
+Let's try and finish it as fast as possible.
+
+490
+00:39:18,847 --> 00:39:21,010
+If you want to work, are you going to work on it tonight?
+
+491
+00:39:29,154 --> 00:39:29,535
+Okay.
+
+492
+00:39:31,738 --> 00:39:38,748
+For the front end, make sure it's a Docker file because it's easy for us to add basic authentication.
+
+493
+00:39:38,768 --> 00:39:39,249
+Do you see it?
+
+494
+00:39:40,551 --> 00:39:41,192
+It's very easy.
+
+495
+00:39:43,715 --> 00:39:45,518
+So make sure it's a Docker file.
+
+496
+00:39:50,545 --> 00:39:51,026
+The what?
+
+497
+00:39:58,562 --> 00:40:00,224
+Uh, you mean, you mean variable.
+
+498
+00:40:00,244 --> 00:40:00,405
+Okay.
+
+499
+00:40:03,730 --> 00:40:04,691
+Just give me a second.
+
+500
+00:40:07,095 --> 00:40:07,916
+Uh, get happy.
+
+501
+00:40:13,804 --> 00:40:17,069
+It has a backend, but it's not, uh, it's not needed anymore.
+
+502
+00:40:17,089 --> 00:40:28,466
+I already shared with you, didn't I?
+
+503
+00:40:36,482 --> 00:40:45,216
+Yeah, you are already in the... You are already in the collaborators, yes.
+
+504
+00:40:57,836 --> 00:40:58,296
+You got it?
+
+505
+00:41:01,281 --> 00:41:01,842
+All good?
+
+506
+00:41:04,546 --> 00:41:06,288
+Yeah, we don't we don't need the back end anymore.
+
+507
+00:41:06,308 --> 00:41:08,251
+I mean, it's it's it's not necessary.
+
+508
+00:41:11,155 --> 00:41:12,056
+We're going to use anything.
+
+509
+00:41:12,417 --> 00:41:15,361
+I think there is I think just wait, wait, show you something.
+
+510
+00:41:17,524 --> 00:41:18,505
+But let me show you later.
+
+511
+00:41:18,645 --> 00:41:19,847
+Let's let's keep it for later.
+
+512
+00:41:19,867 --> 00:41:20,127
+Okay.
+
+513
+00:41:24,213 --> 00:41:25,355
+Thank you so much for your time.
+
+514
+00:41:25,395 --> 00:41:26,316
+We'll talk inshallah.
+
+515
+00:41:26,877 --> 00:41:28,939
+Please try and finish it as fast as possible.
+
+516
+00:41:32,004 --> 00:41:33,065
+Thank you so much.
+
+517
+00:41:33,085 --> 00:41:33,746
+Allah Hafiz.
+

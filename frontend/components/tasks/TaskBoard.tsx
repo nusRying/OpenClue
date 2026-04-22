@@ -133,16 +133,20 @@ export function TaskBoard({ tasks, projects, agents, onStatusChange, onCreateTas
                 borderRadius: 'var(--radius-lg)',
                 border: `1px solid ${col.colBorder}`,
                 background: col.colBg,
-                padding: '0.5rem',
+                padding: '0.75rem',
                 display: 'flex',
                 flexDirection: 'column',
-                gap: '0.5rem',
-                minHeight: '8rem',
+                gap: '0.75rem',
+                minHeight: '20rem',
               }}>
                 {columnTasks.map(task => {
                   const assignee = agents.find(a => a.id === task.assignee_id)
+                  const project = projects.find(p => p.id === task.project_id)
                   const priority = PRIORITY_CONFIG[task.priority]
                   const isOverdue = task.due_date && new Date(task.due_date) < new Date() && task.status !== 'completed'
+                  
+                  // Mock Task ID for UI (in a real app, this would be a database field)
+                  const taskId = `MCW-${task.id.slice(0, 3).toUpperCase()}`
 
                   return (
                     <div
@@ -155,50 +159,75 @@ export function TaskBoard({ tasks, projects, agents, onStatusChange, onCreateTas
                       style={{
                         background: 'var(--bg-surface)',
                         border: '1px solid var(--border-subtle)',
-                        borderRadius: 'var(--radius-md)',
-                        padding: '0.75rem',
+                        borderRadius: 'var(--radius-lg)',
+                        padding: '1rem',
                         cursor: 'grab',
                         transition: 'all 0.15s',
                         opacity: draggedTask?.id === task.id ? 0.4 : 1,
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: '0.75rem',
+                        boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
                       }}
                       className="task-card">
-
-                      <p style={{ fontSize: '0.8125rem', fontWeight: 500, color: 'var(--text-primary)', margin: 0, lineHeight: 1.4 }}>
-                        {task.title}
-                      </p>
-
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.375rem', marginTop: '0.5rem', flexWrap: 'wrap' }}>
-                        {/* Priority badge */}
-                        <span style={{
-                          fontSize: '0.625rem', fontWeight: 600,
-                          padding: '2px 6px', borderRadius: '99px',
-                          color: priority.color, background: priority.bg,
+                      
+                      {/* Top Row: ID & Priority */}
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                        <span style={{ fontSize: '0.625rem', fontWeight: 600, color: 'var(--text-tertiary)', letterSpacing: '0.05em' }}>{taskId}</span>
+                        <span style={{ 
+                          fontSize: '0.625rem', fontWeight: 700, color: priority.color, 
+                          textTransform: 'uppercase', letterSpacing: '0.05em' 
                         }}>
                           {priority.label}
                         </span>
+                      </div>
 
-                        {/* Assignee */}
-                        {assignee && (
-                          <span style={{
-                            display: 'inline-flex', alignItems: 'center', gap: 3,
-                            fontSize: '0.6875rem', color: 'var(--text-tertiary)',
-                          }}>
-                            <span>{assignee.emoji}</span>
-                            <span>{assignee.name}</span>
-                          </span>
-                        )}
-
-                        {/* Due date */}
-                        {task.due_date && (
-                          <span style={{
-                            fontSize: '0.625rem',
-                            color: isOverdue ? 'var(--error)' : 'var(--text-tertiary)',
-                            marginLeft: 'auto',
-                          }}>
-                            {new Date(task.due_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
-                          </span>
+                      {/* Middle: Title & Project */}
+                      <div>
+                        <p style={{ fontSize: '0.875rem', fontWeight: 600, color: 'var(--text-primary)', margin: 0, lineHeight: 1.4 }}>
+                          {task.title}
+                        </p>
+                        {project && (
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.375rem', marginTop: '0.25rem' }}>
+                            <div style={{ width: 4, height: 4, borderRadius: '50%', background: 'var(--accent)' }} />
+                            <span style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)' }}>{project.name}</span>
+                          </div>
                         )}
                       </div>
+
+                      {/* Bottom Row: Tags & Assignee */}
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '0.25rem' }}>
+                        <div style={{ display: 'flex', gap: '0.375rem' }}>
+                          <span style={{ 
+                            fontSize: '0.625rem', fontWeight: 600, padding: '2px 8px', borderRadius: '4px',
+                            background: 'var(--bg-elevated)', color: 'var(--text-secondary)', textTransform: 'uppercase'
+                          }}>
+                            {task.tags?.[0] || 'TASK'}
+                          </span>
+                        </div>
+                        
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                          {task.due_date && (
+                            <span style={{ 
+                              fontSize: '0.6875rem', fontWeight: 500,
+                              color: isOverdue ? 'var(--error)' : 'var(--text-tertiary)' 
+                            }}>
+                              {new Date(task.due_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                            </span>
+                          )}
+                          {assignee && (
+                            <div style={{ 
+                              width: 20, height: 20, borderRadius: '50%', background: 'var(--bg-elevated)',
+                              display: 'flex', alignItems: 'center', justifyContent: 'center', 
+                              fontSize: '0.75rem', border: '1px solid var(--border-subtle)',
+                              color: 'var(--text-primary)', fontWeight: 600
+                            }} title={assignee.name}>
+                              {assignee.name.slice(0, 1).toUpperCase()}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+
                     </div>
                   )
                 })}

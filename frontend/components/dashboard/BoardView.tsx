@@ -5,6 +5,7 @@ import { AgentCard } from '@/components/agents/AgentCard'
 import { ProjectsPanel } from '@/components/projects/ProjectsPanel'
 import { TaskBoard } from '@/components/tasks/TaskBoard'
 import { ActivityFeed } from '@/components/dashboard/ActivityFeed'
+import { DashboardOverview } from '@/components/dashboard/DashboardOverview'
 import { useCreateProject, useUpdateProject, useDeleteProject, useCreateTask, useUpdateTask, useDeleteTask, useUpdateTaskStatus } from '@/hooks'
 import { useCallback } from 'react'
 
@@ -15,9 +16,10 @@ interface Props {
   activity: ActivityEvent[]
   selectedProjectId: string | null
   onSelectProject: (id: string | null) => void
+  overviewMode?: boolean
 }
 
-export function BoardView({ projects, tasks, agents, activity, selectedProjectId, onSelectProject }: Props) {
+export function BoardView({ projects, tasks, agents, activity, selectedProjectId, onSelectProject, overviewMode = false }: Props) {
   const createProject = useCreateProject()
   const updateProject = useUpdateProject()
   const deleteProject = useDeleteProject()
@@ -60,39 +62,20 @@ export function BoardView({ projects, tasks, agents, activity, selectedProjectId
     deleteTask.mutate(id)
   }, [deleteTask])
 
+  if (overviewMode) {
+    return (
+      <DashboardOverview
+        agents={agents}
+        projects={projects}
+        tasks={tasks}
+      />
+    )
+  }
+
   return (
-    <div style={{ display: 'grid', gridTemplateColumns: '280px 1fr', gap: '1.5rem', alignItems: 'start' }}>
-      {/* Left sidebar */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', position: 'sticky', top: '5rem' }}>
-
-        {/* Agents */}
-        <div className="card" style={{ overflow: 'hidden' }}>
-          <div style={{ padding: '0.75rem 1rem', borderBottom: '1px solid var(--border-subtle)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              <span style={{ fontSize: '0.875rem', fontWeight: 500 }}>Agents</span>
-              <span className="badge" style={{ background: 'var(--bg-elevated)', color: 'var(--text-tertiary)' }}>{agents.length}</span>
-            </div>
-            <span style={{ fontSize: '0.75rem', color: 'var(--success)' }}>{onlineAgents} online</span>
-          </div>
-          <div>
-            {agents.map(agent => (
-              <AgentCard key={agent.id} agent={agent} />
-            ))}
-          </div>
-        </div>
-
-        {/* Activity */}
-        <div className="card" style={{ overflow: 'hidden' }}>
-          <div style={{ padding: '0.75rem 1rem', borderBottom: '1px solid var(--border-subtle)' }}>
-            <span style={{ fontSize: '0.875rem', fontWeight: 500 }}>Recent Activity</span>
-          </div>
-          <div style={{ maxHeight: '320px', overflowY: 'auto' }}>
-            <ActivityFeed events={activity.slice(0, 20)} compact />
-          </div>
-        </div>
-      </div>
-
-      {/* Main content */}
+    <div style={{ display: 'grid', gridTemplateColumns: '1fr 300px', gap: '1.5rem', alignItems: 'start' }}>
+      
+      {/* Main content (Left) */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
         {/* Projects */}
         <div className="card" style={{ padding: '1rem' }}>
@@ -121,6 +104,40 @@ export function BoardView({ projects, tasks, agents, activity, selectedProjectId
           />
         </div>
       </div>
+
+      {/* Sidebar (Right) */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', position: 'sticky', top: '5.5rem' }}>
+
+        {/* Agents */}
+        <div className="card" style={{ overflow: 'hidden' }}>
+          <div style={{ padding: '0.75rem 1rem', borderBottom: '1px solid var(--border-subtle)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <span style={{ fontSize: '0.875rem', fontWeight: 600 }}>Agents</span>
+              <span className="badge" style={{ background: 'var(--bg-elevated)', color: 'var(--text-tertiary)' }}>{agents.length}</span>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', fontSize: '0.75rem', color: 'var(--success)' }}>
+              <div style={{ width: 6, height: 6, borderRadius: '50%', background: 'var(--success)' }} />
+              {onlineAgents} online
+            </div>
+          </div>
+          <div style={{ maxHeight: '240px', overflowY: 'auto' }}>
+            {agents.map(agent => (
+              <AgentCard key={agent.id} agent={agent} />
+            ))}
+          </div>
+        </div>
+
+        {/* Activity */}
+        <div className="card" style={{ overflow: 'hidden' }}>
+          <div style={{ padding: '0.75rem 1rem', borderBottom: '1px solid var(--border-subtle)' }}>
+            <span style={{ fontSize: '0.875rem', fontWeight: 600 }}>Recent Activity</span>
+          </div>
+          <div style={{ maxHeight: '400px', overflowY: 'auto' }}>
+            <ActivityFeed events={activity.slice(0, 20)} compact />
+          </div>
+        </div>
+      </div>
+
     </div>
   )
 }
