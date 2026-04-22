@@ -44,5 +44,5 @@ wheels/
 client_mappings.json
 transcribe.py
 
-# Transcription folder (optional, keep if you want it in git)
-# Screen_Recording_Transcription/
+# Transcription folder
+Screen_Recording_Transcription/
