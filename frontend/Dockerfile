@@ -1,17 +1,19 @@
-# 1. Install dependencies only when needed
+# 1. Install dependencies
 FROM node:20-alpine AS deps
 RUN apk add --no-cache libc6-compat
 WORKDIR /app
-COPY package.json package-lock.json* ./
+
+# Build context is repo root, so we COPY from frontend/
+COPY frontend/package.json frontend/package-lock.json* ./
 RUN npm ci
 
-# 2. Rebuild the source code only when needed
+# 2. Rebuild the source code
 FROM node:20-alpine AS builder
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
-COPY . .
+COPY frontend/ .
 
-# Build-time environment variables (REQUIRED for Next.js client-side)
+# Build-time environment variables
 ARG NEXT_PUBLIC_SUPABASE_URL
 ARG NEXT_PUBLIC_SUPABASE_ANON_KEY
 ARG NEXT_PUBLIC_N8N_BASE_URL
@@ -21,7 +23,7 @@ ENV NEXT_PUBLIC_N8N_BASE_URL=$NEXT_PUBLIC_N8N_BASE_URL
 
 RUN npm run build
 
-# 3. Production image, copy all the files and run next
+# 3. Production image
 FROM node:20-alpine AS runner
 WORKDIR /app
 
@@ -31,16 +33,12 @@ RUN addgroup -g 1001 -S nodejs
 RUN adduser -S nextjs -u 1001
 
 COPY --from=builder /app/public ./public
-
-# Automatically leverage output traces to reduce image size
-# https://nextjs.org/docs/advanced-features/output-file-tracing
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 
 USER nextjs
 
 EXPOSE 3000
-
 ENV PORT=3000
 ENV HOSTNAME="0.0.0.0"
 
