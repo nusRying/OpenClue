@@ -25,7 +25,7 @@ export function useTasks(filters?: { project_id?: string; assignee_id?: string; 
     queryFn: async () => {
       let query = supabase.from('tasks').select('*').order('created_at', { ascending: false })
       if (filters?.project_id) query = query.eq('project_id', filters.project_id)
-      if (filters?.assignee_id) query = query.eq('assignee_id', filters.assignee_id)
+      if (filters?.assignee_id) query = query.contains('assignee_ids', [filters.assignee_id])
       if (filters?.status) query = query.eq('status', toDbStatus(filters.status))
       const { data, error } = await query
       if (error) throw error
@@ -49,8 +49,8 @@ export function useCreateTask() {
       if (error) throw error
       const normalized = normalizeTask(data as Task)
       
-      // Trigger n8n webhook if assigned
-      if (normalized.assignee_id) {
+      // Trigger n8n webhook
+      if (normalized.assignee_ids?.length > 0) {
         triggerN8nWebhook(normalized.id, 'create')
       }
       
@@ -77,8 +77,8 @@ export function useUpdateTask() {
       if (error) throw error
       const normalized = normalizeTask(data as Task)
 
-      // Trigger n8n webhook if assignee changed or task updated significantly
-      if (normalized.assignee_id) {
+      // Trigger n8n webhook
+      if (normalized.assignee_ids?.length > 0) {
         triggerN8nWebhook(normalized.id, 'update')
       }
 
@@ -115,7 +115,7 @@ export function useUpdateTaskStatus() {
       const normalized = normalizeTask(data as Task)
 
       // Trigger n8n webhook for status change
-      if (normalized.assignee_id) {
+      if (normalized.assignee_ids?.length > 0) {
         triggerN8nWebhook(normalized.id, 'status_change')
       }
 

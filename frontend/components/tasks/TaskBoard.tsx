@@ -125,7 +125,6 @@ export function TaskBoard({ tasks, projects, agents, onStatusChange, onCreateTas
               {/* Column body */}
               <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', flex: 1 }}>
                 {columnTasks.map(task => {
-                  const assignee = agents.find(a => a.id === task.assignee_id)
                   const project = projects.find(p => p.id === task.project_id)
                   const priority = PRIORITY_CONFIG[task.priority]
                   const isOverdue = task.due_date && new Date(task.due_date) < new Date() && task.status !== 'completed'
@@ -175,16 +174,31 @@ export function TaskBoard({ tasks, projects, agents, onStatusChange, onCreateTas
                           {!task.tags?.length && <span style={{ fontSize: '0.625rem', fontWeight: 700, padding: '2px 8px', borderRadius: '4px', background: 'var(--bg-elevated)', color: 'var(--text-tertiary)', textTransform: 'uppercase' }}>TASK</span>}
                         </div>
 
-                        {assignee && (
-                          <div style={{ 
-                            width: 24, height: 24, borderRadius: '50%', background: 'var(--bg-elevated)',
-                            display: 'flex', alignItems: 'center', justifyContent: 'center', 
-                            fontSize: '0.875rem', border: '1px solid var(--border-subtle)',
-                            boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
-                          }} title={assignee.name}>
-                            {assignee.emoji}
-                          </div>
-                        )}
+                        {/* Multi-Agent Avatars */}
+                        <div style={{ display: 'flex', alignItems: 'center', marginLeft: 'auto' }}>
+                          {(task.assignee_ids || []).map((id, idx) => {
+                            const agent = agents.find(a => a.id === id)
+                            if (!agent) return null
+                            return (
+                              <div
+                                key={agent.id}
+                                title={agent.name}
+                                style={{
+                                  width: 24, height: 24, borderRadius: '50%',
+                                  background: 'var(--bg-elevated)',
+                                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                  fontSize: '0.875rem', border: '2px solid var(--bg-base)',
+                                  boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+                                  marginLeft: idx === 0 ? 0 : -8,
+                                  zIndex: 10 - idx,
+                                  position: 'relative'
+                                }}
+                              >
+                                {agent.emoji}
+                              </div>
+                            )
+                          })}
+                        </div>
                       </div>
                     </div>
                   )

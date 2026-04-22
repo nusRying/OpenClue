@@ -1,5 +1,4 @@
-'use client'
-
+import { useEffect, useState, useRef } from 'react'
 import type { Agent, Project, Task } from '@/types'
 
 interface Props {
@@ -9,6 +8,9 @@ interface Props {
 }
 
 export function DashboardOverview({ agents, projects, tasks }: Props) {
+  const [pulseIndices, setPulseIndices] = useState<number[]>([])
+  const prevCountsRef = useRef<{ [key: string]: number | string }>({})
+
   const activeProjects = projects.filter(p => p.status === 'active').length
   const onlineAgents = agents.filter(a => {
     if (!a.last_seen_at) return false
@@ -19,11 +21,28 @@ export function DashboardOverview({ agents, projects, tasks }: Props) {
   const progress = tasks.length > 0 ? Math.round((completedTasks / tasks.length) * 100) : 0
 
   const stats = [
-    { label: 'ACTIVE PROJECTS', value: activeProjects, subtext: projects[0]?.name || 'No projects', subcolor: 'var(--accent-teal)' },
-    { label: 'AGENTS ONLINE', value: onlineAgents, subtext: `${agents.length} total`, subcolor: 'var(--success)' },
-    { label: 'OPEN TASKS', value: openTasks, subtext: `${tasks.filter(t => t.status === 'in-progress').length} in progress`, subcolor: 'var(--info)' },
-    { label: 'OVERALL PROGRESS', value: `${progress}%`, subtext: 'System heartbeat normal', subcolor: 'var(--accent-purple)' },
+    { id: 'projects', label: 'ACTIVE PROJECTS', value: activeProjects, subtext: projects[0]?.name || 'No projects', subcolor: 'var(--accent-teal)' },
+    { id: 'agents', label: 'AGENTS ONLINE', value: onlineAgents, subtext: `${agents.length} total`, subcolor: 'var(--success)' },
+    { id: 'tasks', label: 'OPEN TASKS', value: openTasks, subtext: `${tasks.filter(t => t.status === 'in-progress').length} in progress`, subcolor: 'var(--info)' },
+    { id: 'progress', label: 'OVERALL PROGRESS', value: `${progress}%`, subtext: 'System heartbeat normal', subcolor: 'var(--accent-purple)' },
   ]
+
+  // Heartbeat effect: detect changes in stats and trigger pulse
+  useEffect(() => {
+    const newPulseIndices: number[] = []
+    stats.forEach((stat, idx) => {
+      if (prevCountsRef.current[stat.id] !== undefined && prevCountsRef.current[stat.id] !== stat.value) {
+        newPulseIndices.push(idx)
+      }
+      prevCountsRef.current[stat.id] = stat.value
+    })
+
+    if (newPulseIndices.length > 0) {
+      setPulseIndices(newPulseIndices)
+      const timer = setTimeout(() => setPulseIndices([]), 600)
+      return () => clearTimeout(timer)
+    }
+  }, [activeProjects, onlineAgents, openTasks, progress])
 
   const getPhaseProgress = (tag: string) => {
     const phaseTasks = tasks.filter(t => t.tags?.some(tagStr => tagStr.toLowerCase().includes(tag)))
@@ -68,12 +87,32 @@ export function DashboardOverview({ agents, projects, tasks }: Props) {
 
       {/* Stats Grid */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '1.25rem' }}>
-        {stats.map(stat => (
-          <div key={stat.label} className="card" style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column', transition: 'transform 0.2s', cursor: 'default' }}>
+        {stats.map((stat, idx) => (
+          <div 
+            key={stat.label} 
+            className="card" 
+            style={{ 
+              padding: '1.5rem', 
+              display: 'flex', 
+              flexDirection: 'column', 
+              transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)', 
+              cursor: 'default',
+              animation: pulseIndices.includes(idx) ? 'pulse-stats 0.6s ease-out' : 'none',
+              border: pulseIndices.includes(idx) ? '1px solid var(--accent)' : '1px solid var(--border-subtle)',
+              position: 'relative',
+              overflow: 'hidden'
+            }}
+          >
+            {pulseIndices.includes(idx) && (
+              <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '2px', background: 'var(--accent)', boxShadow: '0 0 10px var(--accent)' }} />
+            )}
             <p style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-tertiary)', margin: 0, letterSpacing: '0.08em', textTransform: 'uppercase' }}>{stat.label}</p>
             <p style={{ fontSize: '2.5rem', fontWeight: 800, margin: '0.75rem 0', color: 'var(--text-primary)' }}>{stat.value}</p>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginTop: 'auto' }}>
-              <div style={{ width: 6, height: 6, borderRadius: '50%', background: stat.subcolor }} />
+              <div style={{ 
+                width: 6, height: 6, borderRadius: '50%', background: stat.subcolor,
+                boxShadow: `0 0 10px ${stat.subcolor}80`
+              }} />
               <p style={{ fontSize: '0.8125rem', color: 'var(--text-secondary)', margin: 0 }}>{stat.subtext}</p>
             </div>
           </div>
@@ -122,13 +161,16 @@ export function DashboardOverview({ agents, projects, tasks }: Props) {
 
         {/* Global Agent Pulse */}
         <div className="card" style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column' }}>
-           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.5rem' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.5rem' }}>
               <h2 style={{ fontSize: '1.125rem', fontWeight: 700, margin: 0 }}>Agent Pulse</h2>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.375rem', padding: '4px 10px', borderRadius: '20px', background: 'var(--success-muted)', color: 'var(--success)', fontSize: '0.75rem', fontWeight: 700 }}>
-                <span style={{ width: 6, height: 6, borderRadius: '50%', background: 'var(--success)', animation: 'pulse 2s infinite' }} />
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.375rem', padding: '4px 10px', borderRadius: '20px', background: 'var(--success-muted)', color: 'var(--success)', fontSize: '0.75rem', fontWeight: 700, position: 'relative' }}>
+                <span style={{ position: 'relative', width: 8, height: 8 }}>
+                  <span style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', borderRadius: '50%', background: 'var(--success)', animation: 'ping 1.5s cubic-bezier(0, 0, 0.2, 1) infinite', opacity: 0.75 }} />
+                  <span style={{ position: 'relative', display: 'block', width: 8, height: 8, borderRadius: '50%', background: 'var(--success)' }} />
+                </span>
                 {onlineAgents} LIVE
               </div>
-           </div>
+            </div>
            
            <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
               {agents.slice(0, 5).map(agent => (

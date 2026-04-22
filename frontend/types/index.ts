@@ -36,7 +36,7 @@ export interface Task {
   description?: string;
   status: TaskStatus;
   priority: Priority;
-  assignee_id?: string;
+  assignee_ids: string[];
   due_date?: string;
   tags: string[];
   created_at: string;

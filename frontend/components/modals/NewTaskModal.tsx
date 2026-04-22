@@ -14,12 +14,18 @@ export function NewTaskModal({ isOpen, onClose, onCreate, projects, agents }: {
   const [description, setDescription] = useState('')
   const [projectId, setProjectId] = useState('')
   const [priority, setPriority] = useState<'low' | 'medium' | 'high' | 'critical'>('medium')
-  const [assigneeId, setAssigneeId] = useState('')
+  const [assigneeIds, setAssigneeIds] = useState<string[]>([])
   const [dueDate, setDueDate] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [titleError, setTitleError] = useState(false)
 
   if (!isOpen) return null
+
+  const toggleAssignee = (id: string) => {
+    setAssigneeIds(prev => 
+      prev.includes(id) ? prev.filter(a => a !== id) : [...prev, id]
+    )
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -32,14 +38,14 @@ export function NewTaskModal({ isOpen, onClose, onCreate, projects, agents }: {
         description: description.trim(),
         project_id: projectId || undefined,
         priority,
-        assignee_id: assigneeId || undefined,
+        assignee_ids: assigneeIds,
         due_date: dueDate || undefined,
         status: 'pending',
       })
       setTitle('')
       setDescription('')
       setPriority('medium')
-      setAssigneeId('')
+      setAssigneeIds([])
       setDueDate('')
       setProjectId('')
       onClose()
@@ -101,7 +107,7 @@ export function NewTaskModal({ isOpen, onClose, onCreate, projects, agents }: {
             />
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '0.75rem' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
             <div>
               <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 500, color: 'var(--text-secondary)', marginBottom: '0.375rem' }}>
                 Project
@@ -131,19 +137,37 @@ export function NewTaskModal({ isOpen, onClose, onCreate, projects, agents }: {
                 <option value="critical">Critical</option>
               </select>
             </div>
+          </div>
 
-            <div>
-              <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 500, color: 'var(--text-secondary)', marginBottom: '0.375rem' }}>
-                Assignee
-              </label>
-              <select
-                value={assigneeId}
-                onChange={(e) => setAssigneeId(e.target.value)}
-                className="input"
-              >
-                <option value="">Unassigned</option>
-                {agents.map((a) => <option key={a.id} value={a.id}>{a.emoji} {a.name}</option>)}
-              </select>
+          <div>
+            <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 500, color: 'var(--text-secondary)', marginBottom: '0.75rem' }}>
+              Assign Multi-Agents ({assigneeIds.length})
+            </label>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
+              {agents.map((agent) => {
+                const isSelected = assigneeIds.includes(agent.id)
+                return (
+                  <button
+                    key={agent.id}
+                    type="button"
+                    onClick={() => toggleAssignee(agent.id)}
+                    style={{
+                      display: 'flex', alignItems: 'center', gap: '0.5rem',
+                      padding: '0.5rem 0.75rem', borderRadius: 'var(--radius-md)',
+                      background: isSelected ? 'var(--accent-muted)' : 'var(--bg-elevated)',
+                      border: `1px solid ${isSelected ? 'var(--accent)' : 'var(--border-default)'}`,
+                      color: isSelected ? 'var(--text-primary)' : 'var(--text-secondary)',
+                      transition: 'all 0.2s', cursor: 'pointer',
+                    }}
+                  >
+                    <span style={{ fontSize: '1.25rem' }}>{agent.emoji}</span>
+                    <div style={{ textAlign: 'left' }}>
+                      <div style={{ fontSize: '0.75rem', fontWeight: 600 }}>{agent.name}</div>
+                      <div style={{ fontSize: '0.625rem', opacity: 0.7 }}>{agent.role}</div>
+                    </div>
+                  </button>
+                )
+              })}
             </div>
           </div>
 

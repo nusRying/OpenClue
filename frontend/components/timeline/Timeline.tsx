@@ -90,54 +90,98 @@ export function Timeline({ tasks, projects, agents, onBack, selectedProjectId }:
             const dayTasks = visibleTasks.filter(t => t.due_date?.split('T')[0] === dateStr)
             const isToday = new Date().toISOString().split('T')[0] === dateStr
 
-            return (
-              <div 
-                key={index} 
-                style={{ 
-                  minHeight: '120px', 
-                  padding: '0.5rem', 
-                  borderRight: (index + 1) % 7 === 0 ? 'none' : '1px solid var(--border-subtle)',
-                  borderBottom: index >= 35 ? 'none' : '1px solid var(--border-subtle)',
-                  background: d.current ? 'transparent' : 'var(--bg-base)',
-                  transition: 'background 0.2s'
-                }}
-              >
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
-                  <span style={{ 
-                    fontSize: '0.8125rem', 
-                    fontWeight: isToday ? 800 : 500, 
-                    color: isToday ? 'var(--accent)' : d.current ? 'var(--text-primary)' : 'var(--text-tertiary)',
-                    background: isToday ? 'var(--accent-muted)' : 'transparent',
-                    width: '24px', height: '24px', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '50%'
-                  }}>
-                    {d.day}
-                  </span>
-                </div>
+              return (
+                <div 
+                  key={index} 
+                  style={{ 
+                    minHeight: '140px', 
+                    padding: '0.75rem', 
+                    borderRight: (index + 1) % 7 === 0 ? 'none' : '1px solid var(--border-subtle)',
+                    borderBottom: index >= 35 ? 'none' : '1px solid var(--border-subtle)',
+                    background: d.current ? 'transparent' : 'var(--bg-base)',
+                    transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
+                    position: 'relative',
+                    overflow: 'hidden'
+                  }}
+                  className="timeline-day"
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.75rem' }}>
+                    <span style={{ 
+                      fontSize: '0.875rem', 
+                      fontWeight: isToday ? 800 : 600, 
+                      color: isToday ? 'white' : d.current ? 'var(--text-primary)' : 'var(--text-tertiary)',
+                      background: isToday ? 'var(--accent)' : 'transparent',
+                      width: '28px', height: '28px', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '50%',
+                      boxShadow: isToday ? '0 0 15px var(--accent-bloom)' : 'none'
+                    }}>
+                      {d.day}
+                    </span>
+                  </div>
 
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                  {dayTasks.map(task => (
-                    <div 
-                      key={task.id}
-                      style={{ 
-                        fontSize: '0.6875rem', 
-                        padding: '4px 8px', 
-                        borderRadius: '4px', 
-                        background: `${STATUS_COLORS[task.status]}20`, 
-                        color: STATUS_COLORS[task.status],
-                        borderLeft: `3px solid ${STATUS_COLORS[task.status]}`,
-                        fontWeight: 600,
-                        overflow: 'hidden',
-                        textOverflow: 'ellipsis',
-                        whiteSpace: 'nowrap'
-                      }}
-                      title={task.title}
-                    >
-                      {task.title}
-                    </div>
-                  ))}
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                    {/* Group tasks by project */}
+                    {Array.from(new Set(dayTasks.map(t => t.project_id))).map(projId => {
+                      const project = projects.find(p => p.id === projId)
+                      const projectTasks = dayTasks.filter(t => t.project_id === projId)
+                      
+                      return (
+                        <div key={projId} style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                          <div style={{ 
+                            fontSize: '0.625rem', 
+                            fontWeight: 800, 
+                            color: 'var(--text-tertiary)', 
+                            letterSpacing: '0.05em', 
+                            textTransform: 'uppercase',
+                            paddingLeft: '4px',
+                            marginBottom: '2px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '4px'
+                          }}>
+                            <div style={{ width: 4, height: 4, borderRadius: '50%', background: 'var(--accent)' }} />
+                            {project?.name || 'Internal'}
+                          </div>
+                          
+                          {projectTasks.map(task => {
+                            const isCompleted = task.status === 'completed'
+                            const isBlocked = task.status === 'blocked'
+                            const color = STATUS_COLORS[task.status] || 'var(--text-tertiary)'
+                            
+                            return (
+                              <div 
+                                key={task.id}
+                                style={{ 
+                                  fontSize: '0.75rem', 
+                                  padding: '6px 10px', 
+                                  borderRadius: '6px', 
+                                  background: isCompleted ? 'var(--success-muted)' : isBlocked ? 'var(--error-muted)' : 'var(--bg-elevated)', 
+                                  color: isCompleted ? 'var(--success)' : isBlocked ? 'var(--error)' : 'var(--text-primary)',
+                                  borderLeft: `3px solid ${color}`,
+                                  fontWeight: 600,
+                                  overflow: 'hidden',
+                                  textOverflow: 'ellipsis',
+                                  whiteSpace: 'nowrap',
+                                  boxShadow: isCompleted ? '0 2px 8px var(--success-bloom)' : isBlocked ? '0 0 10px var(--error-bloom)' : '0 2px 4px rgba(0,0,0,0.05)',
+                                  opacity: isCompleted ? 0.8 : 1,
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  gap: '6px',
+                                  animation: isBlocked ? 'pulse-error 2s infinite' : 'none'
+                                }}
+                                title={`${task.title} (${task.status})`}
+                              >
+                                {isCompleted && <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={4} strokeLinecap="round" strokeLinejoin="round"><path d="M20 6 9 17l-5-5"/></svg>}
+                                {isBlocked && <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={4} strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>}
+                                <span style={{ textDecoration: isCompleted ? 'line-through' : 'none', opacity: isCompleted ? 0.6 : 1 }}>{task.title}</span>
+                              </div>
+                            )
+                          })}
+                        </div>
+                      )
+                    })}
+                  </div>
                 </div>
-              </div>
-            )
+              )
           })}
         </div>
       </div>

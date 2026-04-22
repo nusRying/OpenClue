@@ -33,13 +33,12 @@ function getAgentConfig(agentName: string) {
 
 export async function triggerN8nWebhook(taskId: string, eventType: 'create' | 'update' | 'status_change') {
   try {
-    // 1. Fetch task details with project and assignee info
+    // 1. Fetch task details with project info
     const { data: task, error: taskError } = await supabase
       .from('tasks')
       .select(`
         *,
-        projects (name, description),
-        agents:assignee_id (id, name, emoji)
+        projects (name, description)
       `)
       .eq('id', taskId)
       .single()
@@ -49,24 +48,38 @@ export async function triggerN8nWebhook(taskId: string, eventType: 'create' | 'u
       return
     }
 
-    const agentName = task.agents?.name || 'Mehzam'
-    const config = getAgentConfig(agentName)
+    // Fetch details for all assigned agents
+    const { data: assignedAgents, error: agentsError } = await supabase
+      .from('agents')
+      .select('id, name, emoji')
+      .in('id', task.assignee_ids || [])
+
+    if (agentsError) {
+      console.error('[n8n] Failed to fetch assigned agents details:', agentsError)
+    }
+
+    const agentsList = assignedAgents || []
+    const mainAgent = agentsList[0] || { name: 'Mehzam' }
+    const config = getAgentConfig(mainAgent.name)
     
-    // Construct the URL following the /hooks prefix from client json
-    const url = `${N8N_BASE_URL}/${config.path}`
+    // Unified URL as per client's recommendation for "one mapping"
+    const url = `${N8N_BASE_URL}/mission-control-webhook`
 
-    console.log(`[n8n] Triggering webhook for agent ${agentName} at ${url}`)
+    console.log(`[n8n] Triggering unified webhook for agents ${agentsList.map(a => a.name).join(', ')} at ${url}`)
 
-    // 2. Prepare payload matching client requirement (respond in this telegram ID and topic)
+    // 2. Prepare payload matching the updated n8n JSON
     const payload = {
-      message: `Task ${eventType.toUpperCase()}: ${task.title}\nStatus: ${task.status}\nDescription: ${task.description || 'N/A'}\nProject: ${task.projects?.name}`,
+      message: `Task ${eventType.toUpperCase()}: ${task.title}\nStatus: ${task.status}\nDescription: ${task.description || 'N/A'}\nProject: ${task.projects?.name}\nAssignees: ${agentsList.map(a => `${a.emoji} ${a.name}`).join(', ')}`,
       sessionKey: config.sessionKey,
       to: config.to,
       channel: 'telegram',
+      agentId: mainAgent.id, // For routing in n8n if needed
       metadata: {
         task_id: task.id,
         project_id: task.project_id,
+        assignee_ids: task.assignee_ids,
         event: eventType,
+        agent_id: mainAgent.name.toLowerCase(), // Following client's lowercase naming
         timestamp: new Date().toISOString()
       }
     }
@@ -83,7 +96,7 @@ export async function triggerN8nWebhook(taskId: string, eventType: 'create' | 'u
       throw new Error(`n8n webhook failed with status ${response.status}`)
     }
 
-    console.log(`[n8n] Webhook for ${agentName} triggered successfully`)
+    console.log(`[n8n] Unified webhook for ${mainAgent.name} triggered successfully`)
     return await response.json()
   } catch (error) {
     console.error('[n8n] Webhook error:', error)

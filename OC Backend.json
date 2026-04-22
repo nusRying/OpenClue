@@ -1,0 +1,69 @@
+{
+  "name": "OC Backend - Unified Task Gateway",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "mission-control-webhook",
+        "options": {}
+      },
+      "id": "webhook-entry",
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [
+        100,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://YOUR_OPENCLAW_GATEWAY_URL:3000/hooks/{{ $json.metadata.agent_id || 'main' }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"message\": \"{{ $json.message }}\",\n  \"sessionKey\": \"{{ $json.sessionKey }}\",\n  \"to\": \"{{ $json.to }}\",\n  \"channel\": \"{{ $json.channel || 'telegram' }}\"\n}",
+        "options": {}
+      },
+      "id": "http-request-gateway",
+      "name": "Forward to OpenClaw",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        400,
+        300
+      ]
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Forward to OpenClaw",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "unified-v1",
+  "meta": {
+    "instanceId": "openclue-n8n"
+  }
+}

@@ -27,7 +27,7 @@ This list was compiled from the screen recording transcription dated April 22, 2
 
 ## 5. Deployment & Security
 - [x] **Dockerization:** Verify/Update `frontend/Dockerfile`.
-- [ ] **Basic Authentication:** Implement basic auth layer via Docker/Nginx configuration.
+- [x] **Basic Authentication:** Implement basic auth layer via Next.js middleware.
 
 ## 6. UI/UX Improvements
 - [x] **Agent Status Cards:** Display emoji, role, name, and current task.
