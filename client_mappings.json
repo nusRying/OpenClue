@@ -1,0 +1,64 @@
+"hooks": {
+    "enabled": true,
+    "path": "/hooks",
+    "token": "<anycode>",
+    "allowRequestSessionKey": true,
+    "internal": {
+      "enabled": true,
+      "entries": {
+        "n8n-webhook": {
+          "enabled": true
+        }
+      }
+    },
+    "mappings": [
+      {
+        "id": "n8n-promo",
+        "match": { "path": "n8n-promo" },
+        "action": "agent",
+        "agentId": "promo",
+        "sessionKey": "agent:promo:telegram:group:-1003728720677:topic:1239",
+        "channel": "telegram",
+        "to": "-1003728720677:topic:1239",
+        "deliver": true,
+        "allowUnsafeExternalContent": true,
+        "messageTemplate": "{{message}}"
+      },
+      {
+        "id": "n8n-main",
+        "match": { "path": "n8n-main" },
+        "action": "agent",
+        "agentId": "main",
+        "sessionKey": "agent:main:telegram:group:-1003728720677:topic:1",
+        "channel": "telegram",
+        "to": "-1003728720677:topic:1",
+        "deliver": true,
+        "allowUnsafeExternalContent": true,
+        "messageTemplate": "{{message}}"
+      },
+      {
+        "id": "n8n-digit",
+        "match": { "path": "n8n-digit" },
+        "action": "agent",
+        "agentId": "digit",
+        "sessionKey": "agent:digit:telegram:group:-1003728720677:topic:3",
+        "channel": "telegram",
+        "to": "-1003728720677:topic:3",
+        "deliver": true,
+        "allowUnsafeExternalContent": true,
+        "messageTemplate": "{{message}}"
+      },
+      {
+        "id": "n8n-string",
+        "match": { "path": "n8n-string" },
+        "action": "agent",
+        "agentId": "string",
+        "sessionKey": "agent:string:telegram:group:-1003728720677:topic:2",
+        "channel": "telegram",
+        "to": "-1003728720677:topic:2",
+        "deliver": true,
+        "allowUnsafeExternalContent": true,
+        "messageTemplate": "{{message}}"
+      }
+    ]
+  }

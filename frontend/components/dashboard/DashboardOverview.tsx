@@ -14,104 +14,152 @@ export function DashboardOverview({ agents, projects, tasks }: Props) {
     if (!a.last_seen_at) return false
     return (Date.now() - new Date(a.last_seen_at).getTime()) < 5 * 60 * 1000
   }).length
-  const openTasks = tasks.filter(t => t.status === 'pending' || t.status === 'in_progress').length
+  const openTasks = tasks.filter(t => t.status === 'pending' || t.status === 'in-progress').length
   const completedTasks = tasks.filter(t => t.status === 'completed').length
   const progress = tasks.length > 0 ? Math.round((completedTasks / tasks.length) * 100) : 0
 
   const stats = [
     { label: 'ACTIVE PROJECTS', value: activeProjects, subtext: projects[0]?.name || 'No projects', subcolor: 'var(--accent-teal)' },
     { label: 'AGENTS ONLINE', value: onlineAgents, subtext: `${agents.length} total`, subcolor: 'var(--success)' },
-    { label: 'OPEN TASKS', value: openTasks, subtext: `${tasks.filter(t => t.status === 'in_progress').length} in progress`, subcolor: 'var(--info)' },
-    { label: 'OVERALL PROGRESS', value: `${progress}%`, subtext: 'Build phase active', subcolor: 'var(--accent-purple)' },
+    { label: 'OPEN TASKS', value: openTasks, subtext: `${tasks.filter(t => t.status === 'in-progress').length} in progress`, subcolor: 'var(--info)' },
+    { label: 'OVERALL PROGRESS', value: `${progress}%`, subtext: 'System heartbeat normal', subcolor: 'var(--accent-purple)' },
   ]
 
+  const getPhaseProgress = (tag: string) => {
+    const phaseTasks = tasks.filter(t => t.tags?.some(tagStr => tagStr.toLowerCase().includes(tag)))
+    // Default fallback for Build if no tags match
+    if (tag === 'build' && phaseTasks.length === 0) {
+      const buildCount = tasks.filter(t => !t.tags || t.tags.length === 0).length
+      const buildCompleted = tasks.filter(t => (!t.tags || t.tags.length === 0) && t.status === 'completed').length
+      const p = buildCount > 0 ? Math.round((buildCompleted / buildCount) * 100) : 0
+      return { progress: p, status: p === 100 ? 'COMPLETE' : p > 0 ? 'IN PROGRESS' : 'AWAITING' }
+    }
+    
+    if (phaseTasks.length === 0) return { progress: 0, status: 'WAITING' }
+    const completed = phaseTasks.filter(t => t.status === 'completed').length
+    const p = Math.round((completed / phaseTasks.length) * 100)
+    return {
+      progress: p,
+      status: p === 100 ? 'COMPLETE' : p > 0 ? 'IN PROGRESS' : 'AWAITING'
+    }
+  }
+
+  const designPhase = getPhaseProgress('design')
+  const buildPhase = getPhaseProgress('build')
+  const deployPhase = getPhaseProgress('deploy')
+
   const phases = [
-    { name: 'Design', progress: 100, color: 'var(--info)', status: 'COMPLETE — MCW-DESIGN-MOCKUPS.MD DELIVERED' },
-    { name: 'Build', progress: 30, color: 'var(--warning)', status: 'IN PROGRESS — PAGE BUILDER ACTIVE' },
-    { name: 'Deploy', progress: 0, color: 'var(--text-tertiary)', status: 'WAITING FOR BUILD' },
+    { name: 'Design', progress: designPhase.progress, color: 'var(--info)', status: designPhase.status },
+    { name: 'Build', progress: buildPhase.progress, color: 'var(--warning)', status: buildPhase.status },
+    { name: 'Deploy', progress: deployPhase.progress, color: 'var(--text-tertiary)', status: deployPhase.status },
   ]
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
       
-      {/* Page Title */}
-      <div style={{ marginBottom: '0.5rem' }}>
-        <h1 style={{ fontSize: '1.5rem', fontWeight: 700, margin: 0 }}>Mission Control Dashboard</h1>
-        <p style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', margin: '0.25rem 0 0 0' }}>Kutraa Information Technology — workspace overview</p>
+      {/* "Majestic" Page Title */}
+      <div style={{ position: 'relative', padding: '1rem 0' }}>
+        <h1 style={{ fontSize: '2.5rem', fontWeight: 800, margin: 0, letterSpacing: '-0.02em', background: 'linear-gradient(to right, var(--text-primary), var(--text-tertiary))', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+          Overview
+        </h1>
+        <p style={{ fontSize: '0.9375rem', color: 'var(--text-secondary)', margin: '0.5rem 0 0 0' }}>Welcome to OpenClue Mission Control. Everything is running smoothly.</p>
+        <div style={{ position: 'absolute', bottom: 0, left: 0, width: '40px', height: '4px', background: 'var(--accent)', borderRadius: '2px' }} />
       </div>
 
       {/* Stats Grid */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '1rem' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '1.25rem' }}>
         {stats.map(stat => (
-          <div key={stat.label} className="card" style={{ padding: '1.25rem' }}>
-            <p style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-tertiary)', margin: 0, letterSpacing: '0.05em' }}>{stat.label}</p>
-            <p style={{ fontSize: '2rem', fontWeight: 700, margin: '0.5rem 0' }}>{stat.value}</p>
-            <p style={{ fontSize: '0.75rem', color: stat.subcolor, margin: 0, fontWeight: 500 }}>{stat.subtext}</p>
+          <div key={stat.label} className="card" style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column', transition: 'transform 0.2s', cursor: 'default' }}>
+            <p style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-tertiary)', margin: 0, letterSpacing: '0.08em', textTransform: 'uppercase' }}>{stat.label}</p>
+            <p style={{ fontSize: '2.5rem', fontWeight: 800, margin: '0.75rem 0', color: 'var(--text-primary)' }}>{stat.value}</p>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginTop: 'auto' }}>
+              <div style={{ width: 6, height: 6, borderRadius: '50%', background: stat.subcolor }} />
+              <p style={{ fontSize: '0.8125rem', color: 'var(--text-secondary)', margin: 0 }}>{stat.subtext}</p>
+            </div>
           </div>
         ))}
       </div>
 
-      {/* Middle Row: Phase Progress & Agent Activity */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 320px', gap: '1.5rem' }}>
+      {/* Main Grid */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1.5fr 1fr', gap: '1.5rem' }}>
         
-        {/* Phase Progress */}
-        <div className="card" style={{ padding: '1.5rem' }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.5rem' }}>
-            <h2 style={{ fontSize: '0.9375rem', fontWeight: 600, margin: 0 }}>Phase Progress — {projects[0]?.name || 'Select Project'}</h2>
-            <span style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)' }}>{phases.length} phases</span>
+        {/* Phase Systems */}
+        <div className="card" style={{ padding: '2rem' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '2.5rem' }}>
+            <div>
+               <h2 style={{ fontSize: '1.125rem', fontWeight: 700, margin: 0 }}>Phase Trajectory</h2>
+               <p style={{ fontSize: '0.8125rem', color: 'var(--text-tertiary)', margin: '0.25rem 0 0 0' }}>Current project: {projects[0]?.name || 'Internal'}</p>
+            </div>
+            <div className="badge" style={{ background: 'var(--bg-elevated)', padding: '4px 12px' }}>{phases.length} STAGES</div>
           </div>
           
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '2.5rem' }}>
             {phases.map(phase => (
               <div key={phase.name}>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.75rem' }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.875rem' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                    <div style={{ width: 8, height: 8, borderRadius: '50%', background: phase.color }} />
-                    <span style={{ fontSize: '0.875rem', fontWeight: 600 }}>{phase.name}</span>
+                    <div style={{ width: 10, height: 10, borderRadius: '2px', background: phase.color, transform: 'rotate(45deg)' }} />
+                    <span style={{ fontSize: '0.9375rem', fontWeight: 700, letterSpacing: '0.02em' }}>{phase.name.toUpperCase()}</span>
                   </div>
-                  <span style={{ fontSize: '0.875rem', fontWeight: 700, color: phase.color }}>{phase.progress}%</span>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                     <span style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-tertiary)', textTransform: 'uppercase' }}>{phase.status}</span>
+                     <span style={{ fontSize: '1rem', fontWeight: 800, color: 'var(--text-primary)', width: '3rem', textAlign: 'right' }}>{phase.progress}%</span>
+                  </div>
                 </div>
-                <div style={{ height: 6, background: 'var(--bg-elevated)', borderRadius: 3, overflow: 'hidden', marginBottom: '0.75rem' }}>
-                  <div style={{ height: '100%', width: `${phase.progress}%`, background: phase.color, transition: 'width 1s ease-in-out' }} />
+                <div style={{ height: 8, background: 'var(--bg-elevated)', borderRadius: 4, overflow: 'hidden' }}>
+                  <div style={{ 
+                    height: '100%', 
+                    width: `${phase.progress}%`, 
+                    background: phase.color, 
+                    transition: 'width 1.2s cubic-bezier(0.4, 0, 0.2, 1)',
+                    boxShadow: `0 0 12px ${phase.color}40`
+                  }} />
                 </div>
-                <p style={{ fontSize: '0.75rem', color: phase.progress === 100 ? 'var(--success)' : phase.progress > 0 ? 'var(--info)' : 'var(--text-tertiary)', margin: 0, fontWeight: 500 }}>
-                  {phase.progress === 100 && '✓ '}{phase.status}
-                </p>
               </div>
             ))}
           </div>
         </div>
 
-        {/* Right side element from inspiration (Agent Status list could go here or in main BoardView sidebar) */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-           <div className="card" style={{ padding: '1.25rem' }}>
-             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' }}>
-                <h2 style={{ fontSize: '0.875rem', fontWeight: 600, margin: 0 }}>Agent Status</h2>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', fontSize: '0.75rem', color: 'var(--success)' }}>
-                  <div style={{ width: 6, height: 6, borderRadius: '50%', background: 'var(--success)' }} />
-                  {onlineAgents} active
-                </div>
-             </div>
-             <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                {agents.slice(0, 4).map(agent => (
-                  <div key={agent.id} style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                    <div style={{ 
-                      width: 32, height: 32, borderRadius: 8, background: 'var(--bg-elevated)', 
-                      display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1rem' 
-                    }}>{agent.emoji}</div>
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <p style={{ fontSize: '0.8125rem', fontWeight: 600, margin: 0 }}>{agent.role} ({agent.name})</p>
-                      <p style={{ fontSize: '0.6875rem', color: 'var(--text-tertiary)', margin: 0 }}>{agent.current_task || 'Awaiting task'}</p>
-                    </div>
-                    <span className="badge" style={{ 
-                      background: agent.status === 'online' ? 'var(--success-muted)' : 'var(--bg-elevated)', 
-                      color: agent.status === 'online' ? 'var(--success)' : 'var(--text-tertiary)',
-                      fontSize: '0.625rem'
-                    }}>{agent.status === 'online' ? 'Working' : 'Idle'}</span>
-                  </div>
-                ))}
-             </div>
+        {/* Global Agent Pulse */}
+        <div className="card" style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column' }}>
+           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.5rem' }}>
+              <h2 style={{ fontSize: '1.125rem', fontWeight: 700, margin: 0 }}>Agent Pulse</h2>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.375rem', padding: '4px 10px', borderRadius: '20px', background: 'var(--success-muted)', color: 'var(--success)', fontSize: '0.75rem', fontWeight: 700 }}>
+                <span style={{ width: 6, height: 6, borderRadius: '50%', background: 'var(--success)', animation: 'pulse 2s infinite' }} />
+                {onlineAgents} LIVE
+              </div>
            </div>
+           
+           <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+              {agents.slice(0, 5).map(agent => (
+                <div key={agent.id} style={{ display: 'flex', alignItems: 'center', gap: '1rem', padding: '0.75rem', borderRadius: 'var(--radius-lg)', background: 'var(--bg-elevated)', border: '1px solid var(--border-subtle)' }}>
+                  <div style={{ 
+                    width: 40, height: 40, borderRadius: 10, background: 'var(--bg-base)', 
+                    display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.25rem',
+                    border: '1px solid var(--border-subtle)'
+                  }}>{agent.emoji}</div>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <p style={{ fontSize: '0.875rem', fontWeight: 700, margin: 0, color: 'var(--text-primary)' }}>{agent.name}</p>
+                    <p style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)', margin: '0.125rem 0 0 0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      {agent.current_task || 'Monitoring systems...'}
+                    </p>
+                  </div>
+                  <div style={{ textAlign: 'right' }}>
+                    <div style={{ 
+                      fontSize: '0.625rem', fontWeight: 800, padding: '2px 8px', borderRadius: '4px',
+                      background: agent.status === 'online' ? 'var(--success-muted)' : 'var(--bg-base)',
+                      color: agent.status === 'online' ? 'var(--success)' : 'var(--text-tertiary)',
+                      textTransform: 'uppercase'
+                    }}>{agent.status}</div>
+                    <p style={{ fontSize: '0.625rem', color: 'var(--text-tertiary)', marginTop: '0.25rem' }}>{agent.role}</p>
+                  </div>
+                </div>
+              ))}
+           </div>
+           
+           <button style={{ marginTop: 'auto', width: '100%', padding: '0.75rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-subtle)', background: 'transparent', color: 'var(--text-secondary)', fontSize: '0.8125rem', fontWeight: 600, cursor: 'pointer', transition: 'all 0.2s' }}>
+              View All Agents
+           </button>
         </div>
 
       </div>

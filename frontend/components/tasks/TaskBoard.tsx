@@ -6,10 +6,10 @@ import { NewTaskModal } from '@/components/modals/NewTaskModal'
 import { EditTaskModal } from '@/components/modals/EditTaskModal'
 
 const COLUMNS: { id: TaskStatus; label: string; dotColor: string; colBg: string; colBorder: string }[] = [
-  { id: 'pending', label: 'To do', dotColor: 'var(--priority-low)', colBg: 'var(--col-pending)', colBorder: 'var(--border-subtle)' },
-  { id: 'in-progress', label: 'In progress', dotColor: 'var(--info)', colBg: 'var(--col-in-progress)', colBorder: 'var(--col-in-progress-border)' },
-  { id: 'completed', label: 'Done', dotColor: 'var(--success)', colBg: 'var(--col-done)', colBorder: 'var(--col-done-border)' },
-  { id: 'blocked', label: 'Blocked', dotColor: 'var(--error)', colBg: 'var(--col-blocked)', colBorder: 'var(--col-blocked-border)' },
+  { id: 'pending', label: 'BACKLOG', dotColor: 'var(--priority-low)', colBg: 'var(--bg-elevated)', colBorder: 'var(--border-subtle)' },
+  { id: 'in-progress', label: 'IN PROGRESS', dotColor: 'var(--info)', colBg: 'var(--bg-elevated)', colBorder: 'var(--border-subtle)' },
+  { id: 'completed', label: 'COMPLETED', dotColor: 'var(--success)', colBg: 'var(--bg-elevated)', colBorder: 'var(--border-subtle)' },
+  { id: 'blocked', label: 'BLOCKED', dotColor: 'var(--error)', colBg: 'var(--bg-elevated)', colBorder: 'var(--border-subtle)' },
 ]
 
 const PRIORITY_CONFIG = {
@@ -70,46 +70,43 @@ export function TaskBoard({ tasks, projects, agents, onStatusChange, onCreateTas
   const selectedProject = projects.find(p => p.id === selectedProjectId)
 
   return (
-    <>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
       {/* Header */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-          <h2 style={{ fontSize: '0.9375rem', fontWeight: 600, color: 'var(--text-primary)', margin: 0 }}>Tasks</h2>
-          <span className="badge" style={{ background: 'var(--bg-elevated)', color: 'var(--text-tertiary)' }}>
-            {filteredTasks.length}
-          </span>
-          {selectedProject && (
-            <span className="badge" style={{ background: 'var(--accent-muted)', color: 'var(--accent)' }}>
-              {selectedProject.name}
-            </span>
-          )}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+          <h2 style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--text-primary)', margin: 0 }}>Task Pipeline</h2>
+          <div style={{ display: 'flex', gap: '0.5rem' }}>
+            <span className="badge" style={{ background: 'var(--bg-elevated)' }}>{filteredTasks.length} {filteredTasks.length === 1 ? 'TASK' : 'TASKS'}</span>
+            {selectedProject && <span className="badge" style={{ background: 'var(--accent-muted)', color: 'var(--accent)' }}>{selectedProject.name}</span>}
+          </div>
         </div>
         <button
           onClick={() => setShowNewModal(true)}
           disabled={projects.length === 0}
           className="btn btn-primary"
-          style={{ fontSize: '0.8125rem' }}
+          style={{ padding: '0.5rem 1.25rem' }}
         >
-          + New task
+          + Create Task
         </button>
       </div>
 
       {/* Kanban columns */}
-      <div style={{ display: 'flex', gap: '0.75rem', overflowX: 'auto', paddingBottom: '0.5rem' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '1rem', minHeight: '600px' }}>
         {COLUMNS.map(col => {
           const columnTasks = filteredTasks.filter(t => t.status === col.id)
           return (
             <div
               key={col.id}
               style={{
-                flex: '1 1 0',
-                minWidth: 200,
                 display: 'flex',
                 flexDirection: 'column',
+                gap: '1rem',
+                padding: '1rem',
+                background: 'var(--bg-surface)',
                 borderRadius: 'var(--radius-lg)',
-                outline: dragOverColumn === col.id ? `2px solid ${col.dotColor}` : 'none',
-                outlineOffset: '2px',
-                transition: 'outline 0.15s',
+                border: '1px solid var(--border-subtle)',
+                outline: dragOverColumn === col.id ? `2px dashed var(--accent)` : 'none',
+                transition: 'all 0.2s',
               }}
               onDragOver={handleDragOver}
               onDragEnter={(e) => handleDragEnter(e, col.id)}
@@ -117,117 +114,78 @@ export function TaskBoard({ tasks, projects, agents, onStatusChange, onCreateTas
               onDrop={(e) => handleDrop(e, col.id)}
             >
               {/* Column header */}
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.75rem', padding: '0 0.25rem' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                  <div style={{ width: 8, height: 8, borderRadius: '50%', background: col.dotColor }} />
-                  <span style={{ fontSize: '0.8125rem', fontWeight: 500, color: 'var(--text-secondary)' }}>{col.label}</span>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 0.5rem' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.625rem' }}>
+                  <div style={{ width: 8, height: 8, borderRadius: '50%', background: col.dotColor, boxShadow: `0 0 8px ${col.dotColor}` }} />
+                  <span style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-tertiary)', letterSpacing: '0.05em' }}>{col.label}</span>
                 </div>
-                <span className="badge" style={{ background: 'var(--bg-elevated)', color: 'var(--text-tertiary)', fontSize: '0.6875rem' }}>
-                  {columnTasks.length}
-                </span>
+                <span style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-tertiary)' }}>{columnTasks.length}</span>
               </div>
 
               {/* Column body */}
-              <div style={{
-                flex: 1,
-                borderRadius: 'var(--radius-lg)',
-                border: `1px solid ${col.colBorder}`,
-                background: col.colBg,
-                padding: '0.75rem',
-                display: 'flex',
-                flexDirection: 'column',
-                gap: '0.75rem',
-                minHeight: '20rem',
-              }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', flex: 1 }}>
                 {columnTasks.map(task => {
                   const assignee = agents.find(a => a.id === task.assignee_id)
                   const project = projects.find(p => p.id === task.project_id)
                   const priority = PRIORITY_CONFIG[task.priority]
                   const isOverdue = task.due_date && new Date(task.due_date) < new Date() && task.status !== 'completed'
                   
-                  // Mock Task ID for UI (in a real app, this would be a database field)
-                  const taskId = `MCW-${task.id.slice(0, 3).toUpperCase()}`
-
                   return (
                     <div
                       key={task.id}
                       draggable
-                      tabIndex={0}
                       onDragStart={(e) => handleDragStart(e, task)}
                       onClick={() => setEditTask(task)}
-                      onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') setEditTask(task) }}
+                      className="card task-card"
                       style={{
-                        background: 'var(--bg-surface)',
-                        border: '1px solid var(--border-subtle)',
-                        borderRadius: 'var(--radius-lg)',
-                        padding: '1rem',
+                        padding: '1.25rem',
                         cursor: 'grab',
-                        transition: 'all 0.15s',
+                        background: 'var(--bg-base)',
+                        border: '1px solid var(--border-subtle)',
                         opacity: draggedTask?.id === task.id ? 0.4 : 1,
                         display: 'flex',
                         flexDirection: 'column',
                         gap: '0.75rem',
-                        boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+                        transition: 'all 0.2s',
+                        position: 'relative'
                       }}
-                      className="task-card">
-                      
-                      {/* Top Row: ID & Priority */}
+                    >
                       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                        <span style={{ fontSize: '0.625rem', fontWeight: 600, color: 'var(--text-tertiary)', letterSpacing: '0.05em' }}>{taskId}</span>
-                        <span style={{ 
-                          fontSize: '0.625rem', fontWeight: 700, color: priority.color, 
-                          textTransform: 'uppercase', letterSpacing: '0.05em' 
-                        }}>
+                        <div style={{ fontSize: '0.625rem', fontWeight: 800, color: priority.color, textTransform: 'uppercase' }}>
                           {priority.label}
-                        </span>
-                      </div>
-
-                      {/* Middle: Title & Project */}
-                      <div>
-                        <p style={{ fontSize: '0.875rem', fontWeight: 600, color: 'var(--text-primary)', margin: 0, lineHeight: 1.4 }}>
-                          {task.title}
-                        </p>
-                        {project && (
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.375rem', marginTop: '0.25rem' }}>
-                            <div style={{ width: 4, height: 4, borderRadius: '50%', background: 'var(--accent)' }} />
-                            <span style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)' }}>{project.name}</span>
-                          </div>
+                        </div>
+                        {task.due_date && (
+                          <span style={{ fontSize: '0.6875rem', fontWeight: 600, color: isOverdue ? 'var(--error)' : 'var(--text-tertiary)' }}>
+                            {new Date(task.due_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                          </span>
                         )}
                       </div>
 
-                      {/* Bottom Row: Tags & Assignee */}
-                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '0.25rem' }}>
-                        <div style={{ display: 'flex', gap: '0.375rem' }}>
-                          <span style={{ 
-                            fontSize: '0.625rem', fontWeight: 600, padding: '2px 8px', borderRadius: '4px',
-                            background: 'var(--bg-elevated)', color: 'var(--text-secondary)', textTransform: 'uppercase'
-                          }}>
-                            {task.tags?.[0] || 'TASK'}
-                          </span>
-                        </div>
-                        
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                          {task.due_date && (
-                            <span style={{ 
-                              fontSize: '0.6875rem', fontWeight: 500,
-                              color: isOverdue ? 'var(--error)' : 'var(--text-tertiary)' 
-                            }}>
-                              {new Date(task.due_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
-                            </span>
-                          )}
-                          {assignee && (
-                            <div style={{ 
-                              width: 20, height: 20, borderRadius: '50%', background: 'var(--bg-elevated)',
-                              display: 'flex', alignItems: 'center', justifyContent: 'center', 
-                              fontSize: '0.75rem', border: '1px solid var(--border-subtle)',
-                              color: 'var(--text-primary)', fontWeight: 600
-                            }} title={assignee.name}>
-                              {assignee.name.slice(0, 1).toUpperCase()}
-                            </div>
-                          )}
-                        </div>
-                      </div>
+                      <p style={{ fontSize: '0.9375rem', fontWeight: 700, color: 'var(--text-primary)', margin: 0, lineHeight: 1.4 }}>
+                        {task.title}
+                      </p>
 
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '0.25rem' }}>
+                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.25rem' }}>
+                          {(task.tags || []).slice(0, 2).map(tag => (
+                            <span key={tag} style={{ fontSize: '0.625rem', fontWeight: 700, padding: '2px 8px', borderRadius: '4px', background: 'var(--bg-elevated)', color: 'var(--text-tertiary)', textTransform: 'uppercase' }}>
+                              {tag}
+                            </span>
+                          ))}
+                          {!task.tags?.length && <span style={{ fontSize: '0.625rem', fontWeight: 700, padding: '2px 8px', borderRadius: '4px', background: 'var(--bg-elevated)', color: 'var(--text-tertiary)', textTransform: 'uppercase' }}>TASK</span>}
+                        </div>
+
+                        {assignee && (
+                          <div style={{ 
+                            width: 24, height: 24, borderRadius: '50%', background: 'var(--bg-elevated)',
+                            display: 'flex', alignItems: 'center', justifyContent: 'center', 
+                            fontSize: '0.875rem', border: '1px solid var(--border-subtle)',
+                            boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+                          }} title={assignee.name}>
+                            {assignee.emoji}
+                          </div>
+                        )}
+                      </div>
                     </div>
                   )
                 })}
@@ -235,9 +193,10 @@ export function TaskBoard({ tasks, projects, agents, onStatusChange, onCreateTas
                 {columnTasks.length === 0 && (
                   <div style={{
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    flex: 1, fontSize: '0.75rem', color: 'var(--text-tertiary)', minHeight: '4rem',
+                    flex: 1, fontSize: '0.8125rem', color: 'var(--text-tertiary)', minHeight: '6rem',
+                    border: '1px dashed var(--border-subtle)', borderRadius: 'var(--radius-lg)'
                   }}>
-                    {selectedProjectId ? 'No tasks' : 'Empty'}
+                    No tasks
                   </div>
                 )}
               </div>
@@ -262,6 +221,6 @@ export function TaskBoard({ tasks, projects, agents, onStatusChange, onCreateTas
         task={editTask}
         agents={agents}
       />
-    </>
+    </div>
   )
 }

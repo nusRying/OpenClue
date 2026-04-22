@@ -20,4 +20,5 @@ COPY frontend/next-env.d.ts ./frontend/next-env.d.ts
 RUN cd ./frontend && npm install && npm run build
 
 # Start
+# Note: Basic Auth is handled via middleware. Set AUTH_USER and AUTH_PASS env vars.
 CMD cd ./frontend && npx next start -p 3000

@@ -11,24 +11,69 @@ interface Props {
   onSelectSession: (key: string) => void
 }
 
+function cleanMessageContent(content: string | undefined): string {
+  if (!content) return ''
+  
+  const extractText = (obj: any): string => {
+    return obj.message || obj.content || obj.text || obj.msg || obj.msg_content || ''
+  }
+
+  try {
+    let current = content.trim()
+    const jsonMatch = current.match(/^(?:.*?:?\s*)?({.*})$/s)
+    if (jsonMatch) current = jsonMatch[1]
+
+    if (current.startsWith('{') && current.endsWith('}')) {
+      let parsed = JSON.parse(current)
+      let text = extractText(parsed)
+      if (text) return cleanMessageContent(text)
+      return current
+    }
+  } catch (e) {}
+  return content
+}
+
 export function ConversationsPanel({ conversations, agents, selectedSessionKey, onSelectSession }: Props) {
+  const [searchTerm, setSearchTerm] = useState('')
   const selectedConv = conversations.find(c => c.session_key === selectedSessionKey)
+  
+  const filteredConversations = conversations.filter(c => 
+    c.client_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    c.session_key.toLowerCase().includes(searchTerm.toLowerCase())
+  )
 
   return (
-    <div style={{ display: 'grid', gridTemplateColumns: '320px 1fr', gap: '1.5rem', height: 'calc(100vh - 12rem)' }}>
+    <div style={{ display: 'grid', gridTemplateColumns: '350px 1fr', gap: '1px', height: 'calc(100vh - 12rem)', background: 'var(--border-subtle)', borderRadius: 'var(--radius-xl)', overflow: 'hidden', border: '1px solid var(--border-subtle)' }}>
+      
       {/* Sidebar: Sessions List */}
-      <div className="card" style={{ display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-        <div style={{ padding: '1rem', borderBottom: '1px solid var(--border-subtle)', background: 'var(--bg-elevated)' }}>
-          <h2 style={{ fontSize: '0.875rem', fontWeight: 600, margin: 0 }}>Active Sessions</h2>
-          <p style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)', margin: '0.25rem 0 0 0' }}>{conversations.length} sessions</p>
+      <div style={{ display: 'flex', flexDirection: 'column', background: 'var(--bg-surface)', borderRight: '1px solid var(--border-subtle)' }}>
+        <div style={{ padding: '1.5rem', borderBottom: '1px solid var(--border-subtle)', background: 'var(--bg-surface)' }}>
+          <h2 style={{ fontSize: '1.25rem', fontWeight: 700, margin: 0, color: 'var(--text-primary)' }}>Terminal</h2>
+          <p style={{ fontSize: '0.8125rem', color: 'var(--text-tertiary)', margin: '0.25rem 0 1rem 0' }}>All encrypted session streams</p>
+          
+          <div style={{ position: 'relative' }}>
+            <input 
+              type="text" 
+              placeholder="Filter sessions..." 
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              style={{ 
+                width: '100%', padding: '0.625rem 1rem 0.625rem 2.25rem', borderRadius: 'var(--radius-md)', 
+                background: 'var(--bg-elevated)', border: '1px solid var(--border-subtle)', color: 'var(--text-primary)',
+                fontSize: '0.8125rem'
+              }}
+            />
+            <svg style={{ position: 'absolute', left: '0.75rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-tertiary)' }} width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5}><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+          </div>
         </div>
+
         <div style={{ flex: 1, overflowY: 'auto' }}>
-          {conversations.length === 0 ? (
-            <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--text-tertiary)', fontSize: '0.875rem' }}>
-              No active sessions
+          {filteredConversations.length === 0 ? (
+            <div style={{ padding: '4rem 2rem', textAlign: 'center', color: 'var(--text-tertiary)' }}>
+              <p style={{ fontSize: '0.875rem' }}>No matching streams.</p>
             </div>
           ) : (
-            conversations.map(conv => {
+            filteredConversations.map(conv => {
               const agent = agents.find(a => a.id === conv.agent_id)
               const lastMessage = conv.messages[conv.messages.length - 1]
               const isActive = selectedSessionKey === conv.session_key
@@ -38,37 +83,31 @@ export function ConversationsPanel({ conversations, agents, selectedSessionKey, 
                   key={conv.session_key}
                   onClick={() => onSelectSession(conv.session_key)}
                   style={{
-                    width: '100%',
-                    padding: '1rem',
-                    textAlign: 'left',
-                    background: isActive ? 'var(--bg-elevated)' : 'transparent',
-                    border: 'none',
-                    borderBottom: '1px solid var(--border-subtle)',
-                    cursor: 'pointer',
-                    transition: 'background 0.15s',
+                    width: '100%', padding: '1.25rem', textAlign: 'left',
+                    background: isActive ? 'var(--accent-muted)' : 'transparent',
+                    border: 'none', borderBottom: '1px solid var(--border-subtle)',
+                    cursor: 'pointer', transition: 'all 0.2s', position: 'relative'
                   }}
-                  className="agent-compact-row"
                 >
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.5rem' }}>
+                  {isActive && <div style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: '4px', background: 'var(--accent)' }} />}
+                  
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.625rem' }}>
                     <div style={{ 
-                      width: 24, height: 24, borderRadius: 6, background: 'var(--bg-base)',
-                      display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.75rem'
+                      width: 32, height: 32, borderRadius: 8, background: 'var(--bg-elevated)', border: '1px solid var(--border-subtle)',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1rem'
                     }}>{agent?.emoji || '👤'}</div>
-                    <span style={{ fontSize: '0.8125rem', fontWeight: 600, color: 'var(--text-primary)', flex: 1 }}>
-                      {conv.client_name || 'Anonymous Client'}
-                    </span>
-                    <span className="badge" style={{ background: 'var(--bg-base)', color: 'var(--text-tertiary)', fontSize: '0.625rem' }}>
-                      {conv.channel}
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <p style={{ fontSize: '0.875rem', fontWeight: 700, color: 'var(--text-primary)', margin: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                        {conv.client_name || 'Anonymous Client'}
+                      </p>
+                      <p style={{ fontSize: '0.6875rem', color: 'var(--text-tertiary)', margin: '2px 0 0' }}>{conv.channel.toUpperCase()}</p>
+                    </div>
+                    <span style={{ fontSize: '0.625rem', color: 'var(--text-tertiary)', fontWeight: 600 }}>
+                      {format(new Date(conv.updated_at), 'HH:mm')}
                     </span>
                   </div>
-                  <p style={{ 
-                    fontSize: '0.75rem', color: 'var(--text-secondary)', margin: 0,
-                    overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap'
-                  }}>
-                    {lastMessage?.content || 'No messages yet'}
-                  </p>
-                  <p style={{ fontSize: '0.625rem', color: 'var(--text-tertiary)', marginTop: '0.25rem' }}>
-                    {format(new Date(conv.updated_at), 'MMM d, h:mm a')}
+                  <p style={{ fontSize: '0.8125rem', color: 'var(--text-secondary)', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', lineHeight: 1.4 }}>
+                    {lastMessage ? cleanMessageContent(lastMessage.content) : 'Initializing stream...'}
                   </p>
                 </button>
               )
@@ -78,35 +117,41 @@ export function ConversationsPanel({ conversations, agents, selectedSessionKey, 
       </div>
 
       {/* Main: Chat View */}
-      <div className="card" style={{ display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', background: 'var(--bg-base)', position: 'relative' }}>
         {selectedConv ? (
           <>
             {/* Chat Header */}
-            <div style={{ padding: '1rem', borderBottom: '1px solid var(--border-subtle)', background: 'var(--bg-elevated)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+            <div style={{ padding: '1rem 1.5rem', borderBottom: '1px solid var(--border-subtle)', background: 'var(--bg-surface)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', zIndex: 10 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                <div style={{ width: 40, height: 40, borderRadius: 12, background: 'var(--bg-elevated)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.25rem', border: '1px solid var(--border-subtle)' }}>
+                  {agents.find(a => a.id === selectedConv.agent_id)?.emoji || '👤'}
+                </div>
                 <div>
-                  <h2 style={{ fontSize: '0.9375rem', fontWeight: 600, margin: 0 }}>{selectedConv.client_name || 'Client'}</h2>
-                  <p style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', margin: 0 }}>
-                    Session: <code style={{ color: 'var(--accent)' }}>{selectedConv.session_key}</code>
-                  </p>
+                  <h2 style={{ fontSize: '1.0625rem', fontWeight: 700, margin: 0, color: 'var(--text-primary)' }}>{selectedConv.client_name || 'Client'}</h2>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginTop: '2px' }}>
+                    <div style={{ width: 6, height: 6, borderRadius: '50%', background: 'var(--success)', animation: 'pulse 2s infinite' }} />
+                    <span style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-tertiary)' }}>SESSION ID: {selectedConv.session_key.slice(0, 8)}...</span>
+                  </div>
                 </div>
               </div>
-              <div style={{ textAlign: 'right' }}>
-                <span className="badge" style={{ background: 'var(--success-muted)', color: 'var(--success)' }}>LIVE MONITORING</span>
+              <div style={{ display: 'flex', gap: '0.75rem' }}>
+                <button className="badge" style={{ background: 'var(--bg-elevated)', color: 'var(--text-tertiary)', border: '1px solid var(--border-subtle)', cursor: 'pointer' }}>EXPORT LOGS</button>
+                <span className="badge" style={{ background: 'var(--success-muted)', color: 'var(--success)', border: '1px solid var(--success-muted)' }}>LIVE FEED</span>
               </div>
             </div>
 
             {/* Messages Area */}
-            <div style={{ flex: 1, overflowY: 'auto', padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+            <div style={{ flex: 1, overflowY: 'auto', padding: '2rem', display: 'flex', flexDirection: 'column', gap: '1.5rem', background: 'var(--bg-base)' }}>
               {selectedConv.messages.map((msg, idx) => {
                 const isAgent = msg.role === 'agent'
                 const isSystem = msg.role === 'system'
+                const cleanedContent = cleanMessageContent(msg.content)
 
                 if (isSystem) {
                   return (
-                    <div key={idx} style={{ textAlign: 'center', margin: '1rem 0' }}>
-                      <span style={{ fontSize: '0.6875rem', color: 'var(--text-tertiary)', background: 'var(--bg-base)', padding: '0.25rem 0.75rem', borderRadius: 'var(--radius-full)' }}>
-                        {msg.content}
+                    <div key={idx} style={{ textAlign: 'center', margin: '0.5rem 0' }}>
+                      <span style={{ fontSize: '0.625rem', fontWeight: 800, color: 'var(--text-tertiary)', background: 'var(--bg-elevated)', padding: '4px 12px', borderRadius: '4px', letterSpacing: '0.05em', textTransform: 'uppercase' }}>
+                        {cleanedContent}
                       </span>
                     </div>
                   )
@@ -114,44 +159,46 @@ export function ConversationsPanel({ conversations, agents, selectedSessionKey, 
 
                 return (
                   <div key={idx} style={{
-                    display: 'flex',
-                    flexDirection: 'column',
+                    display: 'flex', flexDirection: 'column',
                     alignItems: isAgent ? 'flex-end' : 'flex-start',
-                    maxWidth: '80%',
-                    alignSelf: isAgent ? 'flex-end' : 'flex-start',
+                    maxWidth: '75%', alignSelf: isAgent ? 'flex-end' : 'flex-start'
                   }}>
+                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.375rem', flexDirection: isAgent ? 'row-reverse' : 'row' }}>
+                        <span style={{ fontSize: '0.6875rem', fontWeight: 700, color: 'var(--text-tertiary)' }}>{isAgent ? 'MISSION AGENT' : 'EXTERNAL CLIENT'}</span>
+                        <span style={{ fontSize: '0.625rem', color: 'var(--text-tertiary)', opacity: 0.6 }}>{format(new Date(msg.timestamp), 'HH:mm:ss')}</span>
+                     </div>
                     <div style={{
-                      padding: '0.75rem 1rem',
-                      borderRadius: '1rem',
-                      borderBottomLeftRadius: !isAgent ? 0 : '1rem',
-                      borderBottomRightRadius: isAgent ? 0 : '1rem',
-                      background: isAgent ? 'var(--accent-solid)' : 'var(--bg-elevated)',
+                      padding: '1rem 1.25rem', borderRadius: 'var(--radius-lg)',
+                      borderBottomLeftRadius: !isAgent ? 4 : 'var(--radius-lg)',
+                      borderBottomRightRadius: isAgent ? 4 : 'var(--radius-lg)',
+                      background: isAgent ? 'var(--accent-solid)' : 'var(--bg-surface)',
                       color: isAgent ? 'white' : 'var(--text-primary)',
-                      fontSize: '0.875rem',
-                      lineHeight: 1.5,
-                      boxShadow: '0 1px 2px rgba(0,0,0,0.1)',
+                      fontSize: '0.9375rem', lineHeight: 1.6,
+                      boxShadow: '0 4px 12px rgba(0,0,0,0.05)',
+                      border: isAgent ? 'none' : '1px solid var(--border-subtle)'
                     }}>
-                      {msg.content}
+                      {cleanedContent}
                     </div>
-                    <span style={{ fontSize: '0.625rem', color: 'var(--text-tertiary)', marginTop: '0.25rem', padding: '0 0.25rem' }}>
-                      {format(new Date(msg.timestamp), 'h:mm a')}
-                    </span>
                   </div>
                 )
               })}
             </div>
 
-            {/* Footer / Input Placeholder */}
-            <div style={{ padding: '1rem', borderTop: '1px solid var(--border-subtle)', background: 'var(--bg-surface)' }}>
-              <p style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)', margin: 0, textAlign: 'center' }}>
-                Monitoring active. All messages are logged for quality control.
-              </p>
+            {/* Footer / Status Area */}
+            <div style={{ padding: '1rem 1.5rem', borderTop: '1px solid var(--border-subtle)', background: 'var(--bg-surface)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+               <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                  <div style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--info)', animation: 'pulse 2s infinite' }} />
+                  <p style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-tertiary)', margin: 0 }}>WAITING FOR AGENT RESPONSE STREAM...</p>
+               </div>
             </div>
           </>
         ) : (
-          <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-tertiary)', flexDirection: 'column', gap: '1rem' }}>
-            <div style={{ fontSize: '3rem' }}>💬</div>
-            <p style={{ fontSize: '0.875rem' }}>Select a session to view conversation history</p>
+          <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-tertiary)', flexDirection: 'column', gap: '1.5rem' }}>
+            <div style={{ width: 64, height: 64, borderRadius: 20, background: 'var(--bg-elevated)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '2rem', border: '1px solid var(--border-subtle)' }}>📡</div>
+            <div style={{ textAlign: 'center' }}>
+              <h3 style={{ fontSize: '1.125rem', fontWeight: 700, color: 'var(--text-primary)', margin: 0 }}>Secure Feed Empty</h3>
+              <p style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', marginTop: '0.5rem' }}>Select an active session to intercept the communication stream.</p>
+            </div>
           </div>
         )}
       </div>

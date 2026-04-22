@@ -1,5 +1,6 @@
 'use client'
 
+import { useState } from 'react'
 import type { Task, Project, Agent } from '@/types'
 
 interface TimelineProps {
@@ -17,186 +18,139 @@ const STATUS_COLORS: Record<string, string> = {
   blocked: 'var(--error)',
 }
 
-function getProjectName(projectId: string, projects: Project[]): string {
-  return projects.find(p => p.id === projectId)?.name || 'Unknown'
-}
-
-function getAgentName(agentId: string | undefined, agents: Agent[]): string {
-  if (!agentId) return ''
-  return agents.find(a => a.id === agentId)?.name || ''
-}
-
-function formatDate(dateStr: string): string {
-  const date = new Date(dateStr)
-  const now = new Date()
-  const diffDays = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60 * 24))
-  if (diffDays === 0) return 'Today'
-  if (diffDays === 1) return 'Yesterday'
-  if (diffDays < 7) return `${diffDays}d ago`
-  return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
-}
-
-function getProgressWidth(createdAt: string): number {
-  const created = new Date(createdAt).getTime()
-  const now = Date.now()
-  const diff = now - created
-  const days7 = 7 * 24 * 60 * 60 * 1000
-  const days30 = 30 * 24 * 60 * 60 * 1000
-  if (diff < days7) return Math.min(100, (diff / days7) * 100)
-  if (diff < days30) return Math.min(100, 50 + ((diff - days7) / (days30 - days7)) * 50)
-  return 100
-}
-
-const STATUS_BADGE: Record<string, { bg: string; color: string; border: string }> = {
-  pending: { bg: 'var(--bg-elevated)', color: 'var(--text-tertiary)', border: 'var(--border-default)' },
-  'in-progress': { bg: 'var(--status-in-progress-bg)', color: 'var(--info)', border: 'var(--status-in-progress-border)' },
-  completed: { bg: 'var(--success-muted)', color: 'var(--success)', border: 'var(--status-completed-border)' },
-  blocked: { bg: 'var(--error-muted)', color: 'var(--error)', border: 'var(--status-blocked-border)' },
-}
-
 export function Timeline({ tasks, projects, agents, onBack, selectedProjectId }: TimelineProps) {
+  const [currentDate, setCurrentDate] = useState(new Date())
+
   const visibleTasks = selectedProjectId
     ? tasks.filter(t => t.project_id === selectedProjectId)
     : tasks
-  const sortedTasks = [...visibleTasks].sort((a, b) =>
-    new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
-  )
 
-  const tasksByProject = sortedTasks.reduce((acc, task) => {
-    const projectId = task.project_id || 'unknown'
-    if (!acc[projectId]) acc[projectId] = []
-    acc[projectId].push(task)
-    return acc
-  }, {} as Record<string, Task[]>)
+  // Calendar logic
+  const year = currentDate.getFullYear()
+  const month = currentDate.getMonth()
+  const firstDayOfMonth = new Date(year, month, 1).getDay() // 0 = Sunday
+  const daysInMonth = new Date(year, month + 1, 0).getDate()
+  const prevMonthDays = new Date(year, month, 0).getDate()
+
+  const days = []
+  // Previous month fill
+  for (let i = firstDayOfMonth - 1; i >= 0; i--) {
+    days.push({ day: prevMonthDays - i, month: month - 1, current: false })
+  }
+  // Current month
+  for (let i = 1; i <= daysInMonth; i++) {
+    days.push({ day: i, month, current: true })
+  }
+  // Next month fill
+  const remaining = 42 - days.length
+  for (let i = 1; i <= remaining; i++) {
+    days.push({ day: i, month: month + 1, current: false })
+  }
+
+  const handlePrevMonth = () => setCurrentDate(new Date(year, month - 1, 1))
+  const handleNextMonth = () => setCurrentDate(new Date(year, month + 1, 1))
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
       {/* Header */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-          <span style={{ fontSize: '1.5rem' }}>📊</span>
-          <div>
-            <h2 style={{ fontSize: '1.0625rem', fontWeight: 600, color: 'var(--text-primary)', margin: 0 }}>Timeline</h2>
-            <p style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)', margin: '2px 0 0' }}>
-              {visibleTasks.length} task{visibleTasks.length !== 1 ? 's' : ''}{selectedProjectId ? ` in ${projects.find(p => p.id === selectedProjectId)?.name || 'project'}` : ` across ${projects.length} project${projects.length !== 1 ? 's' : ''}`}
-            </p>
-          </div>
+        <div>
+          <h2 style={{ fontSize: '1.25rem', fontWeight: 700, margin: 0, color: 'var(--text-primary)' }}>Mission Timeline</h2>
+          <p style={{ fontSize: '0.8125rem', color: 'var(--text-tertiary)', margin: '0.25rem 0 0 0' }}>Calendar view of all scheduled operations</p>
         </div>
-        {onBack && (
-          <button onClick={onBack} className="btn btn-secondary" style={{ fontSize: '0.8125rem' }}>
-            ← Back
-          </button>
-        )}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', background: 'var(--bg-elevated)', padding: '4px', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-subtle)' }}>
+              <button onClick={handlePrevMonth} className="btn-icon" style={{ padding: '4px' }}>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5}><path d="m15 18-6-6 6-6"/></svg>
+              </button>
+              <span style={{ fontSize: '0.875rem', fontWeight: 700, padding: '0 0.5rem', minWidth: '100px', textAlign: 'center' }}>
+                {currentDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' }).toUpperCase()}
+              </span>
+              <button onClick={handleNextMonth} className="btn-icon" style={{ padding: '4px' }}>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5}><path d="m9 18 6-6-6-6"/></svg>
+              </button>
+           </div>
+           {onBack && <button onClick={onBack} className="btn btn-secondary">Exit Timeline</button>}
+        </div>
       </div>
 
-      {visibleTasks.length === 0 ? (
-        <div style={{ textAlign: 'center', padding: '4rem 1rem', color: 'var(--text-tertiary)' }}>
-          <div style={{ fontSize: '2.5rem', marginBottom: '0.75rem' }}>📋</div>
-          <p style={{ fontSize: '0.875rem', margin: 0 }}>No tasks yet</p>
+      {/* Calendar Grid */}
+      <div className="card" style={{ padding: 0, overflow: 'hidden', border: '1px solid var(--border-subtle)' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', background: 'var(--bg-elevated)', borderBottom: '1px solid var(--border-subtle)' }}>
+          {['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'].map(day => (
+            <div key={day} style={{ padding: '1rem', fontSize: '0.625rem', fontWeight: 800, color: 'var(--text-tertiary)', textAlign: 'center', letterSpacing: '0.1em' }}>
+              {day}
+            </div>
+          ))}
         </div>
-      ) : (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
-          {Object.entries(tasksByProject).map(([projectId, projectTasks]) => {
-            const projectName = getProjectName(projectId, projects)
+
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)' }}>
+          {days.map((d, index) => {
+            const dateStr = new Date(year, d.month, d.day).toISOString().split('T')[0]
+            const dayTasks = visibleTasks.filter(t => t.due_date?.split('T')[0] === dateStr)
+            const isToday = new Date().toISOString().split('T')[0] === dateStr
+
             return (
-              <div key={projectId}>
-                {/* Project label */}
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.75rem' }}>
-                  <span style={{ fontSize: '0.875rem', fontWeight: 500, color: 'var(--accent)' }}>{projectName}</span>
-                  <span className="badge" style={{ background: 'var(--bg-elevated)', color: 'var(--text-tertiary)' }}>
-                    {projectTasks.length}
+              <div 
+                key={index} 
+                style={{ 
+                  minHeight: '120px', 
+                  padding: '0.5rem', 
+                  borderRight: (index + 1) % 7 === 0 ? 'none' : '1px solid var(--border-subtle)',
+                  borderBottom: index >= 35 ? 'none' : '1px solid var(--border-subtle)',
+                  background: d.current ? 'transparent' : 'var(--bg-base)',
+                  transition: 'background 0.2s'
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
+                  <span style={{ 
+                    fontSize: '0.8125rem', 
+                    fontWeight: isToday ? 800 : 500, 
+                    color: isToday ? 'var(--accent)' : d.current ? 'var(--text-primary)' : 'var(--text-tertiary)',
+                    background: isToday ? 'var(--accent-muted)' : 'transparent',
+                    width: '24px', height: '24px', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '50%'
+                  }}>
+                    {d.day}
                   </span>
                 </div>
 
-                {/* Timeline */}
-                <div style={{ position: 'relative', paddingLeft: '1rem', borderLeft: '2px solid var(--border-subtle)', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-                  {projectTasks.map((task) => {
-                    const assignee = getAgentName(task.assignee_id, agents)
-                    const isOverdue = task.due_date && new Date(task.due_date) < new Date() && task.status !== 'completed'
-                    const timeWidth = getProgressWidth(task.created_at)
-                    const statusBadge = STATUS_BADGE[task.status] || STATUS_BADGE.pending
-
-                    return (
-                      <div key={task.id} style={{ position: 'relative' }}>
-                        {/* Dot */}
-                        <div style={{
-                          position: 'absolute', left: '-1.3125rem', top: '0.625rem',
-                          width: 10, height: 10, borderRadius: '50%',
-                          background: STATUS_COLORS[task.status],
-                          border: '2px solid var(--border-strong)',
-                        }} />
-
-                        {/* Card */}
-                        <div style={{
-                          background: 'var(--bg-surface)',
-                          border: '1px solid var(--border-subtle)',
-                          borderRadius: 'var(--radius-lg)',
-                          padding: '0.75rem 1rem',
-                          transition: 'border-color 0.15s',
-                        }}
-                        className="timeline-card"
-                        >
-                          <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '0.75rem' }}>
-                            <div style={{ flex: 1, minWidth: 0 }}>
-                              <p style={{ fontSize: '0.875rem', fontWeight: 500, color: 'var(--text-primary)', margin: 0 }}>
-                                {task.title}
-                              </p>
-                              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginTop: '0.375rem' }}>
-                                {assignee && (
-                                  <>
-                                    <span style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)' }}>{assignee}</span>
-                                    <span style={{ color: 'var(--border-default)', fontSize: '0.75rem' }}>·</span>
-                                  </>
-                                )}
-                                <span style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)' }}>{formatDate(task.created_at)}</span>
-                                {task.due_date && (
-                                  <>
-                                    <span style={{ color: 'var(--border-default)', fontSize: '0.75rem' }}>·</span>
-                                    <span style={{ fontSize: '0.75rem', color: isOverdue ? 'var(--error)' : 'var(--text-tertiary)' }}>
-                                      Due {new Date(task.due_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
-                                    </span>
-                                  </>
-                                )}
-                              </div>
-                            </div>
-
-                            <span style={{
-                              fontSize: '0.625rem', fontWeight: 500, padding: '2px 8px', borderRadius: '99px',
-                              background: statusBadge.bg, color: statusBadge.color,
-                              border: `1px solid ${statusBadge.border}`,
-                              flexShrink: 0,
-                            }}>
-                              {task.status.replace('-', ' ')}
-                            </span>
-                          </div>
-
-                          {/* Progress bar */}
-                          <div style={{ marginTop: '0.625rem' }}>
-                            <div style={{ height: 3, background: 'var(--bg-elevated)', borderRadius: '99px', overflow: 'hidden' }}>
-                              <div style={{
-                                height: '100%', borderRadius: '99px',
-                                background: STATUS_COLORS[task.status],
-                                width: `${timeWidth}%`,
-                                transition: 'width 0.3s',
-                              }} />
-                            </div>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 3 }}>
-                              <span style={{ fontSize: '0.625rem', color: 'var(--text-tertiary)' }}>created</span>
-                              <span style={{ fontSize: '0.625rem', color: 'var(--text-tertiary)' }}>
-                                {timeWidth >= 80 ? '30d+' : timeWidth >= 50 ? '7d+' : 'recently'}
-                              </span>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    )
-                  })}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                  {dayTasks.map(task => (
+                    <div 
+                      key={task.id}
+                      style={{ 
+                        fontSize: '0.6875rem', 
+                        padding: '4px 8px', 
+                        borderRadius: '4px', 
+                        background: `${STATUS_COLORS[task.status]}20`, 
+                        color: STATUS_COLORS[task.status],
+                        borderLeft: `3px solid ${STATUS_COLORS[task.status]}`,
+                        fontWeight: 600,
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                        whiteSpace: 'nowrap'
+                      }}
+                      title={task.title}
+                    >
+                      {task.title}
+                    </div>
+                  ))}
                 </div>
               </div>
             )
           })}
         </div>
-      )}
+      </div>
+
+      {/* Legend */}
+      <div style={{ display: 'flex', gap: '1.5rem', justifyContent: 'center' }}>
+          {Object.entries(STATUS_COLORS).map(([status, color]) => (
+            <div key={status} style={{ display: 'flex', alignItems: 'center', gap: '0.375rem' }}>
+              <div style={{ width: 8, height: 8, borderRadius: '50%', background: color }} />
+              <span style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-tertiary)', textTransform: 'uppercase' }}>{status}</span>
+            </div>
+          ))}
+      </div>
     </div>
   )
 }

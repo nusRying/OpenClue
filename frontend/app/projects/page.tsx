@@ -46,8 +46,6 @@ export default function ProjectsPage() {
       <div style={{ background: 'var(--bg-base)', color: 'var(--text-primary)', minHeight: '100vh' }}>
         <Header
           agents={agents}
-          projects={projects}
-          tasks={tasks}
           theme={theme}
           onToggleTheme={toggleTheme}
         />

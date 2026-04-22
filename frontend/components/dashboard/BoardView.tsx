@@ -1,6 +1,6 @@
 'use client'
 
-import type { Agent, Project, Task, ActivityEvent } from '@/types'
+import type { Agent, Project, Task, ActivityEvent, TaskStatus } from '@/types'
 import { AgentCard } from '@/components/agents/AgentCard'
 import { ProjectsPanel } from '@/components/projects/ProjectsPanel'
 import { TaskBoard } from '@/components/tasks/TaskBoard'
@@ -28,12 +28,7 @@ export function BoardView({ projects, tasks, agents, activity, selectedProjectId
   const deleteTask = useDeleteTask()
   const updateTaskStatus = useUpdateTaskStatus()
 
-  const onlineAgents = agents.filter(a => {
-    if (!a.last_seen_at) return false
-    return (Date.now() - new Date(a.last_seen_at).getTime()) < 5 * 60 * 1000
-  }).length
-
-  const handleStatusChange = useCallback((taskId: string, newStatus: string) => {
+  const handleStatusChange = useCallback((taskId: string, newStatus: TaskStatus) => {
     updateTaskStatus.mutate({ id: taskId, status: newStatus })
   }, [updateTaskStatus])
 
@@ -73,68 +68,73 @@ export function BoardView({ projects, tasks, agents, activity, selectedProjectId
   }
 
   return (
-    <div style={{ display: 'grid', gridTemplateColumns: '1fr 300px', gap: '1.5rem', alignItems: 'start' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '3rem' }}>
       
-      {/* Main content (Left) */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-        {/* Projects */}
-        <div className="card" style={{ padding: '1rem' }}>
-          <ProjectsPanel
-            projects={projects}
-            agents={agents}
-            onCreateProject={handleCreateProject}
-            onUpdateProject={handleUpdateProject}
-            onDeleteProject={handleDeleteProject}
-            onSelectProject={onSelectProject}
-            selectedProjectId={selectedProjectId}
-          />
+      {/* Top Section: Projects Discovery */}
+      <section>
+        <ProjectsPanel
+          projects={projects}
+          agents={agents}
+          onCreateProject={handleCreateProject}
+          onUpdateProject={handleUpdateProject}
+          onDeleteProject={handleDeleteProject}
+          onSelectProject={onSelectProject}
+          selectedProjectId={selectedProjectId}
+        />
+      </section>
+
+      {/* Middle Section: Task Management & Pulse */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 320px', gap: '1.5rem', alignItems: 'start' }}>
+        
+        {/* Main Task Pipeline */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+          <div className="card" style={{ padding: '1.5rem' }}>
+            <TaskBoard
+              tasks={tasks}
+              projects={projects}
+              agents={agents}
+              onStatusChange={handleStatusChange}
+              onCreateTask={handleCreateTask}
+              onUpdateTask={handleUpdateTask}
+              onDeleteTask={handleDeleteTask}
+              selectedProjectId={selectedProjectId}
+            />
+          </div>
         </div>
 
-        {/* Tasks */}
-        <div className="card" style={{ padding: '1rem' }}>
-          <TaskBoard
-            tasks={tasks}
-            projects={projects}
-            agents={agents}
-            onStatusChange={handleStatusChange}
-            onCreateTask={handleCreateTask}
-            onUpdateTask={handleUpdateTask}
-            onDeleteTask={handleDeleteTask}
-            selectedProjectId={selectedProjectId}
-          />
-        </div>
-      </div>
-
-      {/* Sidebar (Right) */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', position: 'sticky', top: '5.5rem' }}>
-
-        {/* Agents */}
-        <div className="card" style={{ overflow: 'hidden' }}>
-          <div style={{ padding: '0.75rem 1rem', borderBottom: '1px solid var(--border-subtle)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              <span style={{ fontSize: '0.875rem', fontWeight: 600 }}>Agents</span>
-              <span className="badge" style={{ background: 'var(--bg-elevated)', color: 'var(--text-tertiary)' }}>{agents.length}</span>
+        {/* Sidebar: Pulse & Activity */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', position: 'sticky', top: '5.5rem' }}>
+          
+          {/* Recent Activity */}
+          <div className="card" style={{ overflow: 'hidden' }}>
+            <div style={{ padding: '1rem', borderBottom: '1px solid var(--border-subtle)', background: 'var(--bg-elevated)' }}>
+              <span style={{ fontSize: '0.875rem', fontWeight: 700, color: 'var(--text-primary)' }}>Terminal Activity</span>
             </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', fontSize: '0.75rem', color: 'var(--success)' }}>
-              <div style={{ width: 6, height: 6, borderRadius: '50%', background: 'var(--success)' }} />
-              {onlineAgents} online
+            <div style={{ maxHeight: '400px', overflowY: 'auto' }}>
+              <ActivityFeed events={activity.slice(0, 20)} compact />
+            </div>
+            <div style={{ padding: '0.75rem', borderTop: '1px solid var(--border-subtle)', textAlign: 'center' }}>
+               <span style={{ fontSize: '0.6875rem', fontWeight: 600, color: 'var(--text-tertiary)' }}>MONITORING ACTIVE</span>
             </div>
           </div>
-          <div style={{ maxHeight: '240px', overflowY: 'auto' }}>
-            {agents.map(agent => (
-              <AgentCard key={agent.id} agent={agent} />
-            ))}
-          </div>
-        </div>
 
-        {/* Activity */}
-        <div className="card" style={{ overflow: 'hidden' }}>
-          <div style={{ padding: '0.75rem 1rem', borderBottom: '1px solid var(--border-subtle)' }}>
-            <span style={{ fontSize: '0.875rem', fontWeight: 600 }}>Recent Activity</span>
+          {/* Online Agents List */}
+          <div className="card" style={{ overflow: 'hidden' }}>
+            <div style={{ padding: '1rem', borderBottom: '1px solid var(--border-subtle)', background: 'var(--bg-elevated)' }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <span style={{ fontSize: '0.875rem', fontWeight: 700, color: 'var(--text-primary)' }}>Agent Pulse</span>
+                <span className="badge" style={{ background: 'var(--success-muted)', color: 'var(--success)' }}>
+                  {agents.filter(a => a.status === 'online').length} LIVE
+                </span>
+              </div>
+            </div>
+            <div style={{ maxHeight: '300px', overflowY: 'auto' }}>
+              {agents.map(agent => (
+                <AgentCard key={agent.id} agent={agent} />
+              ))}
+            </div>
           </div>
-          <div style={{ maxHeight: '400px', overflowY: 'auto' }}>
-            <ActivityFeed events={activity.slice(0, 20)} compact />
-          </div>
+
         </div>
       </div>
 

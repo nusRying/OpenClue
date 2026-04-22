@@ -2,14 +2,12 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import type { Agent, Project, Task } from '@/types'
+import type { Agent } from '@/types'
 import { SunIcon } from '@/components/ui/SunIcon'
 import { MoonIcon } from '@/components/ui/MoonIcon'
 
 interface Props {
   agents: Agent[]
-  projects: Project[]
-  tasks: Task[]
   theme: 'dark' | 'light'
   onToggleTheme: () => void
 }
