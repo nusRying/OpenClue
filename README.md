@@ -1,80 +1,122 @@
-# OpenClue — Mission Control Platform
+# 🕵️‍♂️ OpenClue — Mission Control Platform
 
-Real-time dashboard for multi-agent operations. Built with Next.js, Supabase, and n8n.
+> **The Central Intelligence Hub for Multi-Agent Operations.**
 
-## Architecture (n8n-Centric)
+OpenClue is a high-performance, real-time dashboard designed to monitor, manage, and orchestrate a fleet of autonomous AI agents. Built with a "Gateway First" philosophy, it leverages **Next.js**, **Supabase**, and **n8n** to provide a seamless bridge between human operators and AI agents working across Telegram and WhatsApp.
 
-OpenClue has transitioned to a "Gateway" architecture where **n8n** handles business logic and agent communication, while the frontend interacts directly with **Supabase**.
+---
 
-```
-Frontend (Next.js) ← ← → → Supabase (PostgreSQL + Realtime)
-      ↓                           ↑
-      ↓ (Task Triggers)           ↑ (Writes)
-      ↓                           ↑
-   n8n Gateway  → → → → → → → OpenClaw Agents (Promo, Digit, String)
-```
+[![Next.js](https://img.shields.io/badge/Frontend-Next.js%2014-black?style=flat-square&logo=next.js)](https://nextjs.org/)
+[![Supabase](https://img.shields.io/badge/Database-Supabase-green?style=flat-square&logo=supabase)](https://supabase.com/)
+[![n8n](https://img.shields.io/badge/Automation-n8n-orange?style=flat-square&logo=n8n)](https://n8n.io/)
+[![Tailwind CSS](https://img.shields.io/badge/Styling-Tailwind%20CSS-blue?style=flat-square&logo=tailwind-css)](https://tailwindcss.com/)
+[![TypeScript](https://img.shields.io/badge/Language-TypeScript-blue?style=flat-square&logo=typescript)](https://www.typescriptlang.org/)
 
-**Key Data Flows:**
-- **Frontend → Supabase:** Direct reads and realtime subscriptions for all data.
-- **Frontend → n8n:** Mutations (like creating tasks) trigger n8n webhooks to notify agents.
-- **Agents → Supabase:** Agents log their activity, tool calls, and conversations directly to Supabase.
-- **n8n → Agents:** n8n routes system requests to the appropriate agent channels.
+---
 
-## Structure
+## 🏗️ Architectural Overview (n8n-Centric)
 
-```
-OpenClue/
-├── frontend/              # Next.js 14 Dashboard
-│   ├── app/              # Multi-page layout (Dashboard, Projects, Timeline, Conversations)
-│   ├── components/       # UI components (AgentCard, TaskBoard, ConversationsPanel)
-│   ├── hooks/            # TanStack Query + Supabase realtime hooks
-│   ├── lib/              # Supabase & n8n clients
-│   └── Dockerfile
-├── plugin/                # OpenClaw plugin (tool call tracking)
-├── hook/                  # OpenClaw hook (session events)
-├── supabase-schema.sql   # Latest database schema (includes 'conversations')
-├── CLIENT_TASKS.md       # Compiled client requirements & status
-└── README.md
-```
+OpenClue utilizes a modern **Gateway Architecture**. Instead of a bulky custom backend, we use **n8n** as the intelligent routing layer. This ensures that agents remain decoupled and the system remains resilient to changes.
 
-## Environment Variables
+### Data Flow
+1.  **Frontend → Supabase:** Direct, low-latency reads and Realtime Postgres subscriptions.
+2.  **Frontend → n8n:** High-level actions (Task assignments, project updates) trigger n8n webhooks.
+3.  **n8n → Agents:** n8n routes instructions to specific Agent Topics (Telegram/WhatsApp) based on the client's mapping configuration.
+4.  **Agents → Supabase:** Agents log their internal thoughts, tool calls, and client conversations directly into the database.
 
-### Frontend
+---
+
+## ✨ Core Features
+
+### 📊 Mission Control Dashboard
+*   **Real-time Activity Feed:** See exactly what your agents are doing as it happens.
+*   **Agent Status Cards:** Instant visibility into agent health (Online/Idle), current tasks, and roles.
+*   **Global Stats:** Track active projects, pending tasks, and overall completion progress at a glance.
+
+### 🗂️ Project & Task Management
+*   **Multi-Page Navigation:** Dedicated views for deep-diving into specific projects.
+*   **Kanban/Board Views:** Manage the full lifecycle of tasks from `pending` to `completed`.
+*   **Intelligent Triggers:** Creating or updating a task automatically notifies the assigned agent via n8n.
+
+### 📅 Visual Timeline
+*   **Gantt-style Progress:** Track task duration and deadlines across multiple projects.
+*   **Overdue Alerts:** Visual indicators for tasks that need immediate attention.
+
+### 💬 Live Conversation Monitoring
+*   **Session-Based Tracking:** Every client interaction is treated as a unique session.
+*   **Clean-View Logic:** Advanced regex filtering strips JSON metadata from Telegram messages, showing only the raw, human-readable conversation.
+*   **Multi-Channel Support:** Monitor Telegram, WhatsApp, and Web chats in a unified interface.
+
+---
+
+## 🚀 Quick Start
+
+### 1. Prerequisites
+*   Node.js (v18+)
+*   A Supabase Project
+*   An n8n Instance
+
+### 2. Environment Setup
+Create a `.env.local` file in the `frontend/` directory:
+
 ```env
-NEXT_PUBLIC_SUPABASE_URL=<supabase-url>
-NEXT_PUBLIC_SUPABASE_ANON_KEY=<anon-key>
-NEXT_PUBLIC_N8N_BASE_URL=http://localhost:5678/webhook
-PORT=3000
+NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
+NEXT_PUBLIC_N8N_BASE_URL=https://your-n8n.com/webhook
 ```
 
-## Features
+### 3. Database Initialization
+Run the contents of `supabase-schema.sql` in your Supabase SQL Editor. This will:
+*   Create all necessary tables (`agents`, `tasks`, `conversations`, etc.).
+*   Enable **Realtime** for instant UI updates.
+*   Setup **Row Level Security (RLS)** for data protection.
 
-### 1. Multi-Page Dashboard
-- **Overview:** High-level system health and agent status.
-- **Projects:** Full lifecycle management of projects and tasks.
-- **Timeline:** Visual progress tracking of all operations.
-- **Conversations:** Real-time monitoring of agent-client chat sessions.
+### 4. Installation
+```bash
+# Install dependencies
+npm install
 
-### 2. Conversation Monitoring
-- Treat every client interaction as a distinct **Session**.
-- Store full message history in Supabase `conversations` table.
-- Automatic cleaning of JSON metadata for human-readable chat views.
+# Start the dashboard
+npm run dev
+```
 
-### 3. Automated Workflows
-- Integrated n8n webhook triggers for task assignment and status changes.
-- Standardized `sessionKey` mapping for seamless cross-platform communication.
+---
 
-## Supabase Tables
+## 🤖 The Agents
 
-- `agents` — Registry of active agents (Promo, Digit, etc.)
-- `projects` — Top-level project containers.
-- `tasks` — Atomic units of work assigned to agents.
-- `conversations` — **(New)** Live session and chat history tracking.
-- `activity_log` — Global system event log.
-- `tool_calls` — Tracking of agent tool executions.
+OpenClue is built to manage a specialized team:
+*   **Mehzam (CEO):** The primary orchestrator.
+*   **Promo (CMO):** Handles marketing and client outreach.
+*   **Digit (CFO):** Manages financial data and reporting.
+*   **String (COO):** Handles technical operations and infrastructure.
 
-## Deployment
+Each agent is mapped to a specific **Telegram Topic** via n8n, ensuring that conversations never get crossed.
 
-The platform is designed to be deployed via Docker.
-- **Frontend Dockerfile:** `frontend/Dockerfile`
-- **Build Context:** `.` (repository root)
+---
+
+## 📂 Project Structure
+
+```bash
+OpenClue/
+├── frontend/             # Next.js Application
+│   ├── app/             # Router & Pages (Dashboard, Projects, etc.)
+│   ├── components/      # Reusable UI (Modals, Panels, Cards)
+│   ├── hooks/           # Realtime & Data fetching logic
+│   └── lib/             # API clients (Supabase, n8n)
+├── plugin/               # Agent-side plugin for tool tracking
+├── hook/                 # Agent-side hook for session events
+├── supabase-schema.sql  # Ground-truth database schema
+└── CLIENT_TASKS.md      # Roadmap & Requirement tracking
+```
+
+---
+
+## 🐳 Deployment
+The platform is designed to be deployed via Docker. To deploy the frontend:
+
+```bash
+docker build -t openclue-frontend -f frontend/Dockerfile .
+```
+
+---
+*Created and maintained by the OpenClue Development Team.*
