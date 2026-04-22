@@ -96,7 +96,7 @@
     {
       "parameters": {
         "method": "POST",
-        "url": "https://kxhnjmkxbylxmxjapiad.supabase.co/rest/v1/rpc/append_conversation_message",
+        "url": "https://base.kutraa.com/rest/v1/rpc/append_conversation_message",
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
@@ -131,7 +131,7 @@
     {
       "parameters": {
         "method": "PATCH",
-        "url": "=https://kxhnjmkxbylxmxjapiad.supabase.co/rest/v1/agents?name=eq.{{ $json.metadata.resolvedAgent || $json.metadata.agentId }}",
+        "url": "=https://base.kutraa.com/rest/v1/agents?name=eq.{{ $json.metadata.resolvedAgent || $json.metadata.agentId }}",
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
