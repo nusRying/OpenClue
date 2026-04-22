@@ -2,7 +2,7 @@ import { supabase } from './supabase'
 
 import mappingsData from './mappings.json'
 
-const N8N_BASE_URL = process.env.NEXT_PUBLIC_N8N_BASE_URL || 'http://localhost:5678/webhook'
+const N8N_BASE_URL = 'https://cardial.kutraa.com/webhook'
 
 // Map agent names to their configurations dynamically from mappings.json
 function getAgentConfig(agentName: string) {
