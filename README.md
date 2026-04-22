@@ -1,99 +1,80 @@
-# Mission Control Platform
+# OpenClue — Mission Control Platform
 
-Real-time dashboard for Kutraa's multi-agent operations. Built with Fastify + Next.js + Supabase.
+Real-time dashboard for multi-agent operations. Built with Next.js, Supabase, and n8n.
 
-## Architecture
+## Architecture (n8n-Centric)
+
+OpenClue has transitioned to a "Gateway" architecture where **n8n** handles business logic and agent communication, while the frontend interacts directly with **Supabase**.
 
 ```
-OpenClaw Agents (string, digit, promo)
-    ↓ webhook POSTs
-Fastify Backend (port 3001)
-    ↓ writes
-Supabase PostgreSQL ← ← ← ← ← ← ← ←
-    ↑ reads + realtime                 |
-Next.js Frontend (port 3000) ← ← ← ← ←
+Frontend (Next.js) ← ← → → Supabase (PostgreSQL + Realtime)
+      ↓                           ↑
+      ↓ (Task Triggers)           ↑ (Writes)
+      ↓                           ↑
+   n8n Gateway  → → → → → → → OpenClaw Agents (Promo, Digit, String)
 ```
 
-**Data flow:**
-- Agents → OpenClaw hook/plugin → Backend → Supabase (write path)
-- Frontend → Supabase direct (read + realtime subscribe)
+**Key Data Flows:**
+- **Frontend → Supabase:** Direct reads and realtime subscriptions for all data.
+- **Frontend → n8n:** Mutations (like creating tasks) trigger n8n webhooks to notify agents.
+- **Agents → Supabase:** Agents log their activity, tool calls, and conversations directly to Supabase.
+- **n8n → Agents:** n8n routes system requests to the appropriate agent channels.
 
 ## Structure
 
 ```
-kutraa-mission-control/
-├── backend/                # Fastify API server
-│   ├── lib/              # Supabase client, Telegram sender
-│   ├── routes/           # Webhook + live endpoints
-│   ├── src/types.ts      # TypeScript types
-│   ├── index.ts
-│   ├── package.json
-│   └── Dockerfile
-├── frontend/              # Next.js dashboard
-│   ├── app/              # App router pages
-│   ├── components/       # AgentCard, ProjectCard, TaskBoard, ActivityFeed
+OpenClue/
+├── frontend/              # Next.js 14 Dashboard
+│   ├── app/              # Multi-page layout (Dashboard, Projects, Timeline, Conversations)
+│   ├── components/       # UI components (AgentCard, TaskBoard, ConversationsPanel)
 │   ├── hooks/            # TanStack Query + Supabase realtime hooks
-│   ├── lib/              # Supabase client
-│   ├── types/
-│   ├── package.json
+│   ├── lib/              # Supabase & n8n clients
 │   └── Dockerfile
 ├── plugin/                # OpenClaw plugin (tool call tracking)
 ├── hook/                  # OpenClaw hook (session events)
-├── supabase-schema.sql   # Database schema
-├── INSTALL.md
+├── supabase-schema.sql   # Latest database schema (includes 'conversations')
+├── CLIENT_TASKS.md       # Compiled client requirements & status
 └── README.md
 ```
 
 ## Environment Variables
 
-### Backend
-```
-SUPABASE_URL=<supabase-url>
-SUPABASE_SERVICE_ROLE_KEY=<service-role-key>
-PORT=3001
-HOST=0.0.0.0
-TELEGRAM_BOT_TOKEN=<bot-token>
-TELEGRAM_CHAT_ID=-1003728720677
-AGENT_TOKEN_STRING=<secret>
-AGENT_TOKEN_DIGIT=<secret>
-AGENT_TOKEN_PROMO=<secret>
-```
-
 ### Frontend
-```
-NEXT_PUBLIC_SUPABASE_URL=<supabase-public-https-url>
+```env
+NEXT_PUBLIC_SUPABASE_URL=<supabase-url>
 NEXT_PUBLIC_SUPABASE_ANON_KEY=<anon-key>
+NEXT_PUBLIC_N8N_BASE_URL=http://localhost:5678/webhook
 PORT=3000
 ```
 
-## API Endpoints (Backend)
+## Features
 
-Backend handles ingestion only. Frontend reads directly from Supabase.
+### 1. Multi-Page Dashboard
+- **Overview:** High-level system health and agent status.
+- **Projects:** Full lifecycle management of projects and tasks.
+- **Timeline:** Visual progress tracking of all operations.
+- **Conversations:** Real-time monitoring of agent-client chat sessions.
 
-| Method | Endpoint | Purpose |
-|--------|----------|---------|
-| POST | `/api/webhook/openclaw` | Session events from hook |
-| POST | `/api/webhook/tool_start` | Tool call started |
-| POST | `/api/webhook/tool_end` | Tool call completed |
-| GET | `/health` | Health check |
+### 2. Conversation Monitoring
+- Treat every client interaction as a distinct **Session**.
+- Store full message history in Supabase `conversations` table.
+- Automatic cleaning of JSON metadata for human-readable chat views.
+
+### 3. Automated Workflows
+- Integrated n8n webhook triggers for task assignment and status changes.
+- Standardized `sessionKey` mapping for seamless cross-platform communication.
 
 ## Supabase Tables
 
-- `agents` — agent registry
-- `projects` — projects
-- `tasks` — tasks
-- `activity_log` — event log
-- `tool_calls` — tool execution tracking
-- `session_events` — session lifecycle events
+- `agents` — Registry of active agents (Promo, Digit, etc.)
+- `projects` — Top-level project containers.
+- `tasks` — Atomic units of work assigned to agents.
+- `conversations` — **(New)** Live session and chat history tracking.
+- `activity_log` — Global system event log.
+- `tool_calls` — Tracking of agent tool executions.
 
-## Deployment (Coolify)
+## Deployment
 
-### Backend
-- Dockerfile: `backend/Dockerfile`
-- Build context: `.` (repo root)
-- Port: 3001 (internal only)
-
-### Frontend
-- Dockerfile: `frontend/Dockerfile`
-- Build context: `.` (repo root)
-- Port: 3000 (public)
+The platform is designed to be deployed via Docker.
+- **Frontend Dockerfile:** `frontend/Dockerfile`
+- **Build Context:** `.` (repository root)
