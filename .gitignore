@@ -7,8 +7,42 @@ dist/
 # Next.js
 frontend/.next/
 frontend/out/
+frontend/node_modules/
 
 # Backend
 backend/dist/
 backend/node_modules/
-frontend/node_modules/
+
+# Media and Large Files
+*.mp4
+*.mkv
+*.avi
+*.mov
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+env/
+venv/
+.env/
+build/
+develop-eggs/
+downloads/
+eggs/
+.eggs/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Specific Redundant Files
+client_mappings.json
+transcribe.py
+
+# Transcription folder (optional, keep if you want it in git)
+# Screen_Recording_Transcription/
