@@ -46,3 +46,9 @@ transcribe.py
 
 # Transcription folder
 Screen_Recording_Transcription/
+
+# AI and Planning
+.agents/
+.claude/
+.planning/
+.continue/
