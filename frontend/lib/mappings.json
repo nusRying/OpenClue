@@ -1,4 +1,5 @@
-"hooks": {
+{
+  "hooks": {
     "enabled": true,
     "path": "/hooks",
     "token": "<anycode>",
@@ -62,3 +63,4 @@
       }
     ]
   }
+}
