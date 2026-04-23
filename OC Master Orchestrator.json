@@ -1,5 +1,5 @@
 {
-  "name": "OpenClue - Master Orchestrator v5.1.12 (Resonance-Shotgun)",
+  "name": "OpenClue - Master Orchestrator v5.1.13 (Mission-Pinned)",
   "nodes": [
     {
       "parameters": {
@@ -72,7 +72,7 @@
         },
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={{ JSON.stringify({\n  p_session_key: $json.metadata.sessionKey || 'UNTRACKED',\n  p_message: {\n    role: ($json.event_type || $json.action) === 'message:sent' ? 'agent' : 'user',\n    content: $json.message || $json.description || 'Heartbeat signal.',\n    timestamp: $now.toISOString(),\n    metadata: {\n      priority: $json.priority || 'medium',\n      orchestrator_v: '5.1.12'\n    }\n  },\n  p_agent_id: $json.metadata.agentId || 'main',\n  p_client_name: $json.metadata.senderName || 'Mission Client'\n}) }}",
+        "jsonBody": "={{ JSON.stringify({\n  p_session_key: $json.metadata.sessionKey || 'UNTRACKED',\n  p_message: {\n    role: ($json.event_type || $json.action) === 'message:sent' ? 'agent' : 'user',\n    content: $json.message || $json.description || 'Heartbeat signal.',\n    timestamp: $now.toISOString(),\n    metadata: {\n      priority: $json.priority || 'medium',\n      orchestrator_v: '5.1.13'\n    }\n  },\n  p_agent_id: $json.metadata.agentId || 'main',\n  p_client_name: $json.metadata.senderName || 'Mission Client'\n}) }}",
         "options": {}
       },
       "id": "action-conversation",
@@ -107,7 +107,7 @@
     },
     {
       "parameters": {
-        "jsCode": "// Resolve broadcast - Shotgun method: send to ALL potential agents\nconst item = $input.item.json;\nconst message = item.message || item.description || 'Broadcast pulse.';\n\nconst ALL_AGENTS = ['main', 'promo', 'digit', 'string'];\n\nreturn ALL_AGENTS.map(name => ({\n  json: {\n    agentName: name,\n    message: message,\n    _raw: item\n  }\n}));"
+        "jsCode": "// Resolve broadcast - Explicit Mappings from client_mappings.json\nconst item = $input.item.json;\nconst messageText = item.message || item.description || 'Broadcast pulse.';\n\nconst MAPPINGS = [\n  {\n    agentName: 'promo',\n    to: '-1003728720677:topic:1239',\n    sessionKey: 'agent:promo:telegram:group:-1003728720677:topic:1239'\n  },\n  {\n    agentName: 'main',\n    to: '-1003728720677:topic:1',\n    sessionKey: 'agent:main:telegram:group:-1003728720677:topic:1'\n  },\n  {\n    agentName: 'digit',\n    to: '-1003728720677:topic:3',\n    sessionKey: 'agent:digit:telegram:group:-1003728720677:topic:3'\n  },\n  {\n    agentName: 'string',\n    to: '-1003728720677:topic:2',\n    sessionKey: 'agent:string:telegram:group:-1003728720677:topic:2'\n  }\n];\n\nreturn MAPPINGS.map(m =\u003e ({\n  json: {\n    ...m,\n    message: messageText,\n    channel: 'telegram',\n    _raw: item\n  }\n}));"
       },
       "id": "broadcast-resolver",
       "name": "Broadcast Resolver",
@@ -123,12 +123,13 @@
         "headerParameters": {
           "parameters": [
             { "name": "Authorization", "value": "Bearer 46cf3441242627eabf8eb5c32d2e0d7f" },
+            { "name": "X-OpenClaw-Token", "value": "46cf3441242627eabf8eb5c32d2e0d7f" },
             { "name": "Content-Type", "value": "application/json" }
           ]
         },
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={\n  \"message\": \"{{ $json.message }}\"\n}",
+        "jsonBody": "={\n  \"message\": \"{{ $json.message }}\",\n  \"to\": \"{{ $json.to }}\",\n  \"sessionKey\": \"{{ $json.sessionKey }}\",\n  \"channel\": \"{{ $json.channel }}\"\n}",
         "options": {
           "responseFormat": "string"
         }
@@ -138,11 +139,11 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.1,
       "position": [ 800, 400 ],
-      "continueOnFail": true
+      "continueOnFail": false
     },
     {
       "parameters": {
-        "jsCode": "// Aggregate logs\nconst item = $json._raw || $json;\nreturn {\n  json: {\n    event_type: 'broadcast',\n    description: item.message || 'Shotgun broadcast sent.',\n    metadata: {\n      source: 'Orchestrator v5.1.12',\n      agents_targeted: ['main', 'promo', 'digit', 'string']\n    }\n  }\n};"
+        "jsCode": "// Aggregate logs\nconst item = $json._raw || $json;\nreturn {\n  json: {\n    event_type: 'broadcast',\n    description: item.message || 'Mission verified.',\n    metadata: {\n      source: 'Orchestrator v5.1.13',\n      status: 'Resonance established'\n    }\n  }\n};"
       },
       "id": "payload-shield",
       "name": "Neural Preparation Block",
@@ -176,7 +177,7 @@
     {
       "parameters": {
         "options": {
-          "responseBody": "={{ JSON.stringify({\n  mission: 'acknowledged',\n  signal_id: $execution.id,\n  resonance_v: '5.1.12',\n  timestamp: $now.toISOString()\n}) }}"
+          "responseBody": "={{ JSON.stringify({\n  mission: 'acknowledged',\n  signal_id: $execution.id,\n  resonance_v: '5.1.13',\n  timestamp: $now.toISOString()\n}) }}"
         }
       },
       "id": "final-response",
