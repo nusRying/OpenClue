@@ -58,5 +58,6 @@ export function eventPriority(eventType: string, metadata?: Record<string, unkno
   if (eventType === 'task_updated' && metadata?.status === 'blocked') return 'high';
   if (eventType === 'tool_end' && metadata?.success === false) return 'high';
   if (eventType === 'session_event' && metadata?.event_type === 'error') return 'critical';
+  if (eventType === 'broadcast') return 'high';
   return 'low';
 }

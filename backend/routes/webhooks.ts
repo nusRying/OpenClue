@@ -7,6 +7,7 @@ const AGENT_TOKENS = new Map<string, string>([
   ['string', process.env.AGENT_TOKEN_STRING || 'string-secret'],
   ['digit', process.env.AGENT_TOKEN_DIGIT || 'digit-secret'],
   ['promo', process.env.AGENT_TOKEN_PROMO || 'promo-secret'],
+  ['main', process.env.AGENT_TOKEN_MAIN || 'main-secret'],
 ]);
 
 function verifyAgentToken(request: FastifyRequest): string | null {

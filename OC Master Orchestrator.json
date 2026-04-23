@@ -98,17 +98,17 @@
     {
       "parameters": {
         "method": "POST",
-        "url": "http://tofyq3lga15o3184lxde506q:18789/hooks/n8n-{{ $json.metadata.agentId || 'main' }}",
+        "url": "https://base.kutraa.com/api/webhook/openclaw",
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
-            { "name": "Authorization", "value": "Bearer 46cf3441242627eabf8eb5c32d2e0d7f" },
+            { "name": "x-agent-token", "value": "main-secret" },
             { "name": "Content-Type", "value": "application/json" }
           ]
         },
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={\n  \"message\": \"{{ $json.message || $json.description || 'Broadcast pulse.' }}\",\n  \"sessionKey\": \"{{ $json.metadata.sessionKey }}\",\n  \"to\": \"{{ $json.metadata.to }}\",\n  \"channel\": \"{{ $json.metadata.channel || 'telegram' }}\"\n}",
+        "jsonBody": "={\n  \"event_type\": \"broadcast\",\n  \"message\": \"{{ $json.message || $json.description || 'Broadcast pulse.' }}\",\n  \"metadata\": {\n    \"sessionKey\": \"{{ $json.metadata.sessionKey }}\",\n    \"to\": \"{{ $json.metadata.to }}\",\n    \"channel\": \"{{ $json.metadata.channel || 'telegram' }}\",\n    \"agentId\": \"{{ $json.metadata.agentId || 'main' }}\"\n  }\n}",
         "options": {}
       },
       "id": "agent-gateway",
