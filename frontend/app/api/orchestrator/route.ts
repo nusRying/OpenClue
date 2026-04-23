@@ -5,7 +5,7 @@ export async function POST(request: Request) {
     const payload = await request.json()
     
     // Attempt Production Webhook first
-    const prodUrl = 'https://cardial.kutraa.com/webhook/OpenClueActions'
+    const prodUrl = 'https://cardial.kutraa.com/webhook/mission-control-actions'
     let response = await fetch(prodUrl, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -15,7 +15,7 @@ export async function POST(request: Request) {
     // If production is inactive (404), fallback to Test Webhook seamlessly
     if (response.status === 404) {
       console.warn('[Next.js API] Production webhook 404. Falling back to test webhook...')
-      const testUrl = 'https://cardial.kutraa.com/webhook-test/OpenClueActions'
+      const testUrl = 'https://cardial.kutraa.com/webhook-test/mission-control-actions'
       response = await fetch(testUrl, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
