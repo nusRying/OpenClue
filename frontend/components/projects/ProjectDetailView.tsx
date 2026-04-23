@@ -3,6 +3,9 @@
 import type { Project, Agent, Task, ActivityEvent, Conversation } from '@/types'
 import { formatDistanceToNow } from 'date-fns'
 import Link from 'next/link'
+import { useState } from 'react'
+import { broadcastAgentSignal } from '@/lib/n8n'
+import { toast } from 'sonner'
 
 interface Props {
   project: Project
@@ -23,6 +26,30 @@ export function ProjectDetailView({ project, agents, statusConfig, tasks, activi
   
   const projectActivity = activity.filter(a => a.project_id === project.id)
   
+  const [broadcastMsg, setBroadcastMsg] = useState('')
+  const [isBroadcasting, setIsBroadcasting] = useState(false)
+
+  // Unique agents assigned to this project
+  const projectAgents = Array.from(new Set([
+    project.owner_agent_id,
+    ...projectTasks.flatMap(t => t.assignee_ids)
+  ])).map(id => agents.find(a => a.id === id)).filter(Boolean) as Agent[]
+
+  const handleBroadcast = async () => {
+    if (!broadcastMsg.trim() || projectAgents.length === 0) return
+    
+    setIsBroadcasting(true)
+    const success = await broadcastAgentSignal(projectAgents.map(a => a.id), broadcastMsg, project.id)
+    setIsBroadcasting(false)
+    
+    if (success) {
+      toast.success('Broadcast signal transmitted to all agents')
+      setBroadcastMsg('')
+    } else {
+      toast.error('Failed to transmit broadcast signal')
+    }
+  }
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
       
@@ -84,6 +111,67 @@ export function ProjectDetailView({ project, agents, statusConfig, tasks, activi
             <div style={{ margin: '1rem 0' }}>
                <p style={{ fontSize: '1.25rem', fontWeight: 800, margin: 0 }}>{formatDistanceToNow(new Date(project.created_at))}</p>
                <p style={{ fontSize: '0.8125rem', color: 'var(--text-secondary)', marginTop: '0.25rem' }}>Since project initialization</p>
+            </div>
+         </div>
+      </div>
+
+      {/* Broadcast Command Center */}
+      <div className="card" style={{ 
+        padding: '2rem', background: 'linear-gradient(135deg, var(--bg-surface) 0%, var(--bg-elevated) 100%)',
+        border: '1px solid var(--accent-muted)', position: 'relative', overflow: 'hidden'
+      }}>
+         <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '2px', background: 'linear-gradient(90deg, transparent, var(--accent), transparent)' }} />
+         
+         <div style={{ display: 'flex', gap: '2rem', alignItems: 'flex-start' }}>
+            <div style={{ flex: 1 }}>
+               <h3 style={{ fontSize: '1.25rem', fontWeight: 800, margin: 0, color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                  <span style={{ width: 12, height: 12, borderRadius: '50%', background: 'var(--accent)', animation: 'pulse 2s infinite' }} />
+                  Broadcast Mission Update
+               </h3>
+               <p style={{ fontSize: '0.875rem', color: 'var(--text-tertiary)', marginTop: '0.5rem', marginBottom: '1.5rem' }}>
+                  Signal will be transmitted to all {projectAgents.length} agents assigned to this workspace.
+               </p>
+
+               <div style={{ position: 'relative' }}>
+                  <textarea 
+                    value={broadcastMsg}
+                    onChange={(e) => setBroadcastMsg(e.target.value)}
+                    placeholder="Enter mission coordinates or instructions..."
+                    style={{ 
+                      width: '100%', minHeight: '100px', padding: '1.25rem', borderRadius: 'var(--radius-lg)',
+                      background: 'var(--bg-base)', border: '1px solid var(--border-subtle)', color: 'var(--text-primary)',
+                      fontSize: '0.9375rem', resize: 'none', transition: 'all 0.2s'
+                    }}
+                  />
+                  <button 
+                    onClick={handleBroadcast}
+                    disabled={!broadcastMsg.trim() || isBroadcasting}
+                    style={{ 
+                      position: 'absolute', bottom: '1rem', right: '1rem',
+                      padding: '0.75rem 1.5rem', borderRadius: 'var(--radius-md)', background: 'var(--accent-solid)',
+                      color: 'white', border: 'none', fontWeight: 700, fontSize: '0.8125rem',
+                      cursor: 'pointer', opacity: (!broadcastMsg.trim() || isBroadcasting) ? 0.5 : 1,
+                      transition: 'all 0.2s', boxShadow: '0 4px 12px rgba(0,0,0,0.1)'
+                    }}
+                  >
+                    {isBroadcasting ? 'TRANSMITTING...' : 'SEND SIGNAL'}
+                  </button>
+               </div>
+            </div>
+
+            <div style={{ width: '280px', borderLeft: '1px solid var(--border-subtle)', paddingLeft: '2rem' }}>
+               <p style={{ fontSize: '0.625rem', fontWeight: 800, color: 'var(--text-tertiary)', textTransform: 'uppercase', marginBottom: '1rem', letterSpacing: '0.05em' }}>Target Agents</p>
+               <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.625rem' }}>
+                  {projectAgents.map(a => (
+                     <div key={a.id} style={{ 
+                        display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.375rem 0.75rem',
+                        background: 'var(--bg-elevated)', borderRadius: 'var(--radius-full)', border: '1px solid var(--border-subtle)'
+                     }}>
+                        <span style={{ fontSize: '0.875rem' }}>{a.emoji}</span>
+                        <span style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-primary)' }}>{a.id}</span>
+                     </div>
+                  ))}
+               </div>
             </div>
          </div>
       </div>

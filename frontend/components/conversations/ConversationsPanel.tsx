@@ -35,12 +35,22 @@ function cleanMessageContent(content: string | undefined): string {
 
 export function ConversationsPanel({ conversations, agents, selectedSessionKey, onSelectSession }: Props) {
   const [searchTerm, setSearchTerm] = useState('')
+  const [selectedChannel, setSelectedChannel] = useState<'all' | 'telegram' | 'whatsapp'>('all')
+
   const selectedConv = conversations.find(c => c.session_key === selectedSessionKey)
   
-  const filteredConversations = conversations.filter(c => 
-    c.client_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    c.session_key.toLowerCase().includes(searchTerm.toLowerCase())
-  )
+  const filteredConversations = conversations.filter(c => {
+    const matchesSearch = c.client_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         c.session_key.toLowerCase().includes(searchTerm.toLowerCase())
+    const matchesChannel = selectedChannel === 'all' || c.channel.toLowerCase() === selectedChannel
+    return matchesSearch && matchesChannel
+  })
+
+  const counts = {
+    all: conversations.length,
+    telegram: conversations.filter(c => c.channel.toLowerCase() === 'telegram').length,
+    whatsapp: conversations.filter(c => c.channel.toLowerCase() === 'whatsapp').length
+  }
 
   return (
     <div style={{ display: 'grid', gridTemplateColumns: '350px 1fr', gap: '1px', height: 'calc(100vh - 12rem)', background: 'var(--border-subtle)', borderRadius: 'var(--radius-xl)', overflow: 'hidden', border: '1px solid var(--border-subtle)' }}>
@@ -51,10 +61,37 @@ export function ConversationsPanel({ conversations, agents, selectedSessionKey, 
           <h2 style={{ fontSize: '1.25rem', fontWeight: 700, margin: 0, color: 'var(--text-primary)' }}>Terminal</h2>
           <p style={{ fontSize: '0.8125rem', color: 'var(--text-tertiary)', margin: '0.25rem 0 1rem 0' }}>All encrypted session streams</p>
           
+          <div style={{ display: 'flex', gap: '0.25rem', padding: '0.25rem', background: 'var(--bg-elevated)', borderRadius: 'var(--radius-lg)', marginBottom: '1.25rem', border: '1px solid var(--border-subtle)' }}>
+            {(['all', 'telegram', 'whatsapp'] as const).map(ch => (
+              <button
+                key={ch}
+                onClick={() => setSelectedChannel(ch)}
+                style={{
+                  flex: 1, padding: '0.5rem', fontSize: '0.625rem', fontWeight: 800,
+                  borderRadius: 'var(--radius-md)', border: 'none', cursor: 'pointer',
+                  background: selectedChannel === ch ? 'var(--bg-surface)' : 'transparent',
+                  color: selectedChannel === ch ? 'var(--accent)' : 'var(--text-tertiary)',
+                  boxShadow: selectedChannel === ch ? '0 2px 8px rgba(0,0,0,0.1)' : 'none',
+                  transition: 'all 0.2s', textTransform: 'uppercase', letterSpacing: '0.05em',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.375rem'
+                }}
+              >
+                {ch}
+                <span style={{ 
+                  opacity: 0.5, fontSize: '0.5625rem', 
+                  background: selectedChannel === ch ? 'var(--accent-muted)' : 'var(--bg-base)',
+                  padding: '2px 6px', borderRadius: '4px'
+                }}>
+                  {counts[ch]}
+                </span>
+              </button>
+            ))}
+          </div>
+
           <div style={{ position: 'relative' }}>
             <input 
               type="text" 
-              placeholder="Filter sessions..." 
+              placeholder="Filter code streams..." 
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               style={{ 

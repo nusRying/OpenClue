@@ -1,0 +1,183 @@
+{
+  "name": "OpenClue - Master Orchestrator",
+  "nodes": [
+    {
+      "parameters": { "httpMethod": "POST", "path": "mission-control-events", "options": {} },
+      "id": "agent-events",
+      "name": "Agent Event Inbound",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [100, 100]
+    },
+    {
+      "parameters": { "httpMethod": "POST", "path": "mission-control-actions", "options": {} },
+      "id": "frontend-actions",
+      "name": "Frontend Action Inbound",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [100, 400]
+    },
+    {
+      "parameters": { "rule": { "interval": [{ "field": "minutes", "minutesInterval": 5 }] } },
+      "id": "health-check-cron",
+      "name": "Health Sentry (5m)",
+      "type": "n8n-nodes-base.cron",
+      "typeVersion": 1,
+      "position": [100, 700]
+    },
+    {
+      "parameters": { "rule": { "interval": [{ "field": "minutes", "minutesInterval": 30 }] } },
+      "id": "governance-cron",
+      "name": "Operational Sentry (30m)",
+      "type": "n8n-nodes-base.cron",
+      "typeVersion": 1,
+      "position": [100, 1000]
+    },
+    {
+      "parameters": {
+        "dataType": "string",
+        "value1": "={{ $json.action || $json.event_type }}",
+        "rules": {
+          "rules": [
+            { "value2": "message:sent", "output": 0 },
+            { "value2": "message:received", "output": 0 },
+            { "operation": "startsWith", "value2": "session_", "output": 1 },
+            { "value2": "task:create", "output": 2 },
+            { "value2": "task:assign", "output": 2 },
+            { "value2": "broadcast", "output": 3 },
+            { "value2": "session_end", "output": 4 }
+          ]
+        }
+      },
+      "id": "orchestrator-switch",
+      "name": "Master Action Router",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 1,
+      "position": [350, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://base.kutraa.com/rest/v1/rpc/append_conversation_message",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "apikey", "value": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJzdXBhYmFzZSIsImlhdCI6MTc3NjI0NDU2MCwiZXhwIjo0OTMxOTE4MTYwLCJyb2xlIjoiYW5vbiJ9.RJRl9UsbEImEOQYPBy6nZds-RYlaTclQQj2pJ8uJb6U" },
+            { "name": "Authorization", "value": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJzdXBhYmFzZSIsImlhdCI6MTc3NjI0NDU2MCwiZXhwIjo0OTMxOTE4MTYwLCJyb2xlIjoiYW5vbiJ9.RJRl9UsbEImEOQYPBy6nZds-RYlaTclQQj2pJ8uJb6U" }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"p_session_key\": \"{{ $json.metadata.sessionKey }}\",\n  \"p_message\": {\n    \"role\": \"{{ $json.event_type === \u0027message:sent\u0027 ? \u0027agent\u0027 : \u0027user\u0027 }}\",\n    \"content\": \"{{ $json.message }}\"\n  }\n}",
+        "options": {}
+      },
+      "id": "action-conversation",
+      "name": "Sync Conversations",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [650, 100]
+    },
+    {
+      "parameters": {
+        "method": "PATCH",
+        "url": "=https://base.kutraa.com/rest/v1/agents?name=eq.{{ $json.metadata.resolvedAgent || $json.metadata.agentId }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "apikey", "value": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJzdXBhYmFzZSIsImlhdCI6MTc3NjI0NDU2MCwiZXhwIjo0OTMxOTE4MTYwLCJyb2xlIjoiYW5vbiJ9.RJRl9UsbEImEOQYPBy6nZds-RYlaTclQQj2pJ8uJb6U" }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"status\": \"{{ $json.event_type === \u0027session_start\u0027 ? \u0027online\u0027 : ($json.event_type === \u0027session_end\u0027 ? \u0027offline\u0027 : \u0027busy\u0027) }}\",\n  \"last_heartbeat\": \"{{ $now.toISOString() }}\"\n}",
+        "options": {}
+      },
+      "id": "action-status",
+      "name": "Sync Master Status",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [650, 250]
+    },
+    {
+      "parameters": {
+        "resource": "chat",
+        "prompt": { "messages": [{ "content": "Summarize this agent session: {{ JSON.stringify($json) }}" }] }
+      },
+      "id": "ai-summarizer",
+      "name": "Mission Summarizer",
+      "type": "n8n-nodes-base.openAi",
+      "typeVersion": 1,
+      "position": [850, 700]
+    },
+    {
+      "parameters": {
+        "method": "PATCH",
+        "url": "=https://base.kutraa.com/rest/v1/projects?id=eq.{{ $json.metadata.project_id || \u0027DEFAULT_ID\u0027 }}",
+        "sendHeaders": true,
+        "headerParameters": { "parameters": [{ "name": "apikey", "value": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJzdXBhYmFzZSIsImlhdCI6MTc3NjI0NDU2MCwiZXhwIjo0OTMxOTE4MTYwLCJyb2xlIjoiYW5vbiJ9.RJRl9UsbEImEOQYPBy6nZds-RYlaTclQQj2pJ8uJb6U" }] },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"intelligence_summary\": \"{{ $json.content }}\"\n}",
+        "options": {}
+      },
+      "id": "update-intel",
+      "name": "Push Intelligence",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [1100, 700]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://base.kutraa.com/rest/v1/activity_log",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "apikey", "value": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJzdXBhYmFzZSIsImlhdCI6MTc3NjI0NDU2MCwiZXhwIjo0OTMxOTE4MTYwLCJyb2xlIjoiYW5vbiJ9.RJRl9UsbEImEOQYPBy6nZds-RYlaTclQQj2pJ8uJb6U" }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"agent_id\": \"{{ $json.metadata.agentId }}\",\n  \"event_type\": \"{{ $json.action || $json.event_type }}\",\n  \"description\": \"{{ $json.message || \u0027System Event\u0027 }}\"\n}",
+        "options": {}
+      },
+      "id": "action-log",
+      "name": "Timeline Synchronizer",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [950, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://tofyq3lga15o3184lxde506q:18789/hooks/n8n-main",
+        "sendHeaders": true,
+        "headerParameters": { "parameters": [{ "name": "Authorization", "value": "Bearer 46cf3441242627eabf8eb5c32d2e0d7f" }] },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"message\": \"{{ $json.message }}\",\n  \"to\": \"{{ $json.metadata.to }}\"\n}",
+        "options": {}
+      },
+      "id": "agent-gateway",
+      "name": "Signal Transmitter",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [950, 450]
+    }
+  ],
+  "connections": {
+    "Agent Event Inbound": { "main": [[{ "node": "Master Action Router", "type": "main", "index": 0 }, { "node": "action-log", "type": "main", "index": 0 }]] },
+    "Frontend Action Inbound": { "main": [[{ "node": "Master Action Router", "type": "main", "index": 0 }, { "node": "action-log", "type": "main", "index": 0 }]] },
+    "Master Action Router": {
+      "main": [
+        [{ "node": "action-conversation", "type": "main", "index": 0 }],
+        [{ "node": "action-status", "type": "main", "index": 0 }],
+        [],
+        [{ "node": "agent-gateway", "type": "main", "index": 0 }],
+        [{ "node": "ai-summarizer", "type": "main", "index": 0 }]
+      ]
+    },
+    "ai-summarizer": { "main": [[{ "node": "update-intel", "type": "main", "index": 0 }]] }
+  },
+  "settings": { "executionOrder": "v1" }
+}
