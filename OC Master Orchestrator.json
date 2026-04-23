@@ -1,5 +1,5 @@
 {
-  "name": "OpenClue - Master Orchestrator v5.0.0 (Body-Fix)",
+  "name": "OpenClue - Master Orchestrator v5.1.0 (Telegram-Fix)",
   "nodes": [
     {
       "parameters": {
@@ -29,7 +29,7 @@
     },
     {
       "parameters": {
-        "jsCode": "// Normalize webhook payload: n8n may nest the POST body under $json.body\n// This node unwraps it so all downstream nodes can use $json.action, $json.message, etc.\nconst raw = $input.item.json;\nconst data = raw.body && typeof raw.body === 'object' && !Array.isArray(raw.body) ? raw.body : raw;\nreturn { json: data };"
+        "jsCode": "// Normalize webhook payload: n8n nests POST body under $json.body\nconst raw = $input.item.json;\nconst data = raw.body && typeof raw.body === 'object' && !Array.isArray(raw.body) ? raw.body : raw;\nreturn { json: data };"
       },
       "id": "body-unwrap",
       "name": "Body Unwrap",
@@ -72,7 +72,7 @@
         },
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={\n  \"p_session_key\": \"{{ $json.metadata.sessionKey || 'UNTRACKED' }}\",\n  \"p_message\": {\n    \"role\": \"{{ ($json.event_type || $json.action) === 'message:sent' ? 'agent' : 'user' }}\",\n    \"content\": \"{{ $json.message || $json.description || 'Heartbeat signal.' }}\",\n    \"timestamp\": \"{{ $now.toISOString() }}\",\n    \"metadata\": {\n      \"priority\": \"{{ $json.priority || 'medium' }}\",\n      \"orchestrator_v\": \"5.0.0\"\n    }\n  },\n  \"p_agent_id\": \"{{ $json.metadata.agentId || 'main' }}\",\n  \"p_client_name\": \"{{ $json.metadata.senderName || 'Mission Client' }}\"\n}",
+        "jsonBody": "={\n  \"p_session_key\": \"{{ $json.metadata.sessionKey || 'UNTRACKED' }}\",\n  \"p_message\": {\n    \"role\": \"{{ ($json.event_type || $json.action) === 'message:sent' ? 'agent' : 'user' }}\",\n    \"content\": \"{{ $json.message || $json.description || 'Heartbeat signal.' }}\",\n    \"timestamp\": \"{{ $now.toISOString() }}\",\n    \"metadata\": {\n      \"priority\": \"{{ $json.priority || 'medium' }}\",\n      \"orchestrator_v\": \"5.1.0\"\n    }\n  },\n  \"p_agent_id\": \"{{ $json.metadata.agentId || 'main' }}\",\n  \"p_client_name\": \"{{ $json.metadata.senderName || 'Mission Client' }}\"\n}",
         "options": {}
       },
       "id": "action-conversation",
@@ -107,30 +107,40 @@
     },
     {
       "parameters": {
+        "jsCode": "// Resolve broadcast: map agent UUIDs to names and create one item per target agent\nconst item = $input.item.json;\nconst meta = item.metadata || {};\n\n// UUID-to-name lookup for all OpenClue agents\nconst AGENT_MAP = {\n  'b760f890-e68b-48a7-9c93-a74a2ba7fa89': 'main',\n  '1b92b1f5-570f-4c15-95cf-64eebcb03647': 'promo',\n  '161deb43-0dc0-4b2d-9c09-56387314ad59': 'digit',\n  '7d768392-879f-4bb4-ae40-c4ac96aea00a': 'string'\n};\n\n// Get the list of target agents\nconst agentIds = meta.agent_ids || [];\nconst agentNames = agentIds.map(id => AGENT_MAP[id] || id).filter(Boolean);\n\n// If no specific agents, default to 'main'\nif (agentNames.length === 0) agentNames.push('main');\n\n// Create one output item per agent so the HTTP node fires once per agent\nconst items = agentNames.map(name => ({\n  json: {\n    agentName: name,\n    message: item.message || item.description || 'Broadcast pulse.',\n    channel: meta.channel || 'telegram',\n    to: meta.to || '',\n    sessionKey: meta.sessionKey || ''\n  }\n}));\n\nreturn items;"
+      },
+      "id": "broadcast-resolver",
+      "name": "Broadcast Resolver",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [ 550, 400 ]
+    },
+    {
+      "parameters": {
         "method": "POST",
-        "url": "https://base.kutraa.com/api/webhook/openclaw",
+        "url": "=http://tofyq3lga15o3184lxde506q:18789/hooks/n8n-{{ $json.agentName }}",
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
-            { "name": "x-agent-token", "value": "main-secret" },
+            { "name": "Authorization", "value": "Bearer 46cf3441242627eabf8eb5c32d2e0d7f" },
             { "name": "Content-Type", "value": "application/json" }
           ]
         },
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={\n  \"event_type\": \"broadcast\",\n  \"message\": \"{{ $json.message || $json.description || 'Broadcast pulse.' }}\",\n  \"metadata\": {\n    \"sessionKey\": \"{{ $json.metadata.sessionKey }}\",\n    \"to\": \"{{ $json.metadata.to }}\",\n    \"channel\": \"{{ $json.metadata.channel || 'telegram' }}\",\n    \"agentId\": \"{{ $json.metadata.agentId || 'main' }}\"\n  }\n}",
+        "jsonBody": "={\n  \"message\": \"{{ $json.message }}\",\n  \"sessionKey\": \"{{ $json.sessionKey }}\",\n  \"to\": \"{{ $json.to }}\",\n  \"channel\": \"{{ $json.channel }}\"\n}",
         "options": {}
       },
       "id": "agent-gateway",
       "name": "Neural Signal Gate (Telegram)",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.1,
-      "position": [ 700, 400 ],
+      "position": [ 800, 400 ],
       "continueOnFail": true
     },
     {
       "parameters": {
-        "jsCode": "const item = $input.item.json;\nconst meta = item.metadata || {};\nconst text = item.message || item.description || item.text || 'Mission pulse acknowledged.';\n\nconst payload = {\n  event_type: item.action || item.event_type || 'unclassified',\n  description: text,\n  metadata: {\n    ...meta,\n    source: 'OpenClue Orchestrator v5.0.0',\n    priority: item.priority || 'medium'\n  }\n};\n\nif (meta.agentId) payload.agent_id = meta.agentId;\nif (meta.project_id && meta.project_id.length === 36) {\n  payload.project_id = meta.project_id;\n}\n\nreturn { json: payload };"
+        "jsCode": "const item = $input.item.json;\nconst meta = item.metadata || {};\nconst text = item.message || item.description || item.text || 'Mission pulse acknowledged.';\n\nconst payload = {\n  event_type: item.action || item.event_type || 'unclassified',\n  description: text,\n  metadata: {\n    ...meta,\n    source: 'OpenClue Orchestrator v5.1.0',\n    priority: item.priority || 'medium'\n  }\n};\n\nif (meta.agentId) payload.agent_id = meta.agentId;\nif (meta.project_id && meta.project_id.length === 36) {\n  payload.project_id = meta.project_id;\n}\n\nreturn { json: payload };"
       },
       "id": "payload-shield",
       "name": "Neural Preparation Block",
@@ -163,7 +173,7 @@
     {
       "parameters": {
         "options": {
-          "responseBody": "={\n  \"mission\": \"acknowledged\",\n  \"signal_id\": \"{{ $execution.id }}\",\n  \"resonance_v\": \"5.0.0\",\n  \"timestamp\": \"{{ $now.toISOString() }}\"\n}"
+          "responseBody": "={\n  \"mission\": \"acknowledged\",\n  \"signal_id\": \"{{ $execution.id }}\",\n  \"resonance_v\": \"5.1.0\",\n  \"timestamp\": \"{{ $now.toISOString() }}\"\n}"
         }
       },
       "id": "final-response",
@@ -181,10 +191,11 @@
       "main": [ 
         [ { "node": "Neural Persistence: Chat", "type": "main", "index": 0 }, { "node": "Neural Preparation Block", "type": "main", "index": 0 } ],
         [ { "node": "Neural Persistence: Status", "type": "main", "index": 0 }, { "node": "Neural Preparation Block", "type": "main", "index": 0 } ],
-        [ { "node": "Neural Signal Gate (Telegram)", "type": "main", "index": 0 }, { "node": "Neural Preparation Block", "type": "main", "index": 0 } ],
+        [ { "node": "Broadcast Resolver", "type": "main", "index": 0 }, { "node": "Neural Preparation Block", "type": "main", "index": 0 } ],
         [ { "node": "Neural Preparation Block", "type": "main", "index": 0 } ]
       ] 
     },
+    "Broadcast Resolver": { "main": [ [ { "node": "Neural Signal Gate (Telegram)", "type": "main", "index": 0 } ] ] },
     "Neural Signal Gate (Telegram)": { "main": [ [] ] },
     "Neural Preparation Block": { "main": [ [ { "node": "Neural Persistence: Log", "type": "main", "index": 0 } ] ] },
     "Neural Persistence: Log": { "main": [ [ { "node": "Mission Response Gate", "type": "main", "index": 0 } ] ] }
