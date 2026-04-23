@@ -1,5 +1,5 @@
 {
-  "name": "OpenClue - Master Orchestrator v4.7 (Fail-Safe)",
+  "name": "OpenClue - Master Orchestrator v4.8 (Integrated)",
   "nodes": [
     {
       "parameters": {
@@ -62,7 +62,7 @@
         },
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={\n  \"p_session_key\": \"{{ $json.metadata.sessionKey || 'UNTRACKED' }}\",\n  \"p_message\": {\n    \"role\": \"{{ ($json.event_type || $json.action) === 'message:sent' ? 'agent' : 'user' }}\",\n    \"content\": \"{{ $json.message || 'Heartbeat signal.' }}\",\n    \"timestamp\": \"{{ $now.toISOString() }}\",\n    \"metadata\": {\n      \"priority\": \"{{ $json.priority || 'medium' }}\",\n      \"orchestrator_v\": \"4.7\"\n    }\n  },\n  \"p_agent_id\": \"{{ $json.metadata.agentId || 'main' }}\",\n  \"p_client_name\": \"{{ $json.metadata.senderName || 'Mission Client' }}\"\n}",
+        "jsonBody": "={\n  \"p_session_key\": \"{{ $json.metadata.sessionKey || 'UNTRACKED' }}\",\n  \"p_message\": {\n    \"role\": \"{{ ($json.event_type || $json.action) === 'message:sent' ? 'agent' : 'user' }}\",\n    \"content\": \"{{ $json.message || 'Heartbeat signal.' }}\",\n    \"timestamp\": \"{{ $now.toISOString() }}\",\n    \"metadata\": {\n      \"priority\": \"{{ $json.priority || 'medium' }}\",\n      \"orchestrator_v\": \"4.8\"\n    }\n  },\n  \"p_agent_id\": \"{{ $json.metadata.agentId || 'main' }}\",\n  \"p_client_name\": \"{{ $json.metadata.senderName || 'Mission Client' }}\"\n}",
         "options": {}
       },
       "id": "action-conversation",
@@ -120,7 +120,7 @@
     },
     {
       "parameters": {
-        "jsCode": "const item = $input.item.json;\nconst meta = item.metadata || {};\n\nconst payload = {\n  event_type: item.action || item.event_type || 'unclassified',\n  description: item.message || 'Autonomous resonance event.',\n  metadata: {\n    ...meta,\n    source: 'OpenClue Orchestrator v4.7',\n    priority: item.priority || 'medium'\n  }\n};\n\n// RELATIONAL FAIL-SAFE: \n// Only include IDs if they appear valid. DO NOT use hardcoded fallbacks \n// that might violate foreign key constraints in empty databases.\nif (meta.agentId) payload.agent_id = meta.agentId;\nif (meta.project_id && meta.project_id.length === 36) {\n  payload.project_id = meta.project_id;\n}\n\nreturn { json: payload };"
+        "jsCode": "const item = $input.item.json;\nconst meta = item.metadata || {};\n\nconst payload = {\n  event_type: item.action || item.event_type || 'unclassified',\n  description: item.message || 'Autonomous resonance event.',\n  agent_id: meta.agentId || 'main',\n  metadata: {\n    ...meta,\n    source: 'OpenClue Orchestrator v4.8 (Integrated)',\n    priority: item.priority || 'medium'\n  }\n};\n\n// INTEGRATED RELATIONAL LOGIC: \n// We only send project_id if it is a valid UUID present in the signal.\n// We NO LONGER use a hardcoded fallback to avoid FK violations in fresh DBs.\nif (meta.project_id && meta.project_id.length === 36 && meta.project_id.includes('-')) {\n  payload.project_id = meta.project_id;\n}\n\n// Support for task_id if present in schema\nif (meta.task_id && meta.task_id.length === 36) {\n  payload.task_id = meta.task_id;\n}\n\nreturn { json: payload };"
       },
       "id": "payload-shield",
       "name": "Neural Preparation Block",
@@ -153,7 +153,7 @@
     {
       "parameters": {
         "options": {
-          "responseBody": "={\n  \"mission\": \"acknowledged\",\n  \"signal_id\": \"{{ $execution.id }}\",\n  \"resonance_v\": \"4.7\",\n  \"timestamp\": \"{{ $now.toISOString() }}\"\n}"
+          "responseBody": "={\n  \"mission\": \"acknowledged\",\n  \"signal_id\": \"{{ $execution.id }}\",\n  \"resonance_v\": \"4.8\",\n  \"timestamp\": \"{{ $now.toISOString() }}\"\n}"
         }
       },
       "id": "final-response",
