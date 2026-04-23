@@ -12,7 +12,11 @@ export function useActivity(limit = 50) {
         .order('created_at', { ascending: false })
         .limit(limit)
       if (error) throw error
-      return { activity: data as ActivityEvent[] }
+      const activity = (data || []).map(item => ({
+        ...item,
+        message: item.message || item.description || 'System Event'
+      })) as ActivityEvent[]
+      return { activity }
     },
   })
 }
