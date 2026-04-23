@@ -41,13 +41,16 @@ Clear-Host
 Write-Host "--- OpenClue Absolute Intelligence: Final Check ---" -ForegroundColor Yellow
 Write-Host "1. Verify Conversation Sync & Activity Log"
 Write-Host "2. Verify AI Mission Summarizer & Project Intel"
+Write-Host "3. Verify Telegram Broadcast Gateway (STABILIZATION CHECK)"
 Write-Host ""
-$Choice = Read-Host "Enter test choice (1 or 2)"
+$Choice = Read-Host "Enter test choice (1, 2, or 3)"
 
 if ($Choice -eq "1") {
     Send-Signal -Action "message:sent" -Message "MISSION_CONTROL: Backend logic verified. Signal reaching database."
 } elseif ($Choice -eq "2") {
     Send-Signal -Action "session_end" -Message "Final mission report: System is fully autonomous."
+} elseif ($Choice -eq "3") {
+    Send-Signal -Action "broadcast" -Message "STABILIZATION_SIGNAL: If you see this, Telegram delivery is 100% online."
 } else {
     Write-Host "Invalid choice." -ForegroundColor Red
 }
