@@ -1,5 +1,5 @@
 {
-  "name": "OpenClue - Master Orchestrator v4.5 (Hardened)",
+  "name": "OpenClue - Master Orchestrator v4.6 (Shielded)",
   "nodes": [
     {
       "parameters": {
@@ -62,7 +62,7 @@
         },
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={\n  \"p_session_key\": \"{{ $json.metadata.sessionKey || 'UNTRACKED' }}\",\n  \"p_message\": {\n    \"role\": \"{{ ($json.event_type || $json.action) === 'message:sent' ? 'agent' : 'user' }}\",\n    \"content\": \"{{ $json.message || 'Heartbeat signal.' }}\",\n    \"timestamp\": \"{{ $now.toISOString() }}\",\n    \"metadata\": {\n      \"priority\": \"{{ $json.priority || 'medium' }}\",\n      \"orchestrator_v\": \"4.5\"\n    }\n  },\n  \"p_agent_id\": \"{{ $json.metadata.agentId || 'main' }}\",\n  \"p_client_name\": \"{{ $json.metadata.senderName || 'Mission Client' }}\"\n}",
+        "jsonBody": "={\n  \"p_session_key\": \"{{ $json.metadata.sessionKey || 'UNTRACKED' }}\",\n  \"p_message\": {\n    \"role\": \"{{ ($json.event_type || $json.action) === 'message:sent' ? 'agent' : 'user' }}\",\n    \"content\": \"{{ $json.message || 'Heartbeat signal.' }}\",\n    \"timestamp\": \"{{ $now.toISOString() }}\",\n    \"metadata\": {\n      \"priority\": \"{{ $json.priority || 'medium' }}\",\n      \"orchestrator_v\": \"4.6\"\n    }\n  },\n  \"p_agent_id\": \"{{ $json.metadata.agentId || 'main' }}\",\n  \"p_client_name\": \"{{ $json.metadata.senderName || 'Mission Client' }}\"\n}",
         "options": {}
       },
       "id": "action-conversation",
@@ -120,6 +120,16 @@
     },
     {
       "parameters": {
+        "jsCode": "const item = $input.item.json;\nconst meta = item.metadata || {};\n\nconst payload = {\n  event_type: item.action || item.event_type || 'unclassified',\n  description: item.message || 'Autonomous resonance event.',\n  agent_id: meta.agentId || 'main',\n  metadata: {\n    ...meta,\n    source: 'OpenClue Orchestrator v4.6',\n    priority: item.priority || 'medium'\n  }\n};\n\n// Strict UUID Validation for project_id\nconst pid = meta.project_id || '';\nif (pid.length === 36 && pid.includes('-')) {\n  payload.project_id = pid;\n} else {\n  payload.project_id = '92722fc2-fd08-408a-881a-1395a9a29d5c';\n}\n\nreturn { json: payload };"
+      },
+      "id": "payload-shield",
+      "name": "Neural Preparation Block",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [ 800, 200 ]
+    },
+    {
+      "parameters": {
         "method": "POST",
         "url": "https://base.kutraa.com/rest/v1/activity_log",
         "sendHeaders": true,
@@ -131,26 +141,26 @@
         },
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={\n  \"event_type\": \"{{ $json.action || $json.event_type || 'unclassified' }}\",\n  \"description\": \"{{ $json.message || 'Autonomous resonance event.' }}\",\n  \"agent_id\": \"{{ $json.metadata.agentId || 'main' }}\",\n  \"project_id\": \"{{ ($json.metadata.project_id && $json.metadata.project_id.length === 36) ? $json.metadata.project_id : '92722fc2-fd08-408a-881a-1395a9a29d5c' }}\",\n  \"metadata\": {\n    \"priority\": \"{{ $json.priority || 'medium' }}\",\n    \"source\": \"OpenClue Orchestrator v4.5\"\n  }\n}",
+        "jsonBody": "={{ JSON.stringify($json) }}",
         "options": {}
       },
       "id": "action-log",
       "name": "Neural Persistence: Log",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.1,
-      "position": [ 800, 150 ]
+      "position": [ 1000, 200 ]
     },
     {
       "parameters": {
         "options": {
-          "responseBody": "={\n  \"mission\": \"acknowledged\",\n  \"signal_id\": \"{{ $execution.id }}\",\n  \"resonance_v\": \"4.5\",\n  \"timestamp\": \"{{ $now.toISOString() }}\"\n}"
+          "responseBody": "={\n  \"mission\": \"acknowledged\",\n  \"signal_id\": \"{{ $execution.id }}\",\n  \"resonance_v\": \"4.6\",\n  \"timestamp\": \"{{ $now.toISOString() }}\"\n}"
         }
       },
       "id": "final-response",
       "name": "Mission Response Gate",
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1,
-      "position": [ 1050, 150 ]
+      "position": [ 1200, 200 ]
     }
   ],
   "connections": {
@@ -158,15 +168,16 @@
     "Frontend Action Inbound": { "main": [ [ { "node": "Absolute Router", "type": "main", "index": 0 } ] ] },
     "Absolute Router": { 
       "main": [ 
-        [ { "node": "Neural Persistence: Chat", "type": "main", "index": 0 }, { "node": "Neural Persistence: Log", "type": "main", "index": 0 } ],
-        [ { "node": "Neural Persistence: Status", "type": "main", "index": 0 }, { "node": "Neural Persistence: Log", "type": "main", "index": 0 } ],
-        [ { "node": "Neural Signal Gate (Telegram)", "type": "main", "index": 0 }, { "node": "Neural Persistence: Log", "type": "main", "index": 0 } ],
-        [ { "node": "Neural Persistence: Log", "type": "main", "index": 0 } ]
+        [ { "node": "Neural Persistence: Chat", "type": "main", "index": 0 }, { "node": "Neural Preparation Block", "type": "main", "index": 0 } ],
+        [ { "node": "Neural Persistence: Status", "type": "main", "index": 0 }, { "node": "Neural Preparation Block", "type": "main", "index": 0 } ],
+        [ { "node": "Neural Signal Gate (Telegram)", "type": "main", "index": 0 }, { "node": "Neural Preparation Block", "type": "main", "index": 0 } ],
+        [ { "node": "Neural Preparation Block", "type": "main", "index": 0 } ]
       ] 
     },
     "Neural Persistence: Chat": { "main": [ [ ] ] },
     "Neural Persistence: Status": { "main": [ [ ] ] },
     "Neural Signal Gate (Telegram)": { "main": [ [ ] ] },
+    "Neural Preparation Block": { "main": [ [ { "node": "Neural Persistence: Log", "type": "main", "index": 0 } ] ] },
     "Neural Persistence: Log": { "main": [ [ { "node": "Mission Response Gate", "type": "main", "index": 0 } ] ] }
   },
   "settings": {
