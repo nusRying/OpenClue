@@ -60,7 +60,7 @@
         },
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={\n  \"p_session_key\": \"{{ $json.metadata.sessionKey }}\",\n  \"p_message\": {\n    \"role\": \"{{ $json.event_type === 'message:sent' ? 'agent' : 'user' }}\",\n    \"content\": \"{{ $json.message }}\"\n  }\n}",
+        "jsonBody": "={\n  \"p_session_key\": \"{{ $json.metadata.sessionKey }}\",\n  \"p_agent_id\": \"{{ $json.metadata.agentId || 'main' }}\",\n  \"p_message\": {\n    \"role\": \"{{ $json.event_type === 'message:sent' ? 'agent' : 'user' }}\",\n    \"content\": \"{{ $json.message }}\"\n  }\n}",
         "options": {}
       },
       "id": "Sync Conversations",
@@ -72,7 +72,7 @@
     {
       "parameters": {
         "method": "PATCH",
-        "url": "=https://base.kutraa.com/rest/v1/agents?name=eq.{{ $json.metadata.agentId }}",
+        "url": "=https://base.kutraa.com/rest/v1/agents?id=eq.{{ $json.metadata.agentId }}",
         "sendHeaders": true,
         "headerParameters": { "parameters": [ { "name": "apikey", "value": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJzdXBhYmFzZSIsImlhdCI6MTc3NjI0NDU2MCwiZXhwIjo0OTMxOTE4MTYwLCJyb2xlIjoiYW5vbiJ9.RJRl9UsbEImEOQYPBy6nZds-RYlaTclQQj2pJ8uJb6U" } ] },
         "sendBody": true,
