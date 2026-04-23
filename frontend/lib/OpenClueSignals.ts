@@ -76,9 +76,10 @@ function getAgentConfig(agentName: string) {
       let errorMessage = `Action ${action} failed with status ${response.status}`
       try {
         const errorData = await response.json()
-        if (errorData.n8n_response && errorData.n8n_response.hint) {
-           console.error('[n8n] Rejection Hint:', errorData.n8n_response.hint)
-           errorMessage += ` - ${errorData.n8n_response.hint}`
+        const hint = errorData.hint || errorData.n8n_response?.hint
+        if (hint) {
+           console.error('[n8n] Rejection Hint:', hint)
+           errorMessage += ` - ${hint}`
         } else if (errorData.error) {
            errorMessage += ` - ${errorData.error}`
         }
