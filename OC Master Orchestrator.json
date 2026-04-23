@@ -1,5 +1,5 @@
 {
-  "name": "OpenClue - Master Orchestrator v5.1.17 (Unified-Resonance)",
+  "name": "OpenClue - Master Orchestrator v5.1.18 (Context-Aware)",
   "nodes": [
     {
       "parameters": {
@@ -29,7 +29,7 @@
     },
     {
       "parameters": {
-        "jsCode": "// Normalize webhook payload\nconst raw = $input.item.json;\nconst data = raw.body && typeof raw.body === 'object' && !Array.isArray(raw.body) ? raw.body : raw;\nreturn { json: data };"
+        "jsCode": "// Normalize webhook payload and preserve project context\nconst raw = $input.item.json;\nconst data = raw.body && typeof raw.body === 'object' && !Array.isArray(raw.body) ? raw.body : raw;\n\n// Extract project_id from common locations\nconst project_id = data.project_id || (data.metadata ? data.metadata.project_id : null);\n\nreturn { json: { ...data, project_id } };"
       },
       "id": "body-unwrap",
       "name": "Body Unwrap",
@@ -84,7 +84,7 @@
     },
     {
       "parameters": {
-        "jsCode": "// Broadcast Resolver - Topics pinned from client_mappings\nconst item = $input.item.json;\nconst msg = item.message || 'Signal pulse.';\nconst MAPS = [\n  { name: 'promo', to: '-1003728720677:topic:1239', key: 'agent:promo:telegram:group:-1003728720677:topic:1239' },\n  { name: 'main', to: '-1003728720677:topic:1', key: 'agent:main:telegram:group:-1003728720677:topic:1' },\n  { name: 'digit', to: '-1003728720677:topic:3', key: 'agent:digit:telegram:group:-1003728720677:topic:3' },\n  { name: 'string', to: '-1003728720677:topic:2', key: 'agent:string:telegram:group:-1003728720677:topic:2' }\n];\nreturn MAPS.map(m => ({ json: { ...m, message: msg, original: item } }));"
+        "jsCode": "// Broadcast Resolver - Propagate project_id and enforce high priority\nconst item = $input.item.json;\nconst msg = item.message || 'Signal pulse.';\nconst pid = item.project_id;\nconst MAPS = [\n  { name: 'promo', to: '-1003728720677:topic:1239', key: 'agent:promo:telegram:group:-1003728720677:topic:1239' },\n  { name: 'main', to: '-1003728720677:topic:1', key: 'agent:main:telegram:group:-1003728720677:topic:1' },\n  { name: 'digit', to: '-1003728720677:topic:3', key: 'agent:digit:telegram:group:-1003728720677:topic:3' },\n  { name: 'string', to: '-1003728720677:topic:2', key: 'agent:string:telegram:group:-1003728720677:topic:2' }\n];\nreturn MAPS.map(m => ({ json: { ...m, message: msg, project_id: pid, original: item } }));"
       },
       "id": "broadcast-resolver",
       "name": "Broadcast Resolver",
@@ -102,7 +102,7 @@
         },
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={ \"message\": \"{{ $json.message }}\", \"to\": \"{{ $json.to }}\", \"sessionKey\": \"{{ $json.key }}\" }",
+        "jsonBody": "={ \"message\": \"{{ $json.message }}\", \"to\": \"{{ $json.to }}\", \"sessionKey\": \"{{ $json.key }}\", \"priority\": \"high\", \"project_id\": \"{{ $json.project_id }}\" }",
         "options": {}
       },
       "id": "gateway-pulse",
@@ -114,7 +114,7 @@
     },
     {
       "parameters": {
-        "jsCode": "// Unified Aggregator - Consolidates all branches before final logging\nconst all = $input.all();\nconst first = all[0].json;\nconst orig = first.original || first;\nreturn {\n  json: {\n    event_type: 'mission_pulse',\n    description: orig.message || 'Unified signal verified.',\n    metadata: { version: '5.1.17', branch_count: all.length }\n  }\n};"
+        "jsCode": "// Unified Aggregator - Consolidates all branches and preserves project ID for UI Log\nconst all = $input.all();\nconst first = all[0].json;\nconst orig = first.original || first;\nconst project_id = first.project_id || orig.project_id || (orig.metadata ? orig.metadata.project_id : null);\n\nreturn {\n  json: {\n    event_type: 'mission_pulse',\n    project_id: project_id,\n    description: orig.message || 'Unified signal verified.',\n    metadata: { version: '5.1.18', branch_count: all.length, source: 'orch_v5' }\n  }\n};"
       },
       "id": "unified-aggregator",
       "name": "Unified Aggregator",
@@ -148,7 +148,7 @@
     {
       "parameters": {
         "options": {
-          "responseBody": "={{ JSON.stringify({ mission: 'acknowledged', resonance: 'v5.1.17', timestamp: $now.toISOString() }) }}"
+          "responseBody": "={{ JSON.stringify({ mission: 'acknowledged', resonance: 'v5.1.18', timestamp: $now.toISOString(), project_context: $json.project_id }) }}"
         }
       },
       "id": "response-gate",
