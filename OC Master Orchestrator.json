@@ -1,5 +1,5 @@
 {
-  "name": "OpenClue - Master Orchestrator v5.1.18 (Context-Aware)",
+  "name": "OpenClue - Master Orchestrator v5.1.19 (Dual-Resonance)",
   "nodes": [
     {
       "parameters": {
@@ -29,7 +29,7 @@
     },
     {
       "parameters": {
-        "jsCode": "// Normalize webhook payload and preserve project context\nconst raw = $input.item.json;\nconst data = raw.body && typeof raw.body === 'object' && !Array.isArray(raw.body) ? raw.body : raw;\n\n// Extract project_id from common locations\nconst project_id = data.project_id || (data.metadata ? data.metadata.project_id : null);\n\nreturn { json: { ...data, project_id } };"
+        "jsCode": "// Normalize webhook payload and preserve project context\nconst raw = $input.item.json;\nconst data = raw.body && typeof raw.body === 'object' && !Array.isArray(raw.body) ? raw.body : raw;\nconst project_id = data.project_id || (data.metadata ? data.metadata.project_id : null);\nreturn { json: { ...data, project_id } };"
       },
       "id": "body-unwrap",
       "name": "Body Unwrap",
@@ -106,74 +106,16 @@
         "options": {}
       },
       "id": "gateway-pulse",
-      "name": "Gateway Pulse",
+      "name": "Neural Gateway Pulse",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.1,
-      "position": [ 800, 250 ],
+      "position": [ 800, 200 ],
       "continueOnFail": true
-    },
-    {
-      "parameters": {
-        "jsCode": "// Unified Aggregator - Consolidates all branches and preserves project ID for UI Log\nconst all = $input.all();\nconst first = all[0].json;\nconst orig = first.original || first;\nconst project_id = first.project_id || orig.project_id || (orig.metadata ? orig.metadata.project_id : null);\n\nreturn {\n  json: {\n    event_type: 'mission_pulse',\n    project_id: project_id,\n    description: orig.message || 'Unified signal verified.',\n    metadata: { version: '5.1.18', branch_count: all.length, source: 'orch_v5' }\n  }\n};"
-      },
-      "id": "unified-aggregator",
-      "name": "Unified Aggregator",
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
-      "position": [ 1000, 200 ]
     },
     {
       "parameters": {
         "method": "POST",
-        "url": "https://base.kutraa.com/rest/v1/activity_log",
+        "url": "=http://tofyq3lga15o3184lxde506q:18789/hooks/n8n-{{ $json.name }}",
         "sendHeaders": true,
         "headerParameters": {
-          "parameters": [
-            { "name": "apikey", "value": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJzdXBhYmFzZSIsImlhdCI6MTc3NjI0NDU2MCwiZXhwIjo0OTMxOTE4MTYwLCJyb2xlIjoiYW5vbiJ9.RJRl9UsbEImEOQYPBy6nZds-RYlaTclQQj2pJ8uJb6U" },
-            { "name": "Authorization", "value": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJzdXBhYmFzZSIsImlhdCI6MTc3NjI0NDU2MCwiZXhwIjo0OTMxOTE4MTYwLCJyb2xlIjoiYW5vbiJ9.RJRl9UsbEImEOQYPBy6nZds-RYlaTclQQj2pJ8uJb6U" }
-          ]
-        },
-        "sendBody": true,
-        "specifyBody": "json",
-        "jsonBody": "={{ JSON.stringify($json) }}",
-        "options": {}
-      },
-      "id": "action-log",
-      "name": "Final Log Node",
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.1,
-      "position": [ 1200, 200 ],
-      "continueOnFail": true
-    },
-    {
-      "parameters": {
-        "options": {
-          "responseBody": "={{ JSON.stringify({ mission: 'acknowledged', resonance: 'v5.1.18', timestamp: $now.toISOString(), project_context: $json.project_id }) }}"
-        }
-      },
-      "id": "response-gate",
-      "name": "Final Response Gate",
-      "type": "n8n-nodes-base.respondToWebhook",
-      "typeVersion": 1,
-      "position": [ 1400, 200 ]
-    }
-  ],
-  "connections": {
-    "Agent Event Inbound": { "main": [ [ { "node": "Body Unwrap", "type": "main", "index": 0 } ] ] },
-    "Frontend Action Inbound": { "main": [ [ { "node": "Body Unwrap", "type": "main", "index": 0 } ] ] },
-    "Body Unwrap": { "main": [ [ { "node": "Absolute Router", "type": "main", "index": 0 } ] ] },
-    "Absolute Router": {
-      "main": [
-        [ { "node": "Sync: Chat", "type": "main", "index": 0 } ],
-        [ { "node": "Unified Aggregator", "type": "main", "index": 0 } ],
-        [ { "node": "Broadcast Resolver", "type": "main", "index": 0 } ],
-        [ { "node": "Unified Aggregator", "type": "main", "index": 0 } ]
-      ]
-    },
-    "Sync: Chat": { "main": [ [ { "node": "Unified Aggregator", "type": "main", "index": 0 } ] ] },
-    "Broadcast Resolver": { "main": [ [ { "node": "Gateway Pulse", "type": "main", "index": 0 } ] ] },
-    "Gateway Pulse": { "main": [ [ { "node": "Unified Aggregator", "type": "main", "index": 0 } ] ] },
-    "Unified Aggregator": { "main": [ [ { "node": "Final Log Node", "type": "main", "index": 0 } ] ] },
-    "Final Log Node": { "main": [ [ { "node": "Final Response Gate", "type": "main", "index": 0 } ] ] }
-  }
-}
+          "parameters": [\n            { \"name\": \"Authorization\", \"value\": \"Bearer 46cf3441242627eabf8eb5c32d2e0d7f\" },\n            { \"name\": \"Content-Type\", \"value\": \"application/json\" }\n          ]\n        },\n        \"sendBody\": true,\n        \"specifyBody\": \"json\",\n        \"jsonBody\": \"={ \\\"message\\\": \\\"{{ $json.message }}\\\", \\\"sessionKey\\\": \\\"{{ $json.key }}\\\", \\\"to\\\": \\\"{{ $json.to }}\\\", \\\"channel\\\": \\\"telegram\\\" }\",\n        \"options\": {}\n      },\n      \"id\": \"internal-directive\",\n      \"name\": \"Neural Agent Directive\",\n      \"type\": \"n8n-nodes-base.httpRequest\",\n      \"typeVersion\": 4.1,\n      \"position\": [ 800, 350 ],\n      \"continueOnFail\": true\n    },\n    {\n      \"parameters\": {\n        \"jsCode\": \"// Unified Aggregator - Consolidates all branches and preserves project ID for UI Log\\nconst all = $input.all();\\nconst first = all[0].json;\\nconst orig = first.original || first;\\nconst project_id = first.project_id || orig.project_id || (orig.metadata ? orig.metadata.project_id : null);\\n\\nreturn {\\n  json: {\\n    event_type: 'mission_pulse',\\n    project_id: project_id,\\n    description: orig.message || 'Unified signal verified.',\\n    metadata: { version: '5.1.19', branch_count: all.length, source: 'orch_v5' }\\n  }\\n};\"\n      },\n      \"id\": \"unified-aggregator\",\n      \"name\": \"Unified Aggregator\",\n      \"type\": \"n8n-nodes-base.code\",\n      \"typeVersion\": 2,\n      \"position\": [ 1050, 250 ]\n    },\n    {\n      \"parameters\": {\n        \"method\": \"POST\",\n        \"url\": \"https://base.kutraa.com/rest/v1/activity_log\",\n        \"sendHeaders\": true,\n        \"headerParameters\": {\n          \"parameters\": [\n            { \"name\": \"apikey\", \"value\": \"eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJzdXBhYmFzZSIsImlhdCI6MTc3NjI0NDU2MCwiZXhwIjo0OTMxOTE4MTYwLCJyb2xlIjoiYW5vbiJ9.RJRl9UsbEImEOQYPBy6nZds-RYlaTclQQj2pJ8uJb6U\" },\n            { \"name\": \"Authorization\", \"value\": \"Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJzdXBhYmFzZSIsImlhdCI6MTc3NjI0NDU2MCwiZXhwIjo0OTMxOTE4MTYwLCJyb2xlIjoiYW5vbiJ9.RJRl9UsbEImEOQYPBy6nZds-RYlaTclQQj2pJ8uJb6U\" }\n          ]\n        },\n        \"sendBody\": true,\n        \"specifyBody\": \"json\",\n        \"jsonBody\": \"={{ JSON.stringify($json) }}\",\n        \"options\": {}\n      },\n      \"id\": \"action-log\",\n      \"name\": \"Final Log Node\",\n      \"type\": \"n8n-nodes-base.httpRequest\",\n      \"typeVersion\": 4.1,\n      \"position\": [ 1250, 250 ],\n      \"continueOnFail\": true\n    },\n    {\n      \"parameters\": {\n        \"options\": {\n          \"responseBody\": \"={{ JSON.stringify({ mission: 'acknowledged', resonance: 'v5.1.19', timestamp: $now.toISOString(), project_context: $json.project_id }) }}\"\n        }\n      },\n      \"id\": \"response-gate\",\n      \"name\": \"Final Response Gate\",\n      \"type\": \"n8n-nodes-base.respondToWebhook\",\n      \"typeVersion\": 1,\n      \"position\": [ 1450, 250 ]\n    }\n  ],\n  \"connections\": {\n    \"Agent Event Inbound\": { \"main\": [ [ { \"node\": \"Body Unwrap\", \"type\": \"main\", \"index\": 0 } ] ] },\n    \"Frontend Action Inbound\": { \"main\": [ [ { \"node\": \"Body Unwrap\", \"type\": \"main\", \"index\": 0 } ] ] },\n    \"Body Unwrap\": { \"main\": [ [ { \"node\": \"Absolute Router\", \"type\": \"main\", \"index\": 0 } ] ] },\n    \"Absolute Router\": {\n      \"main\": [\n        [ { \"node\": \"Sync: Chat\", \"type\": \"main\", \"index\": 0 } ],\n        [ { \"node\": \"Unified Aggregator\", \"type\": \"main\", \"index\": 0 } ],\n        [ { \"node\": \"Broadcast Resolver\", \"type\": \"main\", \"index\": 0 } ],\n        [ { \"node\": \"Unified Aggregator\", \"type\": \"main\", \"index\": 0 } ]\n      ]\n    },\n    \"Sync: Chat\": { \"main\": [ [ { \"node\": \"Unified Aggregator\", \"type\": \"main\", \"index\": 0 } ] ] },\n    \"Broadcast Resolver\": { \"main\": [ [ { \"node\": \"Neural Gateway Pulse\", \"type\": \"main\", \"index\": 0 }, { \"node\": \"Neural Agent Directive\", \"type\": \"main\", \"index\": 0 } ] ] },\n    \"Neural Gateway Pulse\": { \"main\": [ [ { \"node\": \"Unified Aggregator\", \"type\": \"main\", \"index\": 0 } ] ] },\n    \"Neural Agent Directive\": { \"main\": [ [ { \"node\": \"Unified Aggregator\", \"type\": \"main\", \"index\": 0 } ] ] },\n    \"Unified Aggregator\": { \"main\": [ [ { \"node\": \"Final Log Node\", \"type\": \"main\", \"index\": 0 } ] ] },\n    \"Final Log Node\": { \"main\": [ [ { \"node\": \"Final Response Gate\", \"type\": \"main\", \"index\": 0 } ] ] }\n  }\n}\n
