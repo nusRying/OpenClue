@@ -7,7 +7,7 @@
 
 import type { HookHandler } from "openclaw/sdk/hook";
 
-const N8N_URL = "https://cardial.kutraa.com/webhook";
+const N8N_URL = "https://agents.kutraa.com/webhook";
 const AGENT_TOKEN = process.env.MISSION_CONTROL_AGENT_TOKEN || process.env.AGENT_TOKEN_STRING || "string-secret";
 
 // Map Telegram user IDs to agent names

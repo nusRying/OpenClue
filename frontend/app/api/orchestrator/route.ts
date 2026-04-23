@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 
-const DEFAULT_N8N_ORIGIN = 'https://cardial.kutraa.com'
+const DEFAULT_N8N_ORIGIN = 'https://agents.kutraa.com'
 const DEFAULT_WEBHOOK_PATHS = ['OpenClueActions', 'mission-control-actions']
 
 function normalizeOrigin(value?: string) {

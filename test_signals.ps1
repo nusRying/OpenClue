@@ -9,7 +9,7 @@ function Send-Signal {
         $Message
     )
 
-    $BaseUrl = "https://cardial.kutraa.com/webhook"
+    $BaseUrl = "https://agents.kutraa.com/webhook"
     $Path = "OpenCluePulse"
     if ($Action -eq "session_end") { $Path = "OpenClueActions" }
     

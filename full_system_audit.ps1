@@ -8,7 +8,7 @@ function Send-Audit-Signal {
         [Parameter(Mandatory=$true)] $Path
     )
 
-    $Url = "https://cardial.kutraa.com/webhook/$Path"
+    $Url = "https://agents.kutraa.com/webhook/$Path"
     $Body = @{
         action = $Action
         message = $Text

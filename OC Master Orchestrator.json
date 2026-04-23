@@ -11,7 +11,8 @@
       "id": "agent-events",
       "name": "Agent Event Inbound",
       "type": "n8n-nodes-base.webhook",
-      "typeVersion": 1,
+      "typeVersion": 2.1,
+      "webhookId": "2f75e1c4-13b2-4a17-a550-6d1f030c2d61",
       "position": [ 0, 100 ]
     },
     {
@@ -24,7 +25,8 @@
       "id": "frontend-actions",
       "name": "Frontend Action Inbound",
       "type": "n8n-nodes-base.webhook",
-      "typeVersion": 1,
+      "typeVersion": 2.1,
+      "webhookId": "4c8ad4a7-0d8e-48bb-9e44-d4e8b3e4473d",
       "position": [ 0, 300 ]
     },
     {
@@ -118,7 +120,7 @@
     {
       "parameters": {
         "method": "POST",
-        "url": "=http://tofyq3lga15o3184lxde506q:18789/hooks/n8n-{{ $json.agentName }}",
+        "url": "=https://base.kutraa.com/hooks/n8n-{{ $json.agentName }}",
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
