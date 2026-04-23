@@ -3,16 +3,25 @@ import { NextResponse } from 'next/server'
 export async function POST(request: Request) {
   try {
     const payload = await request.json()
-    // Absolute proxy URL (Bypasses Browser CORS completely)
-    const n8nUrl = 'https://cardial.kutraa.com/webhook/OpenClueActions'
     
-    const response = await fetch(n8nUrl, {
+    // Attempt Production Webhook first
+    const prodUrl = 'https://cardial.kutraa.com/webhook/OpenClueActions'
+    let response = await fetch(prodUrl, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload),
     })
+
+    // If production is inactive (404), fallback to Test Webhook seamlessly
+    if (response.status === 404) {
+      console.warn('[Next.js API] Production webhook 404. Falling back to test webhook...')
+      const testUrl = 'https://cardial.kutraa.com/webhook-test/OpenClueActions'
+      response = await fetch(testUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      })
+    }
 
     if (!response.ok) {
       console.error(`[Next.js API] n8n returned status ${response.status}`)
