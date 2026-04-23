@@ -1,29 +1,57 @@
 {
-  "name": "OpenClue - Master Orchestrator [DEBUG]",
+  "name": "OpenClue - Master Orchestrator v2.5",
   "nodes": [
     {
-      "parameters": { "httpMethod": "POST", "path": "oc-signals-v2", "responseMode": "lastNode", "options": {} },
-      "id": "Agent Event Inbound",
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "oc-signals-v2",
+        "responseMode": "lastNode",
+        "options": {}
+      },
+      "id": "agent-events",
       "name": "Agent Event Inbound",
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 1,
-      "position": [ 100, 100 ]
+      "position": [
+        0,
+        100
+      ]
     },
     {
-      "parameters": { "httpMethod": "POST", "path": "oc-actions-v2", "responseMode": "lastNode", "options": {} },
-      "id": "Frontend Action Inbound",
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "oc-actions-v2",
+        "responseMode": "lastNode",
+        "options": {}
+      },
+      "id": "frontend-actions",
       "name": "Frontend Action Inbound",
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 1,
-      "position": [ 100, 400 ]
+      "position": [
+        0,
+        300
+      ]
     },
     {
-      "parameters": { "rule": { "interval": [ { "field": "minutes", "minutesInterval": 30 } ] } },
-      "id": "Operational Sentry (30m)",
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "minutes",
+              "minutesInterval": 30
+            }
+          ]
+        }
+      },
+      "id": "health-check-cron",
       "name": "Operational Sentry (30m)",
       "type": "n8n-nodes-base.cron",
       "typeVersion": 1,
-      "position": [ 100, 1000 ]
+      "position": [
+        0,
+        700
+      ]
     },
     {
       "parameters": {
@@ -31,21 +59,39 @@
         "value1": "={{ $json.action || $json.event_type }}",
         "rules": {
           "rules": [
-            { "value2": "session_end", "output": 4 },
-            { "value2": "message:sent", "output": 0 },
-            { "value2": "message:received", "output": 0 },
-            { "operation": "startsWith", "value2": "session_", "output": 1 },
-            { "value2": "task:create", "output": 2 },
-            { "value2": "task:assign", "output": 2 },
-            { "value2": "broadcast", "output": 3 }
+            {
+              "value2": "message:sent",
+              "output": 0
+            },
+            {
+              "value2": "message:received",
+              "output": 0
+            },
+            {
+              "value2": "session_end",
+              "output": 3
+            },
+            {
+              "operation": "startsWith",
+              "value2": "session_",
+              "output": 1
+            },
+            {
+              "operation": "startsWith",
+              "value2": "task:",
+              "output": 2
+            }
           ]
         }
       },
-      "id": "Master Action Router",
+      "id": "orchestrator-switch",
       "name": "Master Action Router",
       "type": "n8n-nodes-base.switch",
       "typeVersion": 1,
-      "position": [ 350, 300 ]
+      "position": [
+        300,
+        200
+      ]
     },
     {
       "parameters": {
@@ -54,76 +100,293 @@
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
-            { "name": "apikey", "value": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJzdXBhYmFzZSIsImlhdCI6MTc3NjI0NDU2MCwiZXhwIjo0OTMxOTE4MTYwLCJyb2xlIjoiYW5vbiJ9.RJRl9UsbEImEOQYPBy6nZds-RYlaTclQQj2pJ8uJb6U" },
-            { "name": "Authorization", "value": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJzdXBhYmFzZSIsImlhdCI6MTc3NjI0NDU2MCwiZXhwIjo0OTMxOTE4MTYwLCJyb2xlIjoiYW5vbiJ9.RJRl9UsbEImEOQYPBy6nZds-RYlaTclQQj2pJ8uJb6U" }
+            {
+              "name": "apikey",
+              "value": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJzdXBhYmFzZSIsImlhdCI6MTc3NjI0NDU2MCwiZXhwIjo0OTMxOTE4MTYwLCJyb2xlIjoiYW5vbiJ9.RJRl9UsbEImEOQYPBy6nZds-RYlaTclQQj2pJ8uJb6U"
+            }
           ]
         },
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={\n  \"p_session_key\": \"{{ $json.metadata.sessionKey }}\",\n  \"p_agent_id\": \"{{ $json.metadata.agentId || 'main' }}\",\n  \"p_message\": {\n    \"role\": \"{{ $json.event_type === 'message:sent' ? 'agent' : 'user' }}\",\n    \"content\": \"{{ $json.message }}\"\n  }\n}",
+        "jsonBody": "={\n  \"p_session_key\": \"{{ $json.metadata.sessionKey }}\",\n  \"p_message\": {\n    \"role\": \"{{ $json.event_type === 'message:sent' ? 'agent' : 'user' }}\",\n    \"content\": \"{{ $json.message }}\",\n    \"timestamp\": \"{{ $now.toISOString() }}\"\n  },\n  \"p_agent_id\": \"{{ $json.metadata.agentId }}\",\n  \"p_client_name\": \"{{ $json.metadata.senderName || 'Client' }}\"\n}",
         "options": {}
       },
-      "id": "Sync Conversations",
+      "id": "action-conversation",
       "name": "Sync Conversations",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.1,
-      "position": [ 650, 100 ]
+      "position": [
+        550,
+        50
+      ]
     },
     {
       "parameters": {
         "method": "PATCH",
-        "url": "=https://base.kutraa.com/rest/v1/agents?or=(id.eq.{{ $json.metadata.agentId }},name.eq.{{ $json.metadata.agentId }})",
+        "url": "=https://base.kutraa.com/rest/v1/agents?name=eq.{{ $json.metadata.agentId }}",
         "sendHeaders": true,
-        "headerParameters": { "parameters": [ { "name": "apikey", "value": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJzdXBhYmFzZSIsImlhdCI6MTc3NjI0NDU2MCwiZXhwIjo0OTMxOTE4MTYwLCJyb2xlIjoiYW5vbiJ9.RJRl9UsbEImEOQYPBy6nZds-RYlaTclQQj2pJ8uJb6U" } ] },
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "apikey",
+              "value": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJzdXBhYmFzZSIsImlhdCI6MTc3NjI0NDU2MCwiZXhwIjo0OTMxOTE4MTYwLCJyb2xlIjoiYW5vbiJ9.RJRl9UsbEImEOQYPBy6nZds-RYlaTclQQj2pJ8uJb6U"
+            }
+          ]
+        },
         "sendBody": true,
         "specifyBody": "json",
         "jsonBody": "={\n  \"status\": \"{{ $json.event_type === 'session_start' ? 'online' : 'offline' }}\",\n  \"last_heartbeat\": \"{{ $now.toISOString() }}\"\n}",
         "options": {}
       },
-      "id": "Sync Master Status",
+      "id": "action-status",
       "name": "Sync Master Status",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.1,
-      "position": [ 650, 250 ]
-    },
-    {
-      "parameters": { "options": {} },
-      "id": "Respond to Probe",
-      "name": "Respond to Probe",
-      "type": "n8n-nodes-base.noOp",
-      "typeVersion": 1,
-      "position": [ 1300, 300 ]
+      "position": [
+        550,
+        250
+      ]
     },
     {
       "parameters": {
         "method": "POST",
         "url": "https://base.kutraa.com/rest/v1/activity_log",
         "sendHeaders": true,
-        "headerParameters": { "parameters": [ { "name": "apikey", "value": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJzdXBhYmFzZSIsImlhdCI6MTc3NjI0NDU2MCwiZXhwIjo0OTMxOTE4MTYwLCJyb2xlIjoiYW5vbiJ9.RJRl9UsbEImEOQYPBy6nZds-RYlaTclQQj2pJ8uJb6U" } ] },
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "apikey",
+              "value": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJzdXBhYmFzZSIsImlhdCI6MTc3NjI0NDU2MCwiZXhwIjo0OTMxOTE4MTYwLCJyb2xlIjoiYW5vbiJ9.RJRl9UsbEImEOQYPBy6nZds-RYlaTclQQj2pJ8uJb6U"
+            }
+          ]
+        },
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={\n  \"agent_id\": \"{{ $json.metadata.agentId || 'main' }}\",\n  \"event_type\": \"{{ $json.action || $json.event_type }}\",\n  \"description\": \"{{ $json.message || 'System Action' }}\"\n}",
+        "jsonBody": "={\n  \"agent_id\": \"{{ $json.metadata.agentId }}\",\n  \"event_type\": \"{{ $json.action || $json.event_type }}\",\n  \"description\": \"{{ $json.message || 'System Action' }}\",\n  \"metadata\": {{ JSON.stringify($json.metadata || {}) }}\n}",
         "options": {}
       },
-      "id": "Timeline Synchronizer",
+      "id": "action-log",
       "name": "Timeline Synchronizer",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.1,
-      "position": [ 950, 300 ]
+      "position": [
+        800,
+        150
+      ]
+    },
+    {
+      "parameters": {
+        "resource": "chat",
+        "model": "gpt-4-turbo",
+        "messages": {
+          "messageValues": [
+            {
+              "role": "system",
+              "content": "You are the OpenClue Performance Auditor. Summarize the following session into 3 strategic bullet points focusing on outcomes and agent performance."
+            },
+            {
+              "role": "user",
+              "content": "={{ $json.message || 'Session ended without content.' }}"
+            }
+          ]
+        }
+      },
+      "id": "ai-summarizer",
+      "name": "AI Mission Summarizer",
+      "type": "n8n-nodes-base.openAi",
+      "typeVersion": 1,
+      "position": [
+        550,
+        500
+      ],
+      "credentials": {
+        "openAiApi": {
+          "id": "YOUR_OPENAI_ID",
+          "name": "OpenAI Account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "PATCH",
+        "url": "=https://base.kutraa.com/rest/v1/projects?id=eq.{{ $json.metadata.project_id || '92722fc2-fd08-408a-881a-1395a9a29d5c' }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "apikey",
+              "value": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJzdXBhYmFzZSIsImlhdCI6MTc3NjI0NDU2MCwiZXhwIjo0OTMxOTE4MTYwLCJyb2xlIjoiYW5vbiJ9.RJRl9UsbEImEOQYPBy6nZds-RYlaTclQQj2pJ8uJb6U"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"intelligence_summary\": \"{{ $json.message.content }}\"\n}",
+        "options": {}
+      },
+      "id": "action-intel",
+      "name": "Push Intelligence",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        800,
+        500
+      ]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "https://base.kutraa.com/rest/v1/agents?status=eq.online",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "apikey",
+              "value": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJzdXBhYmFzZSIsImlhdCI6MTc3NjI0NDU2MCwiZXhwIjo0OTMxOTE4MTYwLCJyb2xlIjoiYW5vbiJ9.RJRl9UsbEImEOQYPBy6nZds-RYlaTclQQj2pJ8uJb6U"
+            }
+          ]
+        }
+      },
+      "id": "get-online-agents",
+      "name": "Scan Agent Health",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        250,
+        700
+      ]
+    },
+    {
+      "parameters": {
+        "options": {
+          "responseCode": 200
+        }
+      },
+      "id": "respond-node",
+      "name": "Respond to Probe",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [
+        1100,
+        300
+      ]
     }
   ],
   "connections": {
-    "Agent Event Inbound": { "main": [ [ { "node": "Timeline Synchronizer", "type": "main", "index": 0 }, { "node": "Master Action Router", "type": "main", "index": 0 } ] ] },
-    "Frontend Action Inbound": { "main": [ [ { "node": "Timeline Synchronizer", "type": "main", "index": 0 }, { "node": "Master Action Router", "type": "main", "index": 0 } ] ] },
-    "Master Action Router": {
+    "Agent Event Inbound": {
       "main": [
-        [ { "node": "Sync Conversations", "type": "main", "index": 0 } ],
-        [ { "node": "Sync Master Status", "type": "main", "index": 0 } ]
+        [
+          {
+            "node": "Master Action Router",
+            "type": "main",
+            "index": 0
+          }
+        ]
       ]
     },
-    "Sync Conversations": { "main": [ [ { "node": "Respond to Probe", "type": "main", "index": 0 } ] ] },
-    "Sync Master Status": { "main": [ [ { "node": "Respond to Probe", "type": "main", "index": 0 } ] ] },
-    "Timeline Synchronizer": { "main": [ [ { "node": "Respond to Probe", "type": "main", "index": 0 } ] ] }
+    "Frontend Action Inbound": {
+      "main": [
+        [
+          {
+            "node": "Master Action Router",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Operational Sentry (30m)": {
+      "main": [
+        [
+          {
+            "node": "Scan Agent Health",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Master Action Router": {
+      "main": [
+        [
+          {
+            "node": "Sync Conversations",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Sync Master Status",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [],
+        [
+          {
+            "node": "ai-summarizer",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Sync Conversations": {
+      "main": [
+        [
+          {
+            "node": "Timeline Synchronizer",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Sync Master Status": {
+      "main": [
+        [
+          {
+            "node": "Timeline Synchronizer",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Timeline Synchronizer": {
+      "main": [
+        [
+          {
+            "node": "respond-node",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "ai-summarizer": {
+      "main": [
+        [
+          {
+            "node": "action-intel",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "action-intel": {
+      "main": [
+        [
+          {
+            "node": "respond-node",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
   },
-  "settings": { "executionOrder": "v1" }
+  "settings": {}
 }
