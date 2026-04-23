@@ -1,11 +1,11 @@
 {
-  "name": "OpenClue - Master Orchestrator v3.2 (Resonance)",
+  "name": "OpenClue - Master Orchestrator v4.0 (Absolute Intelligence)",
   "nodes": [
     {
       "parameters": {
         "httpMethod": "POST",
         "path": "OpenCluePulse",
-        "responseMode": "onReceived",
+        "responseMode": "responseNode",
         "options": {}
       },
       "id": "agent-events",
@@ -18,7 +18,7 @@
       "parameters": {
         "httpMethod": "POST",
         "path": "OpenClueActions",
-        "responseMode": "onReceived",
+        "responseMode": "responseNode",
         "options": {}
       },
       "id": "frontend-actions",
@@ -30,11 +30,11 @@
     {
       "parameters": {
         "rule": {
-          "interval": [ { "field": "minutes", "minutesInterval": 30 } ]
+          "interval": [ { "field": "minutes", "minutesInterval": 15 } ]
         }
       },
       "id": "health-check-cron",
-      "name": "Operational Sentry (30m)",
+      "name": "Global Sentry (15m)",
       "type": "n8n-nodes-base.cron",
       "typeVersion": 1,
       "position": [ 0, 700 ]
@@ -48,15 +48,17 @@
             { "value2": "message:sent", "output": 0 },
             { "value2": "message:received", "output": 0 },
             { "value2": "session_end", "output": 3 },
-            { "operation": "startsWith", "value2": "session_", "output": 1 }
+            { "operation": "startsWith", "value2": "session_", "output": 1 },
+            { "value2": "broadcast", "output": 2 },
+            { "operation": "startsWith", "value2": "task:", "output": 2 }
           ]
         }
       },
       "id": "orchestrator-switch",
-      "name": "Master Action Router",
+      "name": "Absolute Router",
       "type": "n8n-nodes-base.switch",
       "typeVersion": 1,
-      "position": [ 300, 200 ]
+      "position": [ 250, 200 ]
     },
     {
       "parameters": {
@@ -71,14 +73,14 @@
         },
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={\n  \"p_session_key\": \"{{ $json.metadata.sessionKey }}\",\n  \"p_message\": {\n    \"role\": \"{{ $json.event_type === 'message:sent' ? 'agent' : 'user' }}\",\n    \"content\": \"{{ $json.message }}\",\n    \"timestamp\": \"{{ $now.toISOString() }}\"\n  },\n  \"p_agent_id\": \"{{ $json.metadata.agentId || 'main' }}\",\n  \"p_client_name\": \"{{ $json.metadata.senderName || 'Client' }}\"\n}",
+        "jsonBody": "={\n  \"p_session_key\": \"{{ $json.metadata.sessionKey }}\",\n  \"p_message\": {\n    \"role\": \"{{ $json.event_type === 'message:sent' ? 'agent' : 'user' }}\",\n    \"content\": \"{{ $json.message }}\",\n    \"timestamp\": \"{{ $now.toISOString() }}\",\n    \"metadata\": {\n      \"priority\": \"{{ $json.priority || 'medium' }}\",\n      \"orchestrator_v\": \"4.0\"\n    }\n  },\n  \"p_agent_id\": \"{{ $json.metadata.agentId || 'main' }}\",\n  \"p_client_name\": \"{{ $json.metadata.senderName || 'Mission Client' }}\"\n}",
         "options": {}
       },
       "id": "action-conversation",
-      "name": "Sync Conversations",
+      "name": "Neural Persistence: Chat",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.1,
-      "position": [ 550, 50 ],
+      "position": [ 500, 50 ],
       "continueOnFail": true
     },
     {
@@ -94,14 +96,14 @@
         },
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={\n  \"status\": \"{{ $json.event_type === 'session_start' ? 'online' : 'offline' }}\",\n  \"last_heartbeat\": \"{{ $now.toISOString() }}\"\n}",
+        "jsonBody": "={\n  \"status\": \"{{ $json.event_type === 'session_start' ? 'online' : 'offline' }}\",\n  \"last_heartbeat\": \"{{ $now.toISOString() }}\",\n  \"current_task\": \"{{ $json.message || 'Processing metadata...' }}\"\n}",
         "options": {}
       },
       "id": "action-status",
-      "name": "Sync Master Status",
+      "name": "Neural Persistence: Status",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.1,
-      "position": [ 550, 250 ],
+      "position": [ 500, 200 ],
       "continueOnFail": true
     },
     {
@@ -117,29 +119,57 @@
         },
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={\n  \"agent_id\": \"{{ $json.metadata.agentId || 'main' }}\",\n  \"project_id\": \"{{ $json.metadata.project_id || '92722fc2-fd08-408a-881a-1395a9a29d5c' }}\",\n  \"event_type\": \"{{ $json.action || $json.event_type || 'System Event' }}\",\n  \"message\": \"{{ $json.message || 'Mission Signal' }}\"\n}",
+        "jsonBody": "={\n  \"agent_id\": \"{{ $json.metadata.agentId || 'main' }}\",\n  \"project_id\": \"{{ $json.metadata.project_id || '92722fc2-fd08-408a-881a-1395a9a29d5c' }}\",\n  \"event_type\": \"{{ $json.action || $json.event_type || 'intelligence_signal' }}\",\n  \"message\": \"{{ $json.message || 'Autonomous resonance event.' }}\",\n  \"metadata\": {\n    \"priority\": \"{{ $json.priority || 'medium' }}\",\n    \"source\": \"OpenClue Orchestrator v4.0\"\n  }\n}",
         "options": {}
       },
       "id": "action-log",
-      "name": "Timeline Synchronizer",
+      "name": "Neural Persistence: Log",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.1,
       "position": [ 800, 150 ]
+    },
+    {
+      "parameters": {
+        "options": {
+          "responseBody": "={\n  \"mission\": \"acknowledged\",\n  \"signal_id\": \"{{ $execution.id }}\",\n  \"resonance_v\": \"4.0\",\n  \"timestamp\": \"{{ $now.toISOString() }}\"\n}"
+        }
+      },
+      "id": "final-response",
+      "name": "Mission Response Gate",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [ 1050, 150 ]
+    },
+    {
+      "parameters": {
+        "content": "## Absolute Intelligence Orchestrator v4.0\nParallelized persistence for mission-critical operations.\n\n- **Chat Sync**: Real-time agent context preservation.\n- **Status Pulse**: Global agent heartbeat monitoring.\n- **Timeline Sync**: Unified cross-project activity logging.\n- **Response Gate**: Hardened feedback for the signal bridge.",
+        "height": 380,
+        "width": 640
+      },
+      "id": "orchestrator-branding",
+      "name": "Orchestrator Branding",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [ 450, -250 ]
     }
   ],
   "connections": {
-    "Agent Event Inbound": { "main": [ [ { "node": "Master Action Router", "type": "main", "index": 0 } ] ] },
-    "Frontend Action Inbound": { "main": [ [ { "node": "Master Action Router", "type": "main", "index": 0 } ] ] },
-    "Master Action Router": { 
+    "Agent Event Inbound": { "main": [ [ { "node": "Absolute Router", "type": "main", "index": 0 } ] ] },
+    "Frontend Action Inbound": { "main": [ [ { "node": "Absolute Router", "type": "main", "index": 0 } ] ] },
+    "Absolute Router": { 
       "main": [ 
-        [ { "node": "Sync Conversations", "type": "main", "index": 0 } ],
-        [ { "node": "Sync Master Status", "type": "main", "index": 0 } ],
-        [],
-        []
+        [ { "node": "Neural Persistence: Chat", "type": "main", "index": 0 } ],
+        [ { "node": "Neural Persistence: Status", "type": "main", "index": 0 } ],
+        [ { "node": "Neural Persistence: Log", "type": "main", "index": 0 } ],
+        [ { "node": "Neural Persistence: Log", "type": "main", "index": 0 } ]
       ] 
     },
-    "Sync Conversations": { "main": [ [ { "node": "Timeline Synchronizer", "type": "main", "index": 0 } ] ] },
-    "Sync Master Status": { "main": [ [ { "node": "Timeline Synchronizer", "type": "main", "index": 0 } ] ] }
+    "Neural Persistence: Chat": { "main": [ [ { "node": "Neural Persistence: Log", "type": "main", "index": 0 } ] ] },
+    "Neural Persistence: Status": { "main": [ [ { "node": "Neural Persistence: Log", "type": "main", "index": 0 } ] ] },
+    "Neural Persistence: Log": { "main": [ [ { "node": "Mission Response Gate", "type": "main", "index": 0 } ] ] }
   },
-  "settings": {}
+  "settings": {
+    "executionOrder": "v1",
+    "callerPolicy": "workflowsFromSameOwner"
+  }
 }
