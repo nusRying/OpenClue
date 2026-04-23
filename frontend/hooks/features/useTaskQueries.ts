@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '@/lib/supabase'
-import { triggerN8nWebhook } from '@/lib/n8n'
+import { triggerN8nWebhook } from '@/lib/OpenClueSignals'
 import type { Task, TaskStatus } from '@/types'
 
 function toDbStatus(status: TaskStatus | string | undefined) {

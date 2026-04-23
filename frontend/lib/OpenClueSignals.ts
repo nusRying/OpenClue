@@ -36,7 +36,7 @@ function getAgentConfig(agentName: string) {
    */
   export async function triggerOpenClueAction(action: string, payload: any = {}, metadata: any = {}, priority: 'low' | 'medium' | 'high' = 'medium') {
     try {
-      const url = `${N8N_BASE_URL}/mission-control-actions`
+      const url = N8N_BASE_URL
       
       // Resolve agent config if an agentId is provided
       let agentConfig = {}

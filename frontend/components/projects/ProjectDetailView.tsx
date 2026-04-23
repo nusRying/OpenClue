@@ -4,7 +4,7 @@ import type { Project, Agent, Task, ActivityEvent, Conversation } from '@/types'
 import { formatDistanceToNow } from 'date-fns'
 import Link from 'next/link'
 import { useState } from 'react'
-import { broadcastAgentSignal } from '@/lib/n8n'
+import { broadcastAgentSignal } from '@/lib/OpenClueSignals'
 import { toast } from 'sonner'
 
 interface Props {
