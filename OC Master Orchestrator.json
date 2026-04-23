@@ -1,5 +1,5 @@
 {
-  "name": "OpenClue - Master Orchestrator v5.1.13 (Mission-Pinned)",
+  "name": "OpenClue - Master Orchestrator v5.1.14 (Dual-Resonance)",
   "nodes": [
     {
       "parameters": {
@@ -61,53 +61,7 @@
     },
     {
       "parameters": {
-        "method": "POST",
-        "url": "https://base.kutraa.com/rest/v1/rpc/append_conversation_message",
-        "sendHeaders": true,
-        "headerParameters": {
-          "parameters": [
-            { "name": "apikey", "value": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJzdXBhYmFzZSIsImlhdCI6MTc3NjI0NDU2MCwiZXhwIjo0OTMxOTE4MTYwLCJyb2xlIjoiYW5vbiJ9.RJRl9UsbEImEOQYPBy6nZds-RYlaTclQQj2pJ8uJb6U" },
-            { "name": "Authorization", "value": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJzdXBhYmFzZSIsImlhdCI6MTc3NjI0NDU2MCwiZXhwIjo0OTMxOTE4MTYwLCJyb2xlIjoiYW5vbiJ9.RJRl9UsbEImEOQYPBy6nZds-RYlaTclQQj2pJ8uJb6U" }
-          ]
-        },
-        "sendBody": true,
-        "specifyBody": "json",
-        "jsonBody": "={{ JSON.stringify({\n  p_session_key: $json.metadata.sessionKey || 'UNTRACKED',\n  p_message: {\n    role: ($json.event_type || $json.action) === 'message:sent' ? 'agent' : 'user',\n    content: $json.message || $json.description || 'Heartbeat signal.',\n    timestamp: $now.toISOString(),\n    metadata: {\n      priority: $json.priority || 'medium',\n      orchestrator_v: '5.1.13'\n    }\n  },\n  p_agent_id: $json.metadata.agentId || 'main',\n  p_client_name: $json.metadata.senderName || 'Mission Client'\n}) }}",
-        "options": {}
-      },
-      "id": "action-conversation",
-      "name": "Neural Persistence: Chat",
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.1,
-      "position": [ 600, 50 ],
-      "continueOnFail": true
-    },
-    {
-      "parameters": {
-        "method": "PATCH",
-        "url": "=https://base.kutraa.com/rest/v1/agents?name=eq.{{ $json.metadata.agentId || 'main' }}",
-        "sendHeaders": true,
-        "headerParameters": {
-          "parameters": [
-            { "name": "apikey", "value": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJzdXBhYmFzZSIsImlhdCI6MTc3NjI0NDU2MCwiZXhwIjo0OTMxOTE4MTYwLCJyb2xlIjoiYW5vbiJ9.RJRl9UsbEImEOQYPBy6nZds-RYlaTclQQj2pJ8uJb6U" },
-            { "name": "Authorization", "value": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJzdXBhYmFzZSIsImlhdCI6MTc3NjI0NDU2MCwiZXhwIjo0OTMxOTE4MTYwLCJyb2xlIjoiYW5vbiJ9.RJRl9UsbEImEOQYPBy6nZds-RYlaTclQQj2pJ8uJb6U" }
-          ]
-        },
-        "sendBody": true,
-        "specifyBody": "json",
-        "jsonBody": "={{ JSON.stringify({\n  status: ($json.event_type || $json.action) === 'session_start' ? 'online' : 'offline',\n  last_heartbeat: $now.toISOString(),\n  metadata: {\n    current_task: $json.message || $json.description || 'Mission sequence initiated.'\n  }\n}) }}",
-        "options": {}
-      },
-      "id": "action-status",
-      "name": "Neural Persistence: Status",
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.1,
-      "position": [ 600, 200 ],
-      "continueOnFail": true
-    },
-    {
-      "parameters": {
-        "jsCode": "// Resolve broadcast - Explicit Mappings from client_mappings.json\nconst item = $input.item.json;\nconst messageText = item.message || item.description || 'Broadcast pulse.';\n\nconst MAPPINGS = [\n  {\n    agentName: 'promo',\n    to: '-1003728720677:topic:1239',\n    sessionKey: 'agent:promo:telegram:group:-1003728720677:topic:1239'\n  },\n  {\n    agentName: 'main',\n    to: '-1003728720677:topic:1',\n    sessionKey: 'agent:main:telegram:group:-1003728720677:topic:1'\n  },\n  {\n    agentName: 'digit',\n    to: '-1003728720677:topic:3',\n    sessionKey: 'agent:digit:telegram:group:-1003728720677:topic:3'\n  },\n  {\n    agentName: 'string',\n    to: '-1003728720677:topic:2',\n    sessionKey: 'agent:string:telegram:group:-1003728720677:topic:2'\n  }\n];\n\nreturn MAPPINGS.map(m =\u003e ({\n  json: {\n    ...m,\n    message: messageText,\n    channel: 'telegram',\n    _raw: item\n  }\n}));"
+        "jsCode": "// Resolve broadcast - Dual path + Explicit MAPPINGS\nconst item = $input.item.json;\nconst messageText = item.message || item.description || 'Broadcast pulse.';\n\nconst MAPPINGS = [\n  {\n    agentName: 'promo',\n    to: '-1003728720677:topic:1239',\n    sessionKey: 'agent:promo:telegram:group:-1003728720677:topic:1239'\n  },\n  {\n    agentName: 'main',\n    to: '-1003728720677:topic:1',\n    sessionKey: 'agent:main:telegram:group:-1003728720677:topic:1'\n  },\n  {\n    agentName: 'digit',\n    to: '-1003728720677:topic:3',\n    sessionKey: 'agent:digit:telegram:group:-1003728720677:topic:3'\n  },\n  {\n    agentName: 'string',\n    to: '-1003728720677:topic:2',\n    sessionKey: 'agent:string:telegram:group:-1003728720677:topic:2'\n  }\n];\n\nreturn MAPPINGS.map(m => ({\n  json: {\n    ...m,\n    message: messageText,\n    channel: 'telegram',\n    _raw: item\n  }\n}));"
       },
       "id": "broadcast-resolver",
       "name": "Broadcast Resolver",
@@ -122,34 +76,53 @@
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
-            { "name": "Authorization", "value": "Bearer 46cf3441242627eabf8eb5c32d2e0d7f" },
-            { "name": "X-OpenClaw-Token", "value": "46cf3441242627eabf8eb5c32d2e0d7f" },
-            { "name": "Content-Type", "value": "application/json" }
+            { "name": "Authorization", "value": "Bearer 46cf3441242627eabf8eb5c32d2e0d7f" }
           ]
         },
         "sendBody": true,
         "specifyBody": "json",
         "jsonBody": "={\n  \"message\": \"{{ $json.message }}\",\n  \"to\": \"{{ $json.to }}\",\n  \"sessionKey\": \"{{ $json.sessionKey }}\",\n  \"channel\": \"{{ $json.channel }}\"\n}",
-        "options": {
-          "responseFormat": "string"
-        }
+        "options": {}
       },
-      "id": "agent-gateway",
-      "name": "Neural Signal Gate (Telegram)",
+      "id": "gateway-pulse",
+      "name": "Path A: Gateway Pulse",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.1,
-      "position": [ 800, 400 ],
-      "continueOnFail": false
+      "position": [ 800, 350 ],
+      "continueOnFail": true
     },
     {
       "parameters": {
-        "jsCode": "// Aggregate logs\nconst item = $json._raw || $json;\nreturn {\n  json: {\n    event_type: 'broadcast',\n    description: item.message || 'Mission verified.',\n    metadata: {\n      source: 'Orchestrator v5.1.13',\n      status: 'Resonance established'\n    }\n  }\n};"
+        "method": "POST",
+        "url": "https://assist.kutraa.com/api/webhook/openclaw",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "Authorization", "value": "Basic S3V0cmFhOkt1dHJhYTEyMTM=" },
+            { "name": "X-Agent-Token", "value": "secret_string" }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"event_type\": \"broadcast\",\n  \"message\": \"{{ $json.message }}\",\n  \"metadata\": {\n    \"agentId\": \"{{ $json.agentName }}\",\n    \"sessionKey\": \"{{ $json.sessionKey }}\"\n  }\n}",
+        "options": {}
+      },
+      "id": "backend-pulse",
+      "name": "Path B: Backend Pulse",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [ 800, 500 ],
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "jsCode": "// Aggregate logs\nconst item = $json._raw || $json;\nreturn {\n  json: {\n    event_type: 'broadcast',\n    description: item.message || 'Mission resonance confirmed.',\n    metadata: {\n      source: 'Orchestrator v5.1.14',\n      path: 'Dual-Channel Active'\n    }\n  }\n};"
       },
       "id": "payload-shield",
       "name": "Neural Preparation Block",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [ 1000, 300 ]
+      "position": [ 1050, 400 ]
     },
     {
       "parameters": {
@@ -171,20 +144,20 @@
       "name": "Neural Persistence: Log",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.1,
-      "position": [ 1200, 300 ],
+      "position": [ 1250, 400 ],
       "continueOnFail": true
     },
     {
       "parameters": {
         "options": {
-          "responseBody": "={{ JSON.stringify({\n  mission: 'acknowledged',\n  signal_id: $execution.id,\n  resonance_v: '5.1.13',\n  timestamp: $now.toISOString()\n}) }}"
+          "responseBody": "={{ JSON.stringify({\n  mission: 'acknowledged',\n  signal_id: $execution.id,\n  resonance_v: '5.1.14',\n  timestamp: $now.toISOString()\n}) }}"
         }
       },
       "id": "final-response",
       "name": "Mission Response Gate",
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1,
-      "position": [ 1400, 300 ]
+      "position": [ 1450, 400 ]
     }
   ],
   "connections": {
@@ -193,14 +166,15 @@
     "Body Unwrap": { "main": [ [ { "node": "Absolute Router", "type": "main", "index": 0 } ] ] },
     "Absolute Router": { 
       "main": [ 
-        [ { "node": "Neural Persistence: Chat", "type": "main", "index": 0 } ],
-        [ { "node": "Neural Persistence: Status", "type": "main", "index": 0 } ],
+        [],
+        [],
         [ { "node": "Broadcast Resolver", "type": "main", "index": 0 } ],
         [ { "node": "Neural Preparation Block", "type": "main", "index": 0 } ]
       ] 
     },
-    "Broadcast Resolver": { "main": [ [ { "node": "Neural Signal Gate (Telegram)", "type": "main", "index": 0 } ] ] },
-    "Neural Signal Gate (Telegram)": { "main": [ [ { "node": "Neural Preparation Block", "type": "main", "index": 0 } ] ] },
+    "Broadcast Resolver": { "main": [ [ { "node": "gateway-pulse", "type": "main", "index": 0 }, { "node": "backend-pulse", "type": "main", "index": 0 } ] ] },
+    "gateway-pulse": { "main": [ [ { "node": "Neural Preparation Block", "type": "main", "index": 0 } ] ] },
+    "backend-pulse": { "main": [ [ { "node": "Neural Preparation Block", "type": "main", "index": 0 } ] ] },
     "Neural Preparation Block": { "main": [ [ { "node": "Neural Persistence: Log", "type": "main", "index": 0 } ] ] },
     "Neural Persistence: Log": { "main": [ [ { "node": "Mission Response Gate", "type": "main", "index": 0 } ] ] }
   },
