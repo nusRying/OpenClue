@@ -1,11 +1,11 @@
 {
-  "name": "OpenClue - Master Orchestrator v5.1.15 (Core-Simplified)",
+  "name": "OpenClue - Master Orchestrator v5.1.16 (Resonance-Stabilized)",
   "nodes": [
     {
       "parameters": {
         "httpMethod": "POST",
         "path": "OpenCluePulse",
-        "responseMode": "responseNode",
+        "responseMode": "lastNode",
         "options": {}
       },
       "id": "agent-events",
@@ -18,7 +18,7 @@
       "parameters": {
         "httpMethod": "POST",
         "path": "OpenClueActions",
-        "responseMode": "responseNode",
+        "responseMode": "lastNode",
         "options": {}
       },
       "id": "frontend-actions",
@@ -61,7 +61,7 @@
     },
     {
       "parameters": {
-        "jsCode": "// Resolve broadcast - Shotgun x4 with Verified Hook Names\nconst item = $input.item.json;\nconst messageText = item.message || item.description || 'Broadcast pulse.';\n\nconst AGENTS = ['promo', 'main', 'digit', 'string'];\n\nreturn AGENTS.map(name => ({\n  json: {\n    agentName: name,\n    message: messageText,\n    _raw: item\n  }\n}));"
+        "jsCode": "// Resolve broadcast - Pinned topics for Telegram\nconst item = $input.item.json;\nconst messageText = item.message || item.description || 'Broadcast pulse.';\n\nconst MAPPINGS = [\n  { agentName: 'promo', to: '-1003728720677:topic:1239', sessionKey: 'agent:promo:telegram:group:-1003728720677:topic:1239' },\n  { agentName: 'main', to: '-1003728720677:topic:1', sessionKey: 'agent:main:telegram:group:-1003728720677:topic:1' },\n  { agentName: 'digit', to: '-1003728720677:topic:3', sessionKey: 'agent:digit:telegram:group:-1003728720677:topic:3' },\n  { agentName: 'string', to: '-1003728720677:topic:2', sessionKey: 'agent:string:telegram:group:-1003728720677:topic:2' }\n];\n\nreturn MAPPINGS.map(m => ({\n  json: {\n    ...m,\n    message: messageText,\n    original: item\n  }\n}));"
       },
       "id": "broadcast-resolver",
       "name": "Broadcast Resolver",
@@ -81,7 +81,7 @@
         },
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={\n  \"message\": \"{{ $json.message }}\"\n}",
+        "jsonBody": "={\n  \"message\": \"{{ $json.message }}\",\n  \"to\": \"{{ $json.to }}\",\n  \"sessionKey\": \"{{ $json.sessionKey }}\",\n  \"channel\": \"telegram\"\n}",
         "options": {}
       },
       "id": "gateway-pulse",
@@ -93,10 +93,10 @@
     },
     {
       "parameters": {
-        "jsCode": "// Aggregate logs\nconst item = $json._raw || $json;\nreturn {\n  json: {\n    event_type: 'broadcast',\n    description: item.message || 'Mission sequence verified.',\n    metadata: {\n      source: 'Orchestrator v5.1.15 (Core-Simplified)',\n      agents: ['promo', 'main', 'digit', 'string']\n    }\n  }\n};"
+        "jsCode": "// Aggregate signals back to a single pulse for logging and response\nconst input = $input.all();\nconst first = input[0].json;\nconst original = first.original || first._raw || {};\n\nreturn {\n  json: {\n    event_type: 'broadcast',\n    description: original.message || 'Signal resonance optimized.',\n    metadata: {\n      source: 'Orchestrator v5.1.16',\n      pulse_count: input.length,\n      timestamp: new Date().toISOString()\n    }\n  }\n};"
       },
-      "id": "payload-shield",
-      "name": "Neural Preparation Block",
+      "id": "signal-aggregator",
+      "name": "Signal Aggregator",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [ 1050, 300 ]
@@ -127,7 +127,7 @@
     {
       "parameters": {
         "options": {
-          "responseBody": "={{ JSON.stringify({\n  mission: 'acknowledged',\n  signal_id: $execution.id,\n  resonance_v: '5.1.15',\n  timestamp: $now.toISOString()\n}) }}"
+          "responseBody": "={{ JSON.stringify({\n  mission: 'acknowledged',\n  signal_id: $execution.id,\n  resonance: 'v5.1.16',\n  timestamp: $now.toISOString()\n}) }}"
         }
       },
       "id": "final-response",
@@ -146,13 +146,13 @@
         [],
         [],
         [ { "node": "Broadcast Resolver", "type": "main", "index": 0 } ],
-        [ { "node": "Neural Preparation Block", "type": "main", "index": 0 } ]
+        [ { "node": "Signal Aggregator", "type": "main", "index": 0 } ]
       ] 
     },
     "Broadcast Resolver": { "main": [ [ { "node": "gateway-pulse", "type": "main", "index": 0 } ] ] },
-    "gateway-pulse": { "main": [ [ { "node": "Neural Preparation Block", "type": "main", "index": 0 } ] ] },
-    "Neural Preparation Block": { "main": [ [ { "node": "Neural Persistence: Log", "type": "main", "index": 0 } ] ] },
-    "Neural Persistence: Log": { "main": [ [ { "node": "Mission Response Gate", "type": "main", "index": 0 } ] ] }
+    "gateway-pulse": { "main": [ [ { "node": "Signal Aggregator", "type": "main", "index": 0 } ] ] },
+    "Signal Aggregator": { "main": [ [ { "node": "action-log", "type": "main", "index": 0 } ] ] },
+    "action-log": { "main": [ [ { "node": "final-response", "type": "main", "index": 0 } ] ] }
   },
   "settings": {
     "executionOrder": "v1",
