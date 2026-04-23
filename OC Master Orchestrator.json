@@ -3,7 +3,7 @@
   "nodes": [
     {
       "parameters": { "httpMethod": "POST", "path": "mission-control-events", "options": {} },
-      "id": "agent-events",
+      "id": "Agent Event Inbound",
       "name": "Agent Event Inbound",
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 1,
@@ -11,7 +11,7 @@
     },
     {
       "parameters": { "httpMethod": "POST", "path": "mission-control-actions", "options": {} },
-      "id": "frontend-actions",
+      "id": "Frontend Action Inbound",
       "name": "Frontend Action Inbound",
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 1,
@@ -19,7 +19,7 @@
     },
     {
       "parameters": { "rule": { "interval": [ { "field": "minutes", "minutesInterval": 30 } ] } },
-      "id": "governance-cron",
+      "id": "Operational Sentry (30m)",
       "name": "Operational Sentry (30m)",
       "type": "n8n-nodes-base.cron",
       "typeVersion": 1,
@@ -31,17 +31,17 @@
         "value1": "={{ $json.action || $json.event_type }}",
         "rules": {
           "rules": [
+            { "value2": "session_end", "output": 4 },
             { "value2": "message:sent", "output": 0 },
             { "value2": "message:received", "output": 0 },
             { "operation": "startsWith", "value2": "session_", "output": 1 },
             { "value2": "task:create", "output": 2 },
             { "value2": "task:assign", "output": 2 },
-            { "value2": "broadcast", "output": 3 },
-            { "value2": "session_end", "output": 4 }
+            { "value2": "broadcast", "output": 3 }
           ]
         }
       },
-      "id": "orchestrator-switch",
+      "id": "Master Action Router",
       "name": "Master Action Router",
       "type": "n8n-nodes-base.switch",
       "typeVersion": 1,
@@ -63,7 +63,7 @@
         "jsonBody": "={\n  \"p_session_key\": \"{{ $json.metadata.sessionKey }}\",\n  \"p_message\": {\n    \"role\": \"{{ $json.event_type === 'message:sent' ? 'agent' : 'user' }}\",\n    \"content\": \"{{ $json.message }}\"\n  }\n}",
         "options": {}
       },
-      "id": "action-conversation",
+      "id": "Sync Conversations",
       "name": "Sync Conversations",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.1,
@@ -80,7 +80,7 @@
         "jsonBody": "={\n  \"status\": \"{{ $json.event_type === 'session_start' ? 'online' : 'offline' }}\",\n  \"last_heartbeat\": \"{{ $now.toISOString() }}\"\n}",
         "options": {}
       },
-      "id": "action-status",
+      "id": "Sync Master Status",
       "name": "Sync Master Status",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.1,
@@ -97,7 +97,7 @@
         "jsonBody": "={\n  \"status\": \"{{ $json.status || 'todo' }}\",\n  \"priority\": \"{{ $json.priority || 'medium' }}\"\n}",
         "options": {}
       },
-      "id": "action-tasks",
+      "id": "Supabase Task Governor",
       "name": "Supabase Task Governor",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.1,
@@ -108,7 +108,7 @@
         "resource": "chat",
         "prompt": { "messages": [ { "content": "Summarize this agent session: {{ JSON.stringify($json) }}" } ] }
       },
-      "id": "ai-summarizer",
+      "id": "Mission Summarizer",
       "name": "Mission Summarizer",
       "type": "n8n-nodes-base.openAi",
       "typeVersion": 1,
@@ -125,7 +125,7 @@
         "jsonBody": "={\n  \"intelligence_summary\": \"{{ $json.content }}\"\n}",
         "options": {}
       },
-      "id": "update-intel",
+      "id": "Push Intelligence",
       "name": "Push Intelligence",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.1,
@@ -138,7 +138,7 @@
         "sendHeaders": true,
         "headerParameters": { "parameters": [ { "name": "apikey", "value": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJzdXBhYmFzZSIsImlhdCI6MTc3NjI0NDU2MCwiZXhwIjo0OTMxOTE4MTYwLCJyb2xlIjoiYW5vbiJ9.RJRl9UsbEImEOQYPBy6nZds-RYlaTclQQj2pJ8uJb6U" } ] }
       },
-      "id": "check-zombies",
+      "id": "Scan Zombie Agents",
       "name": "Scan Zombie Agents",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.1,
@@ -155,7 +155,7 @@
         "jsonBody": "={\n  \"message\": \"ðŸš¨ SYSTEM ALERT: Deadman switch triggered. Unresponsive agent detected.\",\n  \"to\": \"-1003728720677:topic:1\"\n}",
         "options": {}
       },
-      "id": "alert-ceo",
+      "id": "Alert CEO",
       "name": "Alert CEO",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.1,
@@ -172,7 +172,7 @@
         "jsonBody": "={\n  \"agent_id\": \"{{ $json.metadata.agentId || 'main' }}\",\n  \"event_type\": \"{{ $json.action || $json.event_type }}\",\n  \"description\": \"{{ $json.message || 'System Action' }}\"\n}",
         "options": {}
       },
-      "id": "action-log",
+      "id": "Timeline Synchronizer",
       "name": "Timeline Synchronizer",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.1,
@@ -189,7 +189,7 @@
         "jsonBody": "={\n  \"message\": \"{{ $json.message }}\",\n  \"to\": \"{{ $json.metadata.to }}\"\n}",
         "options": {}
       },
-      "id": "agent-gateway",
+      "id": "Signal Transmitter",
       "name": "Signal Transmitter",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.1,
@@ -197,20 +197,21 @@
     }
   ],
   "connections": {
-    "Agent Event Inbound": { "main": [ [ { "node": "Master Action Router", "type": "main", "index": 0 }, { "node": "action-log", "type": "main", "index": 0 } ] ] },
-    "Frontend Action Inbound": { "main": [ [ { "node": "Master Action Router", "type": "main", "index": 0 }, { "node": "action-log", "type": "main", "index": 0 } ] ] },
+    "Agent Event Inbound": { "main": [ [ { "node": "Master Action Router", "type": "main", "index": 0 }, { "node": "Timeline Synchronizer", "type": "main", "index": 0 } ] ] },
+    "Frontend Action Inbound": { "main": [ [ { "node": "Master Action Router", "type": "main", "index": 0 }, { "node": "Timeline Synchronizer", "type": "main", "index": 0 } ] ] },
     "Master Action Router": {
       "main": [
-        [ { "node": "action-conversation", "type": "main", "index": 0 } ],
-        [ { "node": "action-status", "type": "main", "index": 0 } ],
-        [ { "node": "action-tasks", "type": "main", "index": 0 } ],
-        [ { "node": "agent-gateway", "type": "main", "index": 0 } ],
-        [ { "node": "ai-summarizer", "type": "main", "index": 0 } ]
+        [ { "node": "Sync Conversations", "type": "main", "index": 0 } ],
+        [ { "node": "Sync Master Status", "type": "main", "index": 0 } ],
+        [ { "node": "Supabase Task Governor", "type": "main", "index": 0 } ],
+        [ { "node": "Signal Transmitter", "type": "main", "index": 0 } ],
+        [ { "node": "Mission Summarizer", "type": "main", "index": 0 } ]
       ]
     },
-    "ai-summarizer": { "main": [ [ { "node": "update-intel", "type": "main", "index": 0 } ] ] },
-    "governance-cron": { "main": [ [ { "node": "check-zombies", "type": "main", "index": 0 } ] ] },
-    "check-zombies": { "main": [ [ { "node": "alert-ceo", "type": "main", "index": 0 } ] ] }
+    "Mission Summarizer": { "main": [ [ { "node": "Push Intelligence", "type": "main", "index": 0 } ] ] },
+    "Operational Sentry (30m)": { "main": [ [ { "node": "Scan Zombie Agents", "type": "main", "index": 0 } ] ] },
+    "Scan Zombie Agents": { "main": [ [ { "node": "Alert CEO", "type": "main", "index": 0 } ] ] }
   },
   "settings": { "executionOrder": "v1" }
 }
+
