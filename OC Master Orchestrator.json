@@ -1,5 +1,5 @@
 {
-  "name": "OpenClue - Master Orchestrator v4.9 (Optical)",
+  "name": "OpenClue - Master Orchestrator v4.9.1 (Absolute)",
   "nodes": [
     {
       "parameters": {
@@ -62,7 +62,7 @@
         },
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={\n  \"p_session_key\": \"{{ $json.metadata.sessionKey || 'UNTRACKED' }}\",\n  \"p_message\": {\n    \"role\": \"{{ ($json.event_type || $json.action) === 'message:sent' ? 'agent' : 'user' }}\",\n    \"content\": \"{{ $json.message || 'Heartbeat signal.' }}\",\n    \"timestamp\": \"{{ $now.toISOString() }}\",\n    \"metadata\": {\n      \"priority\": \"{{ $json.priority || 'medium' }}\",\n      \"orchestrator_v\": \"4.9\"\n    }\n  },\n  \"p_agent_id\": \"{{ $json.metadata.agentId || 'main' }}\",\n  \"p_client_name\": \"{{ $json.metadata.senderName || 'Mission Client' }}\"\n}",
+        "jsonBody": "={\n  \"p_session_key\": \"{{ $json.metadata.sessionKey || 'UNTRACKED' }}\",\n  \"p_message\": {\n    \"role\": \"{{ ($json.event_type || $json.action) === 'message:sent' ? 'agent' : 'user' }}\",\n    \"content\": \"{{ $json.message || $json.description || 'Heartbeat signal.' }}\",\n    \"timestamp\": \"{{ $now.toISOString() }}\",\n    \"metadata\": {\n      \"priority\": \"{{ $json.priority || 'medium' }}\",\n      \"orchestrator_v\": \"4.9.1\"\n    }\n  },\n  \"p_agent_id\": \"{{ $json.metadata.agentId || 'main' }}\",\n  \"p_client_name\": \"{{ $json.metadata.senderName || 'Mission Client' }}\"\n}",
         "options": {}
       },
       "id": "action-conversation",
@@ -85,7 +85,7 @@
         },
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={\n  \"status\": \"{{ ($json.event_type || $json.action) === 'session_start' ? 'online' : 'offline' }}\",\n  \"last_heartbeat\": \"{{ $now.toISOString() }}\",\n  \"metadata\": {\n    \"current_task\": \"{{ $json.message || 'Mission sequence initiated.' }}\"\n  }\n}",
+        "jsonBody": "={\n  \"status\": \"{{ ($json.event_type || $json.action) === 'session_start' ? 'online' : 'offline' }}\",\n  \"last_heartbeat\": \"{{ $now.toISOString() }}\",\n  \"metadata\": {\n    \"current_task\": \"{{ $json.message || $json.description || 'Mission sequence initiated.' }}\"\n  }\n}",
         "options": {}
       },
       "id": "action-status",
@@ -108,7 +108,7 @@
         },
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={\n  \"message\": \"{{ $json.message || 'Broadcast pulse.' }}\",\n  \"sessionKey\": \"{{ $json.metadata.sessionKey }}\",\n  \"to\": \"{{ $json.metadata.to }}\",\n  \"channel\": \"{{ $json.metadata.channel || 'telegram' }}\"\n}",
+        "jsonBody": "={\n  \"message\": \"{{ $json.message || $json.description || 'Broadcast pulse.' }}\",\n  \"sessionKey\": \"{{ $json.metadata.sessionKey }}\",\n  \"to\": \"{{ $json.metadata.to }}\",\n  \"channel\": \"{{ $json.metadata.channel || 'telegram' }}\"\n}",
         "options": {}
       },
       "id": "agent-gateway",
@@ -120,13 +120,13 @@
     },
     {
       "parameters": {
-        "jsCode": "const item = $input.item.json;\nconst meta = item.metadata || {};\nconst text = item.message || 'Autonomous resonance event.';\n\nconst payload = {\n  event_type: item.action || item.event_type || 'unclassified',\n  description: text,\n  message: text,\n  metadata: {\n    ...meta,\n    source: 'OpenClue Orchestrator v4.9 (Optical)',\n    priority: item.priority || 'medium'\n  }\n};\n\nif (meta.agentId) payload.agent_id = meta.agentId;\nif (meta.project_id && meta.project_id.length === 36) {\n  payload.project_id = meta.project_id;\n}\n\nreturn { json: payload };"
+        "jsCode": "const item = $input.item.json;\nconst meta = item.metadata || {};\nconst text = item.message || item.description || item.text || 'Mission pulse acknowledged.';\n\nconst payload = {\n  event_type: item.action || item.event_type || 'unclassified',\n  description: text,\n  message: text,\n  metadata: {\n    ...meta,\n    source: 'OpenClue Orchestrator v4.9.1 (Absolute)',\n    priority: item.priority || 'medium'\n  }\n};\n\nif (meta.agentId) payload.agent_id = meta.agentId;\nif (meta.project_id && meta.project_id.length === 36) {\n  payload.project_id = meta.project_id;\n}\n\nreturn { json: payload };"
       },
       "id": "payload-shield",
       "name": "Neural Preparation Block",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [ 800, 200 ]
+      "position": [ 850, 200 ]
     },
     {
       "parameters": {
@@ -148,19 +148,19 @@
       "name": "Neural Persistence: Log",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.1,
-      "position": [ 1000, 200 ]
+      "position": [ 1100, 200 ]
     },
     {
       "parameters": {
         "options": {
-          "responseBody": "={\n  \"mission\": \"acknowledged\",\n  \"signal_id\": \"{{ $execution.id }}\",\n  \"resonance_v\": \"4.9\",\n  \"timestamp\": \"{{ $now.toISOString() }}\"\n}"
+          "responseBody": "={\n  \"mission\": \"acknowledged\",\n  \"signal_id\": \"{{ $execution.id }}\",\n  \"resonance_v\": \"4.9.1\",\n  \"timestamp\": \"{{ $now.toISOString() }}\"\n}"
         }
       },
       "id": "final-response",
       "name": "Mission Response Gate",
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1,
-      "position": [ 1200, 200 ]
+      "position": [ 1300, 200 ]
     }
   ],
   "connections": {
@@ -174,9 +174,6 @@
         [ { "node": "Neural Preparation Block", "type": "main", "index": 0 } ]
       ] 
     },
-    "Neural Persistence: Chat": { "main": [ [ ] ] },
-    "Neural Persistence: Status": { "main": [ [ ] ] },
-    "Neural Signal Gate (Telegram)": { "main": [ [ ] ] },
     "Neural Preparation Block": { "main": [ [ { "node": "Neural Persistence: Log", "type": "main", "index": 0 } ] ] },
     "Neural Persistence: Log": { "main": [ [ { "node": "Mission Response Gate", "type": "main", "index": 0 } ] ] }
   },
