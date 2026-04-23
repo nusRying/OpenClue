@@ -1,5 +1,5 @@
 {
-  "name": "OpenClue - Master Orchestrator v4.9.2 (Stable)",
+  "name": "OpenClue - Master Orchestrator v5.0.0 (Body-Fix)",
   "nodes": [
     {
       "parameters": {
@@ -29,6 +29,16 @@
     },
     {
       "parameters": {
+        "jsCode": "// Normalize webhook payload: n8n may nest the POST body under $json.body\n// This node unwraps it so all downstream nodes can use $json.action, $json.message, etc.\nconst raw = $input.item.json;\nconst data = raw.body && typeof raw.body === 'object' && !Array.isArray(raw.body) ? raw.body : raw;\nreturn { json: data };"
+      },
+      "id": "body-unwrap",
+      "name": "Body Unwrap",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [ 150, 200 ]
+    },
+    {
+      "parameters": {
         "dataType": "string",
         "value1": "={{ ($json.action || $json.event_type || 'unclassified').toString() }}",
         "rules": {
@@ -47,7 +57,7 @@
       "name": "Absolute Router",
       "type": "n8n-nodes-base.switch",
       "typeVersion": 1,
-      "position": [ 250, 200 ]
+      "position": [ 350, 200 ]
     },
     {
       "parameters": {
@@ -62,14 +72,14 @@
         },
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={\n  \"p_session_key\": \"{{ $json.metadata.sessionKey || 'UNTRACKED' }}\",\n  \"p_message\": {\n    \"role\": \"{{ ($json.event_type || $json.action) === 'message:sent' ? 'agent' : 'user' }}\",\n    \"content\": \"{{ $json.message || $json.description || 'Heartbeat signal.' }}\",\n    \"timestamp\": \"{{ $now.toISOString() }}\",\n    \"metadata\": {\n      \"priority\": \"{{ $json.priority || 'medium' }}\",\n      \"orchestrator_v\": \"4.9.2\"\n    }\n  },\n  \"p_agent_id\": \"{{ $json.metadata.agentId || 'main' }}\",\n  \"p_client_name\": \"{{ $json.metadata.senderName || 'Mission Client' }}\"\n}",
+        "jsonBody": "={\n  \"p_session_key\": \"{{ $json.metadata.sessionKey || 'UNTRACKED' }}\",\n  \"p_message\": {\n    \"role\": \"{{ ($json.event_type || $json.action) === 'message:sent' ? 'agent' : 'user' }}\",\n    \"content\": \"{{ $json.message || $json.description || 'Heartbeat signal.' }}\",\n    \"timestamp\": \"{{ $now.toISOString() }}\",\n    \"metadata\": {\n      \"priority\": \"{{ $json.priority || 'medium' }}\",\n      \"orchestrator_v\": \"5.0.0\"\n    }\n  },\n  \"p_agent_id\": \"{{ $json.metadata.agentId || 'main' }}\",\n  \"p_client_name\": \"{{ $json.metadata.senderName || 'Mission Client' }}\"\n}",
         "options": {}
       },
       "id": "action-conversation",
       "name": "Neural Persistence: Chat",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.1,
-      "position": [ 500, 50 ],
+      "position": [ 600, 50 ],
       "continueOnFail": true
     },
     {
@@ -92,7 +102,7 @@
       "name": "Neural Persistence: Status",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.1,
-      "position": [ 500, 200 ],
+      "position": [ 600, 200 ],
       "continueOnFail": true
     },
     {
@@ -115,18 +125,18 @@
       "name": "Neural Signal Gate (Telegram)",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.1,
-      "position": [ 600, 400 ],
+      "position": [ 700, 400 ],
       "continueOnFail": true
     },
     {
       "parameters": {
-        "jsCode": "const item = $input.item.json;\nconst meta = item.metadata || {};\nconst text = item.message || item.description || item.text || 'Mission pulse acknowledged.';\n\nconst payload = {\n  event_type: item.action || item.event_type || 'unclassified',\n  description: text,\n  metadata: {\n    ...meta,\n    source: 'OpenClue Orchestrator v4.9.2 (Stable)',\n    priority: item.priority || 'medium'\n  }\n};\n\nif (meta.agentId) payload.agent_id = meta.agentId;\nif (meta.project_id && meta.project_id.length === 36) {\n  payload.project_id = meta.project_id;\n}\n\nreturn { json: payload };"
+        "jsCode": "const item = $input.item.json;\nconst meta = item.metadata || {};\nconst text = item.message || item.description || item.text || 'Mission pulse acknowledged.';\n\nconst payload = {\n  event_type: item.action || item.event_type || 'unclassified',\n  description: text,\n  metadata: {\n    ...meta,\n    source: 'OpenClue Orchestrator v5.0.0',\n    priority: item.priority || 'medium'\n  }\n};\n\nif (meta.agentId) payload.agent_id = meta.agentId;\nif (meta.project_id && meta.project_id.length === 36) {\n  payload.project_id = meta.project_id;\n}\n\nreturn { json: payload };"
       },
       "id": "payload-shield",
       "name": "Neural Preparation Block",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [ 850, 200 ]
+      "position": [ 950, 200 ]
     },
     {
       "parameters": {
@@ -148,24 +158,25 @@
       "name": "Neural Persistence: Log",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.1,
-      "position": [ 1100, 200 ]
+      "position": [ 1200, 200 ]
     },
     {
       "parameters": {
         "options": {
-          "responseBody": "={\n  \"mission\": \"acknowledged\",\n  \"signal_id\": \"{{ $execution.id }}\",\n  \"resonance_v\": \"4.9.2\",\n  \"timestamp\": \"{{ $now.toISOString() }}\"\n}"
+          "responseBody": "={\n  \"mission\": \"acknowledged\",\n  \"signal_id\": \"{{ $execution.id }}\",\n  \"resonance_v\": \"5.0.0\",\n  \"timestamp\": \"{{ $now.toISOString() }}\"\n}"
         }
       },
       "id": "final-response",
       "name": "Mission Response Gate",
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1,
-      "position": [ 1300, 200 ]
+      "position": [ 1400, 200 ]
     }
   ],
   "connections": {
-    "Agent Event Inbound": { "main": [ [ { "node": "Absolute Router", "type": "main", "index": 0 } ] ] },
-    "Frontend Action Inbound": { "main": [ [ { "node": "Absolute Router", "type": "main", "index": 0 } ] ] },
+    "Agent Event Inbound": { "main": [ [ { "node": "Body Unwrap", "type": "main", "index": 0 } ] ] },
+    "Frontend Action Inbound": { "main": [ [ { "node": "Body Unwrap", "type": "main", "index": 0 } ] ] },
+    "Body Unwrap": { "main": [ [ { "node": "Absolute Router", "type": "main", "index": 0 } ] ] },
     "Absolute Router": { 
       "main": [ 
         [ { "node": "Neural Persistence: Chat", "type": "main", "index": 0 }, { "node": "Neural Preparation Block", "type": "main", "index": 0 } ],
