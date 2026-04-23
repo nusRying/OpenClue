@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import { StrictMode } from 'react'
 import './globals.css'
 import { Providers } from '@/components/providers/Providers'
+import { Toaster } from 'sonner'
 
 export const metadata: Metadata = {
   title: 'Mission Control',
@@ -19,6 +20,7 @@ export default function RootLayout({
         <Providers>
           <StrictMode>
             {children}
+            <Toaster position="bottom-right" theme="dark" richColors />
           </StrictMode>
         </Providers>
       </body>
