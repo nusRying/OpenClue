@@ -118,7 +118,7 @@
     {
       "parameters": {
         "method": "POST",
-        "url": "=http://tofyq3lga15o3184lxde506q:18789/hooks/n8n-{{ $json.agentName }}",
+        "url": "=https://assist.kutraa.com/hooks/n8n-{{ $json.agentName }}",
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
