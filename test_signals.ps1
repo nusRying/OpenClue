@@ -1,12 +1,14 @@
 # OpenClue Absolute Intelligence - Mission Verification Tool
-# Version 2.4 - Balanced Path Probe
+# Version 2.5 - Resonance Fixed
 
 function Send-Signal {
     param(
         [Parameter(Mandatory=$true)]
         $Action,
         [Parameter(Mandatory=$true)]
-        $Message,
+        $Message
+    )
+
     $BaseUrl = "https://cardial.kutraa.com/webhook"
     $Path = "OpenCluePulse"
     if ($Action -eq "session_end") { $Path = "OpenClueActions" }

@@ -1,5 +1,5 @@
 {
-  "name": "OpenClue - Master Orchestrator v4.0 (Absolute Intelligence)",
+  "name": "OpenClue - Master Orchestrator v4.1 (Absolute Intelligence)",
   "nodes": [
     {
       "parameters": {
@@ -26,18 +26,6 @@
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 1,
       "position": [ 0, 300 ]
-    },
-    {
-      "parameters": {
-        "rule": {
-          "interval": [ { "field": "minutes", "minutesInterval": 15 } ]
-        }
-      },
-      "id": "health-check-cron",
-      "name": "Global Sentry (15m)",
-      "type": "n8n-nodes-base.cron",
-      "typeVersion": 1,
-      "position": [ 0, 700 ]
     },
     {
       "parameters": {
@@ -73,7 +61,7 @@
         },
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={\n  \"p_session_key\": \"{{ $json.metadata.sessionKey }}\",\n  \"p_message\": {\n    \"role\": \"{{ $json.event_type === 'message:sent' ? 'agent' : 'user' }}\",\n    \"content\": \"{{ $json.message }}\",\n    \"timestamp\": \"{{ $now.toISOString() }}\",\n    \"metadata\": {\n      \"priority\": \"{{ $json.priority || 'medium' }}\",\n      \"orchestrator_v\": \"4.0\"\n    }\n  },\n  \"p_agent_id\": \"{{ $json.metadata.agentId || 'main' }}\",\n  \"p_client_name\": \"{{ $json.metadata.senderName || 'Mission Client' }}\"\n}",
+        "jsonBody": "={\n  \"p_session_key\": \"{{ $json.metadata.sessionKey }}\",\n  \"p_message\": {\n    \"role\": \"{{ $json.event_type === 'message:sent' ? 'agent' : 'user' }}\",\n    \"content\": \"{{ $json.message }}\",\n    \"timestamp\": \"{{ $now.toISOString() }}\",\n    \"metadata\": {\n      \"priority\": \"{{ $json.priority || 'medium' }}\",\n      \"orchestrator_v\": \"4.1\"\n    }\n  },\n  \"p_agent_id\": \"{{ $json.metadata.agentId || 'main' }}\",\n  \"p_client_name\": \"{{ $json.metadata.senderName || 'Mission Client' }}\"\n}",
         "options": {}
       },
       "id": "action-conversation",
@@ -96,7 +84,7 @@
         },
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={\n  \"status\": \"{{ $json.event_type === 'session_start' ? 'online' : 'offline' }}\",\n  \"last_heartbeat\": \"{{ $now.toISOString() }}\",\n  \"current_task\": \"{{ $json.message || 'Processing metadata...' }}\"\n}",
+        "jsonBody": "={\n  \"status\": \"{{ $json.event_type === 'session_start' ? 'online' : 'offline' }}\",\n  \"last_heartbeat\": \"{{ $now.toISOString() }}\"\n}",
         "options": {}
       },
       "id": "action-status",
@@ -104,6 +92,29 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.1,
       "position": [ 500, 200 ],
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://tofyq3lga15o3184lxde506q:18789/hooks/n8n-{{ $json.metadata.agentId || 'main' }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "Authorization", "value": "Bearer 46cf3441242627eabf8eb5c32d2e0d7f" },
+            { "name": "Content-Type", "value": "application/json" }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"message\": \"{{ $json.message }}\",\n  \"sessionKey\": \"{{ $json.metadata.sessionKey }}\",\n  \"to\": \"{{ $json.metadata.to }}\",\n  \"channel\": \"{{ $json.metadata.channel || 'telegram' }}\"\n}",
+        "options": {}
+      },
+      "id": "agent-gateway",
+      "name": "Neural Signal Gate (Telegram)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [ 600, 400 ],
       "continueOnFail": true
     },
     {
@@ -119,7 +130,7 @@
         },
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={\n  \"agent_id\": \"{{ $json.metadata.agentId || 'main' }}\",\n  \"project_id\": \"{{ $json.metadata.project_id || '92722fc2-fd08-408a-881a-1395a9a29d5c' }}\",\n  \"event_type\": \"{{ $json.action || $json.event_type || 'intelligence_signal' }}\",\n  \"message\": \"{{ $json.message || 'Autonomous resonance event.' }}\",\n  \"metadata\": {\n    \"priority\": \"{{ $json.priority || 'medium' }}\",\n    \"source\": \"OpenClue Orchestrator v4.0\"\n  }\n}",
+        "jsonBody": "={\n  \"agent_id\": \"{{ $json.metadata.agentId || 'main' }}\",\n  \"project_id\": \"{{ $json.metadata.project_id || '92722fc2-fd08-408a-881a-1395a9a29d5c' }}\",\n  \"event_type\": \"{{ $json.action || $json.event_type || 'intelligence_signal' }}\",\n  \"message\": \"{{ $json.message || 'Autonomous resonance event.' }}\",\n  \"metadata\": {\n    \"priority\": \"{{ $json.priority || 'medium' }}\",\n    \"source\": \"OpenClue Orchestrator v4.1\"\n  }\n}",
         "options": {}
       },
       "id": "action-log",
@@ -131,7 +142,7 @@
     {
       "parameters": {
         "options": {
-          "responseBody": "={\n  \"mission\": \"acknowledged\",\n  \"signal_id\": \"{{ $execution.id }}\",\n  \"resonance_v\": \"4.0\",\n  \"timestamp\": \"{{ $now.toISOString() }}\"\n}"
+          "responseBody": "={\n  \"mission\": \"acknowledged\",\n  \"signal_id\": \"{{ $execution.id }}\",\n  \"resonance_v\": \"4.1\",\n  \"timestamp\": \"{{ $now.toISOString() }}\"\n}"
         }
       },
       "id": "final-response",
@@ -139,18 +150,6 @@
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1,
       "position": [ 1050, 150 ]
-    },
-    {
-      "parameters": {
-        "content": "## Absolute Intelligence Orchestrator v4.0\nParallelized persistence for mission-critical operations.\n\n- **Chat Sync**: Real-time agent context preservation.\n- **Status Pulse**: Global agent heartbeat monitoring.\n- **Timeline Sync**: Unified cross-project activity logging.\n- **Response Gate**: Hardened feedback for the signal bridge.",
-        "height": 380,
-        "width": 640
-      },
-      "id": "orchestrator-branding",
-      "name": "Orchestrator Branding",
-      "type": "n8n-nodes-base.stickyNote",
-      "typeVersion": 1,
-      "position": [ 450, -250 ]
     }
   ],
   "connections": {
@@ -160,12 +159,13 @@
       "main": [ 
         [ { "node": "Neural Persistence: Chat", "type": "main", "index": 0 } ],
         [ { "node": "Neural Persistence: Status", "type": "main", "index": 0 } ],
-        [ { "node": "Neural Persistence: Log", "type": "main", "index": 0 } ],
+        [ { "node": "Neural Signal Gate (Telegram)", "type": "main", "index": 0 } ],
         [ { "node": "Neural Persistence: Log", "type": "main", "index": 0 } ]
       ] 
     },
     "Neural Persistence: Chat": { "main": [ [ { "node": "Neural Persistence: Log", "type": "main", "index": 0 } ] ] },
     "Neural Persistence: Status": { "main": [ [ { "node": "Neural Persistence: Log", "type": "main", "index": 0 } ] ] },
+    "Neural Signal Gate (Telegram)": { "main": [ [ { "node": "Neural Persistence: Log", "type": "main", "index": 0 } ] ] },
     "Neural Persistence: Log": { "main": [ [ { "node": "Mission Response Gate", "type": "main", "index": 0 } ] ] }
   },
   "settings": {
