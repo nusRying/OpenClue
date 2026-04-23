@@ -1,7 +1,7 @@
 import { supabase } from './supabase'
 import mappingsData from './mappings.json'
 
-const N8N_BASE_URL = 'https://cardial.kutraa.com/webhook'
+const N8N_BASE_URL = 'https://cardial.kutraa.com/webhook/oc-actions-v2'
 
 /**
  * Maps agent names to their configurations dynamically.
@@ -101,4 +101,11 @@ export async function broadcastAgentSignal(agentIds: string[], message: string, 
  */
 export async function endAgentSession(sessionKey: string, agentId: string) {
   return triggerOpenClueAction('session_end', {}, { sessionKey, agentId }, 'low')
+}
+/**
+ * Legacy alias for triggerOpenClueAction.
+ * Required for build stabilization.
+ */
+export async function triggerN8nWebhook(action: string, payload: any = {}, metadata: any = {}) {
+  return triggerOpenClueAction(action, payload, metadata)
 }

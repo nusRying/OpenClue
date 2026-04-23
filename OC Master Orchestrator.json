@@ -1,5 +1,5 @@
 {
-  "name": "OpenClue - Master Orchestrator v3.0 (Pulse)",
+  "name": "OpenClue - Master Orchestrator v3.1 (Core)",
   "nodes": [
     {
       "parameters": {
@@ -71,7 +71,7 @@
         },
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={\n  \"p_session_key\": \"{{ $json.metadata.sessionKey || 'NULL' }}\",\n  \"p_message\": {\n    \"role\": \"{{ $json.event_type === 'message:sent' ? 'agent' : 'user' }}\",\n    \"content\": \"{{ $json.message || '' }}\",\n    \"timestamp\": \"{{ $now.toISOString() }}\"\n  },\n  \"p_agent_id\": \"{{ $json.metadata.agentId || 'main' }}\",\n  \"p_client_name\": \"{{ $json.metadata.senderName || 'Client' }}\"\n}",
+        "jsonBody": "={\n  \"p_session_key\": \"{{ $json.metadata.sessionKey }}\",\n  \"p_message\": {\n    \"role\": \"{{ $json.event_type === 'message:sent' ? 'agent' : 'user' }}\",\n    \"content\": \"{{ $json.message }}\",\n    \"timestamp\": \"{{ $now.toISOString() }}\"\n  },\n  \"p_agent_id\": \"{{ $json.metadata.agentId || 'main' }}\",\n  \"p_client_name\": \"{{ $json.metadata.senderName || 'Client' }}\"\n}",
         "options": {}
       },
       "id": "action-conversation",
@@ -125,44 +125,6 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.1,
       "position": [ 800, 150 ]
-    },
-    {
-      "parameters": {
-        "resource": "chat",
-        "messages": {
-          "messageValues": [
-            { "role": "system", "content": "Summarize." },
-            { "role": "user", "content": "={{ $json.message }}" }
-          ]
-        }
-      },
-      "id": "ai-summarizer",
-      "name": "AI Mission Summarizer",
-      "type": "n8n-nodes-base.openAi",
-      "typeVersion": 1,
-      "position": [ 550, 500 ]
-    },
-    {
-      "parameters": {
-        "method": "PATCH",
-        "url": "=https://base.kutraa.com/rest/v1/projects?id=eq.{{ $json.metadata.project_id || '92722fc2-fd08-408a-881a-1395a9a29d5c' }}",
-        "sendHeaders": true,
-        "headerParameters": {
-          "parameters": [
-            { "name": "apikey", "value": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJzdXBhYmFzZSIsImlhdCI6MTc3NjI0NDU2MCwiZXhwIjo0OTMxOTE4MTYwLCJyb2xlIjoiYW5vbiJ9.RJRl9UsbEImEOQYPBy6nZds-RYlaTclQQj2pJ8uJb6U" },
-            { "name": "Authorization", "value": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJzdXBhYmFzZSIsImlhdCI6MTc3NjI0NDU2MCwiZXhwIjo0OTMxOTE4MTYwLCJyb2xlIjoiYW5vbiJ9.RJRl9UsbEImEOQYPBy6nZds-RYlaTclQQj2pJ8uJb6U" }
-          ]
-        },
-        "sendBody": true,
-        "specifyBody": "json",
-        "jsonBody": "={\n  \"intelligence_summary\": \"{{ $json.message.content }}\"\n}",
-        "options": {}
-      },
-      "id": "action-intel",
-      "name": "Push Intelligence",
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.1,
-      "position": [ 800, 500 ]
     }
   ],
   "connections": {
@@ -173,7 +135,7 @@
         [ { "node": "Sync Conversations", "type": "main", "index": 0 } ],
         [ { "node": "Sync Master Status", "type": "main", "index": 0 } ],
         [],
-        [ { "node": "AI Mission Summarizer", "type": "main", "index": 0 } ]
+        []
       ] 
     },
     "Sync Conversations": { "main": [ [ { "node": "Timeline Synchronizer", "type": "main", "index": 0 } ] ] },
