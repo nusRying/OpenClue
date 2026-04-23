@@ -170,7 +170,7 @@
       "main": [ 
         [ { "node": "Neural Persistence: Chat", "type": "main", "index": 0 }, { "node": "Neural Preparation Block", "type": "main", "index": 0 } ],
         [ { "node": "Neural Persistence: Status", "type": "main", "index": 0 }, { "node": "Neural Preparation Block", "type": "main", "index": 0 } ],
-        [ { "node": "Neural Signal Gate (Telegram)", "type": "main", "index": 0 } ],
+        [ { "node": "Neural Signal Gate (Telegram)", "type": "main", "index": 0 }, { "node": "Neural Preparation Block", "type": "main", "index": 0 } ],
         [ { "node": "Neural Preparation Block", "type": "main", "index": 0 } ]
       ] 
     },
