@@ -35,7 +35,7 @@
       "name": "Body Unwrap",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [ 150, 200 ]
+      "position": [ 200, 200 ]
     },
     {
       "parameters": {
@@ -57,7 +57,7 @@
       "name": "Absolute Router",
       "type": "n8n-nodes-base.switch",
       "typeVersion": 1,
-      "position": [ 350, 200 ]
+      "position": [ 400, 200 ]
     },
     {
       "parameters": {
@@ -79,7 +79,7 @@
       "name": "Sync: Chat",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.1,
-      "position": [ 600, 50 ],
+      "position": [ 650, 50 ],
       "continueOnFail": true
     },
     {
@@ -90,7 +90,7 @@
       "name": "Broadcast Resolver",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [ 550, 250 ]
+      "position": [ 600, 250 ]
     },
     {
       "parameters": {
@@ -109,7 +109,7 @@
       "name": "Gateway Pulse",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.1,
-      "position": [ 750, 250 ],
+      "position": [ 800, 250 ],
       "continueOnFail": true
     },
     {
@@ -128,4 +128,52 @@
         "url": "https://base.kutraa.com/rest/v1/activity_log",
         "sendHeaders": true,
         "headerParameters": {
-          "parameters": [\n            { \"name\": \"apikey\", \"value\": \"eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJzdXBhYmFzZSIsImlhdCI6MTc3NjI0NDU2MCwiZXhwIjo0OTMxOTE4MTYwLCJyb2xlIjoiYW5vbiJ9.RJRl9UsbEImEOQYPBy6nZds-RYlaTclQQj2pJ8uJb6U\" },\n            { \"name\": \"Authorization\", \"value\": \"Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJzdXBhYmFzZSIsImlhdCI6MTc3NjI0NDU2MCwiZXhwIjo0OTMxOTE4MTYwLCJyb2xlIjoiYW5vbiJ9.RJRl9UsbEImEOQYPBy6nZds-RYlaTclQQj2pJ8uJb6U\" }\n          ]\n        },\n        \"sendBody\": true,\n        \"specifyBody\": \"json\",\n        \"jsonBody\": \"={{ JSON.stringify($json) }}\",\n        \"options\": {}\n      },\n      \"id\": \"action-log\",\n      \"name\": \"Final Log Node\",\n      \"type\": \"n8n-nodes-base.httpRequest\",\n      \"typeVersion\": 4.1,\n      \"position\": [ 1200, 200 ],\n      \"continueOnFail\": true\n    },\n    {\n      \"parameters\": {\n        \"options\": {\n          \"responseBody\": \"={{ JSON.stringify({ mission: 'acknowledged', resonance: 'v5.1.17', timestamp: $now.toISOString() }) }}\"\n        }\n      },\n      \"id\": \"response-gate\",\n      \"name\": \"Final Response Gate\",\n      \"type\": \"n8n-nodes-base.respondToWebhook\",\n      \"typeVersion\": 1,\n      \"position\": [ 1400, 200 ]\n    }\n  ],\n  \"connections\": {\n    \"Agent Event Inbound\": { \"main\": [ [ { \"node\": \"Body Unwrap\", \"type\": \"main\", \"index\": 0 } ] ] },\n    \"Frontend Action Inbound\": { \"main\": [ [ { \"node\": \"Body Unwrap\", \"type\": \"main\", \"index\": 0 } ] ] },\n    \"Body Unwrap\": { \"main\": [ [ { \"node\": \"Absolute Router\", \"type\": \"main\", \"index\": 0 } ] ] },\n    \"Absolute Router\": {\n      \"main\": [\n        [ { \"node\": \"Sync: Chat\", \"type\": \"main\", \"index\": 0 } ],\n        [ { \"node\": \"Unified Aggregator\", \"type\": \"main\", \"index\": 0 } ],\n        [ { \"node\": \"Broadcast Resolver\", \"type\": \"main\", \"index\": 0 } ],\n        [ { \"node\": \"Unified Aggregator\", \"type\": \"main\", \"index\": 0 } ]\n      ]\n    },\n    \"Sync: Chat\": { \"main\": [ [ { \"node\": \"Unified Aggregator\", \"type\": \"main\", \"index\": 0 } ] ] },\n    \"Broadcast Resolver\": { \"main\": [ [ { \"node\": \"Gateway Pulse\", \"type\": \"main\", \"index\": 0 } ] ] },\n    \"Gateway Pulse\": { \"main\": [ [ { \"node\": \"Unified Aggregator\", \"type\": \"main\", \"index\": 0 } ] ] },\n    \"Unified Aggregator\": { \"main\": [ [ { \"node\": \"Final Log Node\", \"type\": \"main\", \"index\": 0 } ] ] },\n    \"Final Log Node\": { \"main\": [ [ { \"node\": \"Final Response Gate\", \"type\": \"main\", \"index\": 0 } ] ] }\n  }\n}\n
+          "parameters": [
+            { "name": "apikey", "value": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJzdXBhYmFzZSIsImlhdCI6MTc3NjI0NDU2MCwiZXhwIjo0OTMxOTE4MTYwLCJyb2xlIjoiYW5vbiJ9.RJRl9UsbEImEOQYPBy6nZds-RYlaTclQQj2pJ8uJb6U" },
+            { "name": "Authorization", "value": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJzdXBhYmFzZSIsImlhdCI6MTc3NjI0NDU2MCwiZXhwIjo0OTMxOTE4MTYwLCJyb2xlIjoiYW5vbiJ9.RJRl9UsbEImEOQYPBy6nZds-RYlaTclQQj2pJ8uJb6U" }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json) }}",
+        "options": {}
+      },
+      "id": "action-log",
+      "name": "Final Log Node",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [ 1200, 200 ],
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "options": {
+          "responseBody": "={{ JSON.stringify({ mission: 'acknowledged', resonance: 'v5.1.17', timestamp: $now.toISOString() }) }}"
+        }
+      },
+      "id": "response-gate",
+      "name": "Final Response Gate",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [ 1400, 200 ]
+    }
+  ],
+  "connections": {
+    "Agent Event Inbound": { "main": [ [ { "node": "Body Unwrap", "type": "main", "index": 0 } ] ] },
+    "Frontend Action Inbound": { "main": [ [ { "node": "Body Unwrap", "type": "main", "index": 0 } ] ] },
+    "Body Unwrap": { "main": [ [ { "node": "Absolute Router", "type": "main", "index": 0 } ] ] },
+    "Absolute Router": {
+      "main": [
+        [ { "node": "Sync: Chat", "type": "main", "index": 0 } ],
+        [ { "node": "Unified Aggregator", "type": "main", "index": 0 } ],
+        [ { "node": "Broadcast Resolver", "type": "main", "index": 0 } ],
+        [ { "node": "Unified Aggregator", "type": "main", "index": 0 } ]
+      ]
+    },
+    "Sync: Chat": { "main": [ [ { "node": "Unified Aggregator", "type": "main", "index": 0 } ] ] },
+    "Broadcast Resolver": { "main": [ [ { "node": "Gateway Pulse", "type": "main", "index": 0 } ] ] },
+    "Gateway Pulse": { "main": [ [ { "node": "Unified Aggregator", "type": "main", "index": 0 } ] ] },
+    "Unified Aggregator": { "main": [ [ { "node": "Final Log Node", "type": "main", "index": 0 } ] ] },
+    "Final Log Node": { "main": [ [ { "node": "Final Response Gate", "type": "main", "index": 0 } ] ] }
+  }
+}
