@@ -1,5 +1,5 @@
 {
-  "name": "OpenClue - Master Orchestrator v5.1.6 (Internal-Direct)",
+  "name": "OpenClue - Master Orchestrator v5.1.7 (Resonance-Stabilized)",
   "nodes": [
     {
       "parameters": {
@@ -11,8 +11,7 @@
       "id": "agent-events",
       "name": "Agent Event Inbound",
       "type": "n8n-nodes-base.webhook",
-      "typeVersion": 2.1,
-      "webhookId": "2f75e1c4-13b2-4a17-a550-6d1f030c2d61",
+      "typeVersion": 1,
       "position": [ 0, 100 ]
     },
     {
@@ -25,8 +24,7 @@
       "id": "frontend-actions",
       "name": "Frontend Action Inbound",
       "type": "n8n-nodes-base.webhook",
-      "typeVersion": 2.1,
-      "webhookId": "4c8ad4a7-0d8e-48bb-9e44-d4e8b3e4473d",
+      "typeVersion": 1,
       "position": [ 0, 300 ]
     },
     {
@@ -74,7 +72,7 @@
         },
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={{ JSON.stringify({\n  p_session_key: $json.metadata.sessionKey || 'UNTRACKED',\n  p_message: {\n    role: ($json.event_type || $json.action) === 'message:sent' ? 'agent' : 'user',\n    content: $json.message || $json.description || 'Heartbeat signal.',\n    timestamp: $now.toISOString(),\n    metadata: {\n      priority: $json.priority || 'medium',\n      orchestrator_v: '5.1.6'\n    }\n  },\n  p_agent_id: $json.metadata.agentId || 'main',\n  p_client_name: $json.metadata.senderName || 'Mission Client'\n}) }}",
+        "jsonBody": "={{ JSON.stringify({\n  p_session_key: $json.metadata.sessionKey || 'UNTRACKED',\n  p_message: {\n    role: ($json.event_type || $json.action) === 'message:sent' ? 'agent' : 'user',\n    content: $json.message || $json.description || 'Heartbeat signal.',\n    timestamp: $now.toISOString(),\n    metadata: {\n      priority: $json.priority || 'medium',\n      orchestrator_v: '5.1.7'\n    }\n  },\n  p_agent_id: $json.metadata.agentId || 'main',\n  p_client_name: $json.metadata.senderName || 'Mission Client'\n}) }}",
         "options": {}
       },
       "id": "action-conversation",
@@ -109,7 +107,7 @@
     },
     {
       "parameters": {
-        "jsCode": "// Resolve broadcast: map agent UUIDs to names and create one item per target agent\nconst item = $input.item.json;\nconst meta = item.metadata || {};\n\nconst AGENT_MAP = {\n  'b760f890-e68b-48a7-9c93-a74a2ba7fa89': 'main',\n  '1b92b1f5-570f-4c15-95cf-64eebcb03647': 'promo',\n  '161deb43-0dc0-4b2d-9c09-56387314ad59': 'digit',\n  '7d768392-879f-4bb4-ae40-c4ac96aea00a': 'string'\n};\n\nconst agentIds = meta.agent_ids || [];\nconst agentNames = agentIds.map(id => AGENT_MAP[id] || id).filter(Boolean);\nif (agentNames.length === 0) agentNames.push('main');\n\nconst items = agentNames.map(name => ({\n  json: {\n    agentName: name,\n    message: item.message || item.description || 'Broadcast pulse.',\n    channel: meta.channel || 'telegram',\n    to: meta.to || '',\n    sessionKey: meta.sessionKey || ''\n  }\n}));\n\nreturn items;"
+        "jsCode": "// Resolve broadcast: map agent IDs to names\nconst item = $input.item.json;\nconst meta = item.metadata || {};\n\nconst AGENT_MAP = {\n  'b760f890-e68b-48a7-9c93-a74a2ba7fa89': 'main',\n  '1b92b1f5-570f-4c15-95cf-64eebcb03647': 'promo',\n  '161deb43-0dc0-4b2d-9c09-56387314ad59': 'digit',\n  '7d768392-879f-4bb4-ae40-c4ac96aea00a': 'string'\n};\n\nconst agentIds = meta.agent_ids || [];\nconst agentNames = agentIds.map(id => AGENT_MAP[id] || id).filter(Boolean);\nif (agentNames.length === 0) agentNames.push('main');\n\nconst items = agentNames.map(name => ({\n  json: {\n    agentName: name,\n    message: item.message || item.description || 'Broadcast pulse.',\n    channel: meta.channel || 'telegram',\n    to: meta.to || '',\n    sessionKey: meta.sessionKey || ''\n  }\n}));\n\nreturn items;"
       },
       "id": "broadcast-resolver",
       "name": "Broadcast Resolver",
@@ -120,11 +118,12 @@
     {
       "parameters": {
         "method": "POST",
-        "url": "=https://base.kutraa.com/hooks/n8n-{{ $json.agentName }}",
+        "url": "=http://tofyq3lga15o3184lxde506q:18789/hooks/n8n-{{ $json.agentName }}",
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
-            { "name": "X-OpenClaw-Token", "value": "123067fac98b189c77bda93c45acb9b82cb142a01e3249cd" },
+            { "name": "Authorization", "value": "Bearer 46cf3441242627eabf8eb5c32d2e0d7f" },
+            { "name": "X-OpenClaw-Token", "value": "46cf3441242627eabf8eb5c32d2e0d7f" },
             { "name": "Content-Type", "value": "application/json" }
           ]
         },
@@ -142,7 +141,7 @@
     },
     {
       "parameters": {
-        "jsCode": "const item = $input.item.json;\nconst meta = item.metadata || {};\nconst text = item.message || item.description || item.text || 'Mission pulse acknowledged.';\n\nconst payload = {\n  event_type: item.action || item.event_type || 'unclassified',\n  description: text,\n  metadata: {\n    ...meta,\n    source: 'OpenClue Orchestrator v5.1.6',\n    priority: item.priority || 'medium'\n  }\n};\n\nif (meta.agentId) payload.agent_id = meta.agentId;\nif (meta.project_id && meta.project_id.length === 36) {\n  payload.project_id = meta.project_id;\n}\n\nreturn { json: payload };"
+        "jsCode": "const item = $input.item.json;\nconst meta = item.metadata || {};\nconst text = item.message || item.description || item.text || 'Mission pulse acknowledged.';\n\nconst payload = {\n  event_type: item.action || item.event_type || 'unclassified',\n  description: text,\n  metadata: {\n    ...meta,\n    source: 'OpenClue Orchestrator v5.1.7',\n    priority: item.priority || 'medium'\n  }\n};\n\nif (meta.agentId) payload.agent_id = meta.agentId;\nif (meta.project_id && meta.project_id.length === 36) {\n  payload.project_id = meta.project_id;\n}\n\nreturn { json: payload };"
       },
       "id": "payload-shield",
       "name": "Neural Preparation Block",
@@ -175,7 +174,7 @@
     {
       "parameters": {
         "options": {
-          "responseBody": "={{ JSON.stringify({\n  mission: 'acknowledged',\n  signal_id: $execution.id,\n  resonance_v: '5.1.6',\n  timestamp: $now.toISOString()\n}) }}"
+          "responseBody": "={{ JSON.stringify({\n  mission: 'acknowledged',\n  signal_id: $execution.id,\n  resonance_v: '5.1.7',\n  timestamp: $now.toISOString()\n}) }}"
         }
       },
       "id": "final-response",
