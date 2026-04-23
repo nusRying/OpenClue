@@ -12,7 +12,10 @@
       "name": "Agent Event Inbound",
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 1,
-      "position": [ 0, 100 ]
+      "position": [
+        0,
+        100
+      ]
     },
     {
       "parameters": {
@@ -25,7 +28,10 @@
       "name": "Frontend Action Inbound",
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 1,
-      "position": [ 0, 300 ]
+      "position": [
+        0,
+        300
+      ]
     },
     {
       "parameters": {
@@ -35,7 +41,10 @@
       "name": "Body Unwrap",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [ 200, 200 ]
+      "position": [
+        200,
+        200
+      ]
     },
     {
       "parameters": {
@@ -43,12 +52,32 @@
         "value1": "={{ ($json.action || $json.event_type || 'unclassified').toString() }}",
         "rules": {
           "rules": [
-            { "value2": "message:sent", "output": 0 },
-            { "value2": "message:received", "output": 0 },
-            { "value2": "session_end", "output": 3 },
-            { "operation": "startsWith", "value2": "session_", "output": 1 },
-            { "value2": "broadcast", "output": 2 },
-            { "operation": "startsWith", "value2": "task:", "output": 2 }
+            {
+              "value2": "message:sent",
+              "output": 0
+            },
+            {
+              "value2": "message:received",
+              "output": 0
+            },
+            {
+              "value2": "session_end",
+              "output": 3
+            },
+            {
+              "operation": "startsWith",
+              "value2": "session_",
+              "output": 1
+            },
+            {
+              "value2": "broadcast",
+              "output": 2
+            },
+            {
+              "operation": "startsWith",
+              "value2": "task:",
+              "output": 2
+            }
           ]
         },
         "fallbackOutput": 3
@@ -57,7 +86,10 @@
       "name": "Absolute Router",
       "type": "n8n-nodes-base.switch",
       "typeVersion": 1,
-      "position": [ 400, 200 ]
+      "position": [
+        400,
+        200
+      ]
     },
     {
       "parameters": {
@@ -66,8 +98,14 @@
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
-            { "name": "apikey", "value": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJzdXBhYmFzZSIsImlhdCI6MTc3NjI0NDU2MCwiZXhwIjo0OTMxOTE4MTYwLCJyb2xlIjoiYW5vbiJ9.RJRl9UsbEImEOQYPBy6nZds-RYlaTclQQj2pJ8uJb6U" },
-            { "name": "Authorization", "value": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJzdXBhYmFzZSIsImlhdCI6MTc3NjI0NDU2MCwiZXhwIjo0OTMxOTE4MTYwLCJyb2xlIjoiYW5vbiJ9.RJRl9UsbEImEOQYPBy6nZds-RYlaTclQQj2pJ8uJb6U" }
+            {
+              "name": "apikey",
+              "value": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJzdXBhYmFzZSIsImlhdCI6MTc3NjI0NDU2MCwiZXhwIjo0OTMxOTE4MTYwLCJyb2xlIjoiYW5vbiJ9.RJRl9UsbEImEOQYPBy6nZds-RYlaTclQQj2pJ8uJb6U"
+            },
+            {
+              "name": "Authorization",
+              "value": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJzdXBhYmFzZSIsImlhdCI6MTc3NjI0NDU2MCwiZXhwIjo0OTMxOTE4MTYwLCJyb2xlIjoiYW5vbiJ9.RJRl9UsbEImEOQYPBy6nZds-RYlaTclQQj2pJ8uJb6U"
+            }
           ]
         },
         "sendBody": true,
@@ -79,7 +117,10 @@
       "name": "Sync: Chat",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.1,
-      "position": [ 650, 50 ],
+      "position": [
+        650,
+        50
+      ],
       "continueOnFail": true
     },
     {
@@ -90,7 +131,10 @@
       "name": "Broadcast Resolver",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [ 600, 250 ]
+      "position": [
+        600,
+        250
+      ]
     },
     {
       "parameters": {
@@ -98,7 +142,12 @@
         "url": "=http://tofyq3lga15o3184lxde506q:18789/hooks/n8n-{{ $json.name }}",
         "sendHeaders": true,
         "headerParameters": {
-          "parameters": [ { "name": "Authorization", "value": "Bearer 46cf3441242627eabf8eb5c32d2e0d7f" } ]
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer 46cf3441242627eabf8eb5c32d2e0d7f"
+            }
+          ]
         },
         "sendBody": true,
         "specifyBody": "json",
@@ -109,7 +158,10 @@
       "name": "Neural Gateway Pulse",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.1,
-      "position": [ 800, 200 ],
+      "position": [
+        800,
+        200
+      ],
       "continueOnFail": true
     },
     {
@@ -118,4 +170,31 @@
         "url": "=http://tofyq3lga15o3184lxde506q:18789/hooks/n8n-{{ $json.name }}",
         "sendHeaders": true,
         "headerParameters": {
-          "parameters": [\n            { \"name\": \"Authorization\", \"value\": \"Bearer 46cf3441242627eabf8eb5c32d2e0d7f\" },\n            { \"name\": \"Content-Type\", \"value\": \"application/json\" }\n          ]\n        },\n        \"sendBody\": true,\n        \"specifyBody\": \"json\",\n        \"jsonBody\": \"={ \\\"message\\\": \\\"{{ $json.message }}\\\", \\\"sessionKey\\\": \\\"{{ $json.key }}\\\", \\\"to\\\": \\\"{{ $json.to }}\\\", \\\"channel\\\": \\\"telegram\\\" }\",\n        \"options\": {}\n      },\n      \"id\": \"internal-directive\",\n      \"name\": \"Neural Agent Directive\",\n      \"type\": \"n8n-nodes-base.httpRequest\",\n      \"typeVersion\": 4.1,\n      \"position\": [ 800, 350 ],\n      \"continueOnFail\": true\n    },\n    {\n      \"parameters\": {\n        \"jsCode\": \"// Unified Aggregator - Consolidates all branches and preserves project ID for UI Log\\nconst all = $input.all();\\nconst first = all[0].json;\\nconst orig = first.original || first;\\nconst project_id = first.project_id || orig.project_id || (orig.metadata ? orig.metadata.project_id : null);\\n\\nreturn {\\n  json: {\\n    event_type: 'mission_pulse',\\n    project_id: project_id,\\n    description: orig.message || 'Unified signal verified.',\\n    metadata: { version: '5.1.19', branch_count: all.length, source: 'orch_v5' }\\n  }\\n};\"\n      },\n      \"id\": \"unified-aggregator\",\n      \"name\": \"Unified Aggregator\",\n      \"type\": \"n8n-nodes-base.code\",\n      \"typeVersion\": 2,\n      \"position\": [ 1050, 250 ]\n    },\n    {\n      \"parameters\": {\n        \"method\": \"POST\",\n        \"url\": \"https://base.kutraa.com/rest/v1/activity_log\",\n        \"sendHeaders\": true,\n        \"headerParameters\": {\n          \"parameters\": [\n            { \"name\": \"apikey\", \"value\": \"eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJzdXBhYmFzZSIsImlhdCI6MTc3NjI0NDU2MCwiZXhwIjo0OTMxOTE4MTYwLCJyb2xlIjoiYW5vbiJ9.RJRl9UsbEImEOQYPBy6nZds-RYlaTclQQj2pJ8uJb6U\" },\n            { \"name\": \"Authorization\", \"value\": \"Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJzdXBhYmFzZSIsImlhdCI6MTc3NjI0NDU2MCwiZXhwIjo0OTMxOTE4MTYwLCJyb2xlIjoiYW5vbiJ9.RJRl9UsbEImEOQYPBy6nZds-RYlaTclQQj2pJ8uJb6U\" }\n          ]\n        },\n        \"sendBody\": true,\n        \"specifyBody\": \"json\",\n        \"jsonBody\": \"={{ JSON.stringify($json) }}\",\n        \"options\": {}\n      },\n      \"id\": \"action-log\",\n      \"name\": \"Final Log Node\",\n      \"type\": \"n8n-nodes-base.httpRequest\",\n      \"typeVersion\": 4.1,\n      \"position\": [ 1250, 250 ],\n      \"continueOnFail\": true\n    },\n    {\n      \"parameters\": {\n        \"options\": {\n          \"responseBody\": \"={{ JSON.stringify({ mission: 'acknowledged', resonance: 'v5.1.19', timestamp: $now.toISOString(), project_context: $json.project_id }) }}\"\n        }\n      },\n      \"id\": \"response-gate\",\n      \"name\": \"Final Response Gate\",\n      \"type\": \"n8n-nodes-base.respondToWebhook\",\n      \"typeVersion\": 1,\n      \"position\": [ 1450, 250 ]\n    }\n  ],\n  \"connections\": {\n    \"Agent Event Inbound\": { \"main\": [ [ { \"node\": \"Body Unwrap\", \"type\": \"main\", \"index\": 0 } ] ] },\n    \"Frontend Action Inbound\": { \"main\": [ [ { \"node\": \"Body Unwrap\", \"type\": \"main\", \"index\": 0 } ] ] },\n    \"Body Unwrap\": { \"main\": [ [ { \"node\": \"Absolute Router\", \"type\": \"main\", \"index\": 0 } ] ] },\n    \"Absolute Router\": {\n      \"main\": [\n        [ { \"node\": \"Sync: Chat\", \"type\": \"main\", \"index\": 0 } ],\n        [ { \"node\": \"Unified Aggregator\", \"type\": \"main\", \"index\": 0 } ],\n        [ { \"node\": \"Broadcast Resolver\", \"type\": \"main\", \"index\": 0 } ],\n        [ { \"node\": \"Unified Aggregator\", \"type\": \"main\", \"index\": 0 } ]\n      ]\n    },\n    \"Sync: Chat\": { \"main\": [ [ { \"node\": \"Unified Aggregator\", \"type\": \"main\", \"index\": 0 } ] ] },\n    \"Broadcast Resolver\": { \"main\": [ [ { \"node\": \"Neural Gateway Pulse\", \"type\": \"main\", \"index\": 0 }, { \"node\": \"Neural Agent Directive\", \"type\": \"main\", \"index\": 0 } ] ] },\n    \"Neural Gateway Pulse\": { \"main\": [ [ { \"node\": \"Unified Aggregator\", \"type\": \"main\", \"index\": 0 } ] ] },\n    \"Neural Agent Directive\": { \"main\": [ [ { \"node\": \"Unified Aggregator\", \"type\": \"main\", \"index\": 0 } ] ] },\n    \"Unified Aggregator\": { \"main\": [ [ { \"node\": \"Final Log Node\", \"type\": \"main\", \"index\": 0 } ] ] },\n    \"Final Log Node\": { \"main\": [ [ { \"node\": \"Final Response Gate\", \"type\": \"main\", \"index\": 0 } ] ] }\n  }\n}\n
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer 46cf3441242627eabf8eb5c32d2e0d7f"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={ \"message\": \"{{ $json.message }}\", \"to\": \"{{ $json.to }}\", \"sessionKey\": \"{{ $json.key }}\", \"priority\": \"high\", \"project_id\": \"{{ $json.project_id }}\" }",
+        "options": {}
+      },
+      "id": "internal-directive",
+      "name": "Neural Agent Directive",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        800,
+        350
+      ],
+      "continueOnFail": true
+    }
+  ]
+}
