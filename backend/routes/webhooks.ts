@@ -29,6 +29,43 @@ async function resolveAgentUuid(supabase: ReturnType<typeof getSupabase>, agentN
   return data?.id ?? null;
 }
 
+async function insertActivityLog(
+  supabase: ReturnType<typeof getSupabase>,
+  payload: Record<string, unknown>
+) {
+  let currentPayload = { ...payload };
+
+  for (let attempt = 0; attempt < 4; attempt += 1) {
+    const result = await supabase
+      .from('activity_log')
+      .insert(currentPayload)
+      .select()
+      .single();
+
+    if (!result.error) return result;
+    if (result.error.code !== 'PGRST204') return result;
+
+    const match = String(result.error.message || '').match(/'([^']+)'/);
+    const missingColumn = match?.[1];
+    if (!missingColumn) return result;
+
+    // If message doesn't exist but description does, map to description.
+    if (missingColumn === 'message' && typeof currentPayload.message === 'string') {
+      currentPayload = {
+        ...currentPayload,
+        description: currentPayload.message,
+      };
+    }
+
+    delete currentPayload[missingColumn];
+  }
+
+  return {
+    data: null,
+    error: { code: 'PGRST204', message: 'Failed to insert activity_log after fallback attempts' },
+  };
+}
+
 // Extract agent name from sessionKey (format: agent:mehzam:telegram:group:...)
 function extractAgentFromSessionKey(sessionKey: string): string | null {
   const parts = sessionKey.split(':');
@@ -90,18 +127,14 @@ export async function webhooksRouter(fastify: FastifyInstance) {
     }
 
     // Log to activity_log
-    const { data: activity, error: activityError } = await supabase
-      .from('activity_log')
-      .insert({
-        event_type: event_type || 'session_event',
-        message: messageText,
-        agent_id: agentUuid || agentName,
-        project_id: metadata?.project_id as string,
-        task_id: metadata?.task_id as string,
-        metadata: metadata || {},
-      })
-      .select()
-      .single();
+    const { data: activity, error: activityError } = await insertActivityLog(supabase, {
+      event_type: event_type || 'session_event',
+      message: messageText,
+      agent_id: agentUuid || null,
+      project_id: metadata?.project_id as string,
+      task_id: metadata?.task_id as string,
+      metadata: { ...(metadata || {}), agent_name: agentName },
+    });
 
     if (activityError) {
       console.error('[Webhook] Failed to insert activity_log:', activityError);
@@ -142,7 +175,7 @@ export async function webhooksRouter(fastify: FastifyInstance) {
         tool_name: tool_name as string || 'unknown',
         started_at: new Date().toISOString(),
         success: true,
-        metadata: metadata || {},
+        metadata: { ...(metadata || {}), agent_name: agentName },
       })
       .select()
       .single();
@@ -204,10 +237,10 @@ export async function webhooksRouter(fastify: FastifyInstance) {
 
       // Log activity for failed tools
       if (success === false) {
-        const { error: logError } = await supabase.from('activity_log').insert({
+        const { error: logError } = await insertActivityLog(supabase, {
           event_type: 'tool_end',
           message: `❌ Tool *${tool_name}* failed: ${error_message || 'unknown error'}`,
-          agent_id: agentUuid || agentName,
+          agent_id: agentUuid || null,
           metadata: { tool_name, duration_ms: durationMs, error_message, agentName },
         });
 

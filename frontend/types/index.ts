@@ -37,6 +37,8 @@ export interface Task {
   status: TaskStatus;
   priority: Priority;
   assignee_ids: string[];
+  assignee_names?: string[];
+  assignees?: Array<{ id: string; name: string; emoji: string; role: string }>;
   due_date?: string;
   tags: string[];
   created_at: string;

@@ -1,7 +1,8 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import type { Task, TaskStatus, Project, Agent } from '@/types'
+import { enrichTasksWithAssignees, getAssigneeNames } from '@/lib/taskEnricher'
 import { NewTaskModal } from '@/components/modals/NewTaskModal'
 import { EditTaskModal } from '@/components/modals/EditTaskModal'
 
@@ -36,9 +37,12 @@ export function TaskBoard({ tasks, projects, agents, onStatusChange, onCreateTas
   const [showNewModal, setShowNewModal] = useState(false)
   const [editTask, setEditTask] = useState<Task | null>(null)
 
+  // Enrich tasks with assignee data
+  const enrichedTasks = useMemo(() => enrichTasksWithAssignees(tasks, agents), [tasks, agents])
+
   const filteredTasks = selectedProjectId
-    ? tasks.filter(t => t.project_id === selectedProjectId)
-    : tasks
+    ? enrichedTasks.filter(t => t.project_id === selectedProjectId)
+    : enrichedTasks
 
   function handleDragStart(_: React.DragEvent, task: Task) {
     setDraggedTask(task)
@@ -164,40 +168,55 @@ export function TaskBoard({ tasks, projects, agents, onStatusChange, onCreateTas
                         {task.title}
                       </p>
 
-                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '0.25rem' }}>
-                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.25rem' }}>
-                          {(task.tags || []).slice(0, 2).map(tag => (
-                            <span key={tag} style={{ fontSize: '0.625rem', fontWeight: 700, padding: '2px 8px', borderRadius: '4px', background: 'var(--bg-elevated)', color: 'var(--text-tertiary)', textTransform: 'uppercase' }}>
-                              {tag}
-                            </span>
-                          ))}
-                          {!task.tags?.length && <span style={{ fontSize: '0.625rem', fontWeight: 700, padding: '2px 8px', borderRadius: '4px', background: 'var(--bg-elevated)', color: 'var(--text-tertiary)', textTransform: 'uppercase' }}>TASK</span>}
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '0.5rem', paddingTop: '0.5rem', borderTop: '1px solid var(--border-subtle)' }}>
+                        {/* Assignees */}
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <p style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)', margin: '0 0 0.25rem 0', fontWeight: 600, textTransform: 'uppercase' }}>
+                            Assigned to
+                          </p>
+                          <p style={{ fontSize: '0.8125rem', color: 'var(--text-secondary)', margin: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                            {getAssigneeNames(task)}
+                          </p>
                         </div>
 
                         {/* Multi-Agent Avatars */}
-                        <div style={{ display: 'flex', alignItems: 'center', marginLeft: 'auto' }}>
-                          {(task.assignee_ids || []).map((id, idx) => {
-                            const agent = agents.find(a => a.id === id)
-                            if (!agent) return null
-                            return (
-                              <div
-                                key={agent.id}
-                                title={agent.name}
-                                style={{
-                                  width: 24, height: 24, borderRadius: '50%',
-                                  background: 'var(--bg-elevated)',
-                                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                  fontSize: '0.875rem', border: '2px solid var(--bg-base)',
-                                  boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
-                                  marginLeft: idx === 0 ? 0 : -8,
-                                  zIndex: 10 - idx,
-                                  position: 'relative'
-                                }}
-                              >
-                                {agent.emoji}
-                              </div>
-                            )
-                          })}
+                        <div style={{ display: 'flex', alignItems: 'center', marginLeft: '0.5rem' }}>
+                          {(task.assignees || []).slice(0, 3).map((assignee, idx) => (
+                            <div
+                              key={assignee.id}
+                              title={assignee.name}
+                              style={{
+                                width: 24, height: 24, borderRadius: '50%',
+                                background: 'var(--bg-elevated)',
+                                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                fontSize: '0.875rem', border: '2px solid var(--bg-base)',
+                                boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+                                marginLeft: idx === 0 ? 0 : -8,
+                                zIndex: 10 - idx,
+                                position: 'relative'
+                              }}
+                            >
+                              {assignee.emoji}
+                            </div>
+                          ))}
+                          {(task.assignees || []).length > 3 && (
+                            <div
+                              title={`+${(task.assignees || []).length - 3} more`}
+                              style={{
+                                width: 24, height: 24, borderRadius: '50%',
+                                background: 'var(--bg-elevated)',
+                                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                fontSize: '0.75rem', fontWeight: 700, border: '2px solid var(--bg-base)',
+                                boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+                                marginLeft: -8,
+                                zIndex: 7,
+                                position: 'relative',
+                                color: 'var(--text-secondary)'
+                              }}
+                            >
+                              +{(task.assignees || []).length - 3}
+                            </div>
+                          )}
                         </div>
                       </div>
                     </div>

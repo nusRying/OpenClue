@@ -36,10 +36,10 @@ export function NewTaskModal({ isOpen, onClose, onCreate, projects, agents }: {
       await onCreate({
         title: title.trim(),
         description: description.trim(),
-        project_id: projectId || undefined,
+        ...(projectId ? { project_id: projectId } : {}),
         priority,
         assignee_ids: assigneeIds,
-        due_date: dueDate || undefined,
+        ...(dueDate ? { due_date: dueDate } : {}),
         status: 'pending',
       })
       setTitle('')
@@ -169,6 +169,19 @@ export function NewTaskModal({ isOpen, onClose, onCreate, projects, agents }: {
                 )
               })}
             </div>
+            {assigneeIds.length > 0 && (
+              <div style={{ marginTop: '0.75rem', padding: '0.75rem', background: 'var(--bg-elevated)', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-subtle)' }}>
+                <p style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)', margin: '0 0 0.5rem 0', fontWeight: 600, textTransform: 'uppercase' }}>
+                  Selected Assignees
+                </p>
+                <p style={{ fontSize: '0.8125rem', color: 'var(--text-primary)', margin: 0 }}>
+                  {assigneeIds
+                    .map(id => agents.find(a => a.id === id)?.name)
+                    .filter(Boolean)
+                    .join(', ')}
+                </p>
+              </div>
+            )}
           </div>
 
           <div>

@@ -13,6 +13,7 @@ export interface Agent {
   bot_username: string;
   workspace_path: string;
   last_heartbeat: string;
+  last_seen_at?: string | null;
   current_task?: string;
   skills: string[];
   memory: { has_memory_md: boolean };
@@ -35,7 +36,8 @@ export interface Task {
   description?: string;
   status: TaskStatus;
   priority: Priority;
-  assignee_id?: string;
+  assignee_ids: string[];
+  assignee_names: string[];
   due_date?: string;
   tags: string[];
   created_at: string;

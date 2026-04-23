@@ -1,7 +1,8 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import type { Task, Agent, TaskStatus, Priority } from '@/types'
+import { enrichTaskWithAssignees, getAssigneeNames } from '@/lib/taskEnricher'
 
 export function EditTaskModal({ isOpen, onClose, onSave, onDelete, task, agents }: {
   isOpen: boolean
@@ -189,6 +190,19 @@ export function EditTaskModal({ isOpen, onClose, onSave, onDelete, task, agents 
                 )
               })}
             </div>
+            {assigneeIds.length > 0 && (
+              <div style={{ marginTop: '0.75rem', padding: '0.75rem', background: 'var(--bg-elevated)', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-subtle)' }}>
+                <p style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)', margin: '0 0 0.5rem 0', fontWeight: 600, textTransform: 'uppercase' }}>
+                  Selected Assignees
+                </p>
+                <p style={{ fontSize: '0.8125rem', color: 'var(--text-primary)', margin: 0 }}>
+                  {assigneeIds
+                    .map(id => agents.find(a => a.id === id)?.name)
+                    .filter(Boolean)
+                    .join(', ')}
+                </p>
+              </div>
+            )}
           </div>
 
           <div>
