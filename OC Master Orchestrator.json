@@ -1,5 +1,5 @@
 {
-  "name": "OpenClue - Master Orchestrator v4.2 (Resilient Absolute)",
+  "name": "OpenClue - Master Orchestrator v4.3 (Absolute Precision)",
   "nodes": [
     {
       "parameters": {
@@ -62,7 +62,7 @@
         },
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={\n  \"p_session_key\": \"{{ $json.metadata.sessionKey || 'UNTRACKED' }}\",\n  \"p_message\": {\n    \"role\": \"{{ ($json.event_type || $json.action) === 'message:sent' ? 'agent' : 'user' }}\",\n    \"content\": \"{{ $json.message || 'Heartbeat signal.' }}\",\n    \"timestamp\": \"{{ $now.toISOString() }}\",\n    \"metadata\": {\n      \"priority\": \"{{ $json.priority || 'medium' }}\",\n      \"orchestrator_v\": \"4.2\"\n    }\n  },\n  \"p_agent_id\": \"{{ $json.metadata.agentId || 'main' }}\",\n  \"p_client_name\": \"{{ $json.metadata.senderName || 'Mission Client' }}\"\n}",
+        "jsonBody": "={\n  \"p_session_key\": \"{{ $json.metadata.sessionKey || 'UNTRACKED' }}\",\n  \"p_message\": {\n    \"role\": \"{{ ($json.event_type || $json.action) === 'message:sent' ? 'agent' : 'user' }}\",\n    \"content\": \"{{ $json.message || 'Heartbeat signal.' }}\",\n    \"timestamp\": \"{{ $now.toISOString() }}\",\n    \"metadata\": {\n      \"priority\": \"{{ $json.priority || 'medium' }}\",\n      \"orchestrator_v\": \"4.3\"\n    }\n  },\n  \"p_agent_id\": \"{{ $json.metadata.agentId || 'main' }}\",\n  \"p_client_name\": \"{{ $json.metadata.senderName || 'Mission Client' }}\"\n}",
         "options": {}
       },
       "id": "action-conversation",
@@ -85,7 +85,7 @@
         },
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={\n  \"status\": \"{{ ($json.event_type || $json.action) === 'session_start' ? 'online' : 'offline' }}\",\n  \"last_heartbeat\": \"{{ $now.toISOString() }}\"\n}",
+        "jsonBody": "={\n  \"status\": \"{{ ($json.event_type || $json.action) === 'session_start' ? 'online' : 'offline' }}\",\n  \"last_heartbeat\": \"{{ $now.toISOString() }}\",\n  \"metadata\": {\n    \"current_task\": \"{{ $json.message || 'Mission sequence initiated.' }}\"\n  }\n}",
         "options": {}
       },
       "id": "action-status",
@@ -131,7 +131,7 @@
         },
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={\n  \"agent_id\": \"{{ $json.metadata.agentId || 'main' }}\",\n  \"project_id\": \"{{ $json.metadata.project_id || '92722fc2-fd08-408a-881a-1395a9a29d5c' }}\",\n  \"event_type\": \"{{ $json.action || $json.event_type || 'unclassified' }}\",\n  \"message\": \"{{ $json.message || 'Autonomous resonance event.' }}\",\n  \"metadata\": {\n    \"priority\": \"{{ $json.priority || 'medium' }}\",\n    \"source\": \"OpenClue Orchestrator v4.2\"\n  }\n}",
+        "jsonBody": "={\n  \"event_type\": \"{{ $json.action || $json.event_type || 'unclassified' }}\",\n  \"description\": \"{{ $json.message || 'Autonomous resonance event.' }}\",\n  \"metadata\": {\n    \"agent_id\": \"{{ $json.metadata.agentId || 'main' }}\",\n    \"project_id\": \"{{ $json.metadata.project_id || '92722fc2-fd08-408a-881a-1395a9a29d5c' }}\",\n    \"priority\": \"{{ $json.priority || 'medium' }}\",\n    \"source\": \"OpenClue Orchestrator v4.3\"\n  }\n}",
         "options": {}
       },
       "id": "action-log",
@@ -143,7 +143,7 @@
     {
       "parameters": {
         "options": {
-          "responseBody": "={\n  \"mission\": \"acknowledged\",\n  \"signal_id\": \"{{ $execution.id }}\",\n  \"resonance_v\": \"4.2\",\n  \"timestamp\": \"{{ $now.toISOString() }}\"\n}"
+          "responseBody": "={\n  \"mission\": \"acknowledged\",\n  \"signal_id\": \"{{ $execution.id }}\",\n  \"resonance_v\": \"4.3\",\n  \"timestamp\": \"{{ $now.toISOString() }}\"\n}"
         }
       },
       "id": "final-response",
