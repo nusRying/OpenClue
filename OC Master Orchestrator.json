@@ -1,8 +1,8 @@
-﻿{
-  "name": "OpenClue - Master Orchestrator [LIVE]",
+{
+  "name": "OpenClue - Master Orchestrator [DEBUG]",
   "nodes": [
     {
-      "parameters": { "httpMethod": "POST", "path": "mission-control-events", "options": {} },
+      "parameters": { "httpMethod": "POST", "path": "oc-signals-v2", "responseMode": "lastNode", "options": {} },
       "id": "Agent Event Inbound",
       "name": "Agent Event Inbound",
       "type": "n8n-nodes-base.webhook",
@@ -10,7 +10,7 @@
       "position": [ 100, 100 ]
     },
     {
-      "parameters": { "httpMethod": "POST", "path": "mission-control-actions", "options": {} },
+      "parameters": { "httpMethod": "POST", "path": "oc-actions-v2", "responseMode": "lastNode", "options": {} },
       "id": "Frontend Action Inbound",
       "name": "Frontend Action Inbound",
       "type": "n8n-nodes-base.webhook",
@@ -72,7 +72,7 @@
     {
       "parameters": {
         "method": "PATCH",
-        "url": "=https://base.kutraa.com/rest/v1/agents?id=eq.{{ $json.metadata.agentId }}",
+        "url": "=https://base.kutraa.com/rest/v1/agents?or=(id.eq.{{ $json.metadata.agentId }},name.eq.{{ $json.metadata.agentId }})",
         "sendHeaders": true,
         "headerParameters": { "parameters": [ { "name": "apikey", "value": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJzdXBhYmFzZSIsImlhdCI6MTc3NjI0NDU2MCwiZXhwIjo0OTMxOTE4MTYwLCJyb2xlIjoiYW5vbiJ9.RJRl9UsbEImEOQYPBy6nZds-RYlaTclQQj2pJ8uJb6U" } ] },
         "sendBody": true,
@@ -87,79 +87,12 @@
       "position": [ 650, 250 ]
     },
     {
-      "parameters": {
-        "method": "PATCH",
-        "url": "=https://base.kutraa.com/rest/v1/tasks?id=eq.{{ $json.metadata.task_id }}",
-        "sendHeaders": true,
-        "headerParameters": { "parameters": [ { "name": "apikey", "value": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJzdXBhYmFzZSIsImlhdCI6MTc3NjI0NDU2MCwiZXhwIjo0OTMxOTE4MTYwLCJyb2xlIjoiYW5vbiJ9.RJRl9UsbEImEOQYPBy6nZds-RYlaTclQQj2pJ8uJb6U" } ] },
-        "sendBody": true,
-        "specifyBody": "json",
-        "jsonBody": "={\n  \"status\": \"{{ $json.status || 'todo' }}\",\n  \"priority\": \"{{ $json.priority || 'medium' }}\"\n}",
-        "options": {}
-      },
-      "id": "Supabase Task Governor",
-      "name": "Supabase Task Governor",
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.1,
-      "position": [ 650, 400 ]
-    },
-    {
-      "parameters": {
-        "resource": "chat",
-        "prompt": { "messages": [ { "content": "Summarize this agent session: {{ JSON.stringify($json) }}" } ] }
-      },
-      "id": "Mission Summarizer",
-      "name": "Mission Summarizer",
-      "type": "n8n-nodes-base.openAi",
+      "parameters": { "options": {} },
+      "id": "Respond to Probe",
+      "name": "Respond to Probe",
+      "type": "n8n-nodes-base.noOp",
       "typeVersion": 1,
-      "position": [ 850, 700 ]
-    },
-    {
-      "parameters": {
-        "method": "PATCH",
-        "url": "=https://base.kutraa.com/rest/v1/projects?id=eq.{{ $json.metadata.project_id || '92722fc2-fd08-408a-881a-1395a9a29d5c' }}",
-        "sendHeaders": true,
-        "headerParameters": { "parameters": [ { "name": "apikey", "value": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJzdXBhYmFzZSIsImlhdCI6MTc3NjI0NDU2MCwiZXhwIjo0OTMxOTE4MTYwLCJyb2xlIjoiYW5vbiJ9.RJRl9UsbEImEOQYPBy6nZds-RYlaTclQQj2pJ8uJb6U" } ] },
-        "sendBody": true,
-        "specifyBody": "json",
-        "jsonBody": "={\n  \"intelligence_summary\": \"{{ $json.content }}\"\n}",
-        "options": {}
-      },
-      "id": "Push Intelligence",
-      "name": "Push Intelligence",
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.1,
-      "position": [ 1100, 700 ]
-    },
-    {
-      "parameters": {
-        "method": "GET",
-        "url": "https://base.kutraa.com/rest/v1/agents?status=eq.online&last_heartbeat=lt.{{ $now.minus({ minutes: 30 }).toISOString() }}",
-        "sendHeaders": true,
-        "headerParameters": { "parameters": [ { "name": "apikey", "value": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJzdXBhYmFzZSIsImlhdCI6MTc3NjI0NDU2MCwiZXhwIjo0OTMxOTE4MTYwLCJyb2xlIjoiYW5vbiJ9.RJRl9UsbEImEOQYPBy6nZds-RYlaTclQQj2pJ8uJb6U" } ] }
-      },
-      "id": "Scan Zombie Agents",
-      "name": "Scan Zombie Agents",
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.1,
-      "position": [ 400, 1000 ]
-    },
-    {
-      "parameters": {
-        "method": "POST",
-        "url": "http://tofyq3lga15o3184lxde506q:18789/hooks/n8n-main",
-        "sendHeaders": true,
-        "headerParameters": { "parameters": [ { "name": "Authorization", "value": "Bearer 46cf3441242627eabf8eb5c32d2e0d7f" } ] },
-        "sendBody": true,
-        "specifyBody": "json",
-        "jsonBody": "={\n  \"message\": \"ðŸš¨ SYSTEM ALERT: Deadman switch triggered. Unresponsive agent detected.\",\n  \"to\": \"-1003728720677:topic:1\"\n}",
-        "options": {}
-      },
-      "id": "Alert CEO",
-      "name": "Alert CEO",
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.1,
-      "position": [ 700, 1000 ]
+      "position": [ 1300, 300 ]
     },
     {
       "parameters": {
@@ -177,41 +110,20 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.1,
       "position": [ 950, 300 ]
-    },
-    {
-      "parameters": {
-        "method": "POST",
-        "url": "http://tofyq3lga15o3184lxde506q:18789/hooks/n8n-main",
-        "sendHeaders": true,
-        "headerParameters": { "parameters": [ { "name": "Authorization", "value": "Bearer 46cf3441242627eabf8eb5c32d2e0d7f" } ] },
-        "sendBody": true,
-        "specifyBody": "json",
-        "jsonBody": "={\n  \"message\": \"{{ $json.message }}\",\n  \"to\": \"{{ $json.metadata.to }}\"\n}",
-        "options": {}
-      },
-      "id": "Signal Transmitter",
-      "name": "Signal Transmitter",
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.1,
-      "position": [ 950, 450 ]
     }
   ],
   "connections": {
-    "Agent Event Inbound": { "main": [ [ { "node": "Master Action Router", "type": "main", "index": 0 }, { "node": "Timeline Synchronizer", "type": "main", "index": 0 } ] ] },
-    "Frontend Action Inbound": { "main": [ [ { "node": "Master Action Router", "type": "main", "index": 0 }, { "node": "Timeline Synchronizer", "type": "main", "index": 0 } ] ] },
+    "Agent Event Inbound": { "main": [ [ { "node": "Timeline Synchronizer", "type": "main", "index": 0 }, { "node": "Master Action Router", "type": "main", "index": 0 } ] ] },
+    "Frontend Action Inbound": { "main": [ [ { "node": "Timeline Synchronizer", "type": "main", "index": 0 }, { "node": "Master Action Router", "type": "main", "index": 0 } ] ] },
     "Master Action Router": {
       "main": [
         [ { "node": "Sync Conversations", "type": "main", "index": 0 } ],
-        [ { "node": "Sync Master Status", "type": "main", "index": 0 } ],
-        [ { "node": "Supabase Task Governor", "type": "main", "index": 0 } ],
-        [ { "node": "Signal Transmitter", "type": "main", "index": 0 } ],
-        [ { "node": "Mission Summarizer", "type": "main", "index": 0 } ]
+        [ { "node": "Sync Master Status", "type": "main", "index": 0 } ]
       ]
     },
-    "Mission Summarizer": { "main": [ [ { "node": "Push Intelligence", "type": "main", "index": 0 } ] ] },
-    "Operational Sentry (30m)": { "main": [ [ { "node": "Scan Zombie Agents", "type": "main", "index": 0 } ] ] },
-    "Scan Zombie Agents": { "main": [ [ { "node": "Alert CEO", "type": "main", "index": 0 } ] ] }
+    "Sync Conversations": { "main": [ [ { "node": "Respond to Probe", "type": "main", "index": 0 } ] ] },
+    "Sync Master Status": { "main": [ [ { "node": "Respond to Probe", "type": "main", "index": 0 } ] ] },
+    "Timeline Synchronizer": { "main": [ [ { "node": "Respond to Probe", "type": "main", "index": 0 } ] ] }
   },
   "settings": { "executionOrder": "v1" }
 }
-
