@@ -174,7 +174,7 @@
         [ { "node": "Neural Preparation Block", "type": "main", "index": 0 } ]
       ] 
     },
-    "Neural Signal Gate (Telegram)": { "main": [ [ { "node": "Neural Preparation Block", "type": "main", "index": 0 } ] ] },
+    "Neural Signal Gate (Telegram)": { "main": [ [] ] },
     "Neural Preparation Block": { "main": [ [ { "node": "Neural Persistence: Log", "type": "main", "index": 0 } ] ] },
     "Neural Persistence: Log": { "main": [ [ { "node": "Mission Response Gate", "type": "main", "index": 0 } ] ] }
   },
