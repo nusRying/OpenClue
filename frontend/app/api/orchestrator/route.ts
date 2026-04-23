@@ -25,7 +25,13 @@ export async function POST(request: Request) {
 
     if (!response.ok) {
       console.error(`[Next.js API] n8n returned status ${response.status}`)
-      return NextResponse.json({ error: `Orchestrator failed with status ${response.status}` }, { status: response.status })
+      const errorText = await response.text()
+      try {
+        const errorJson = JSON.parse(errorText)
+        return NextResponse.json({ error: `Orchestrator failed with status ${response.status}`, n8n_response: errorJson }, { status: response.status })
+      } catch {
+        return NextResponse.json({ error: `Orchestrator failed with status ${response.status}`, details: errorText }, { status: response.status })
+      }
     }
 
     // Try parsing as JSON, fallback to raw text if n8n responds with a simple OK
