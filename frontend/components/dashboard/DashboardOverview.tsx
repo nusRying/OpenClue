@@ -1,4 +1,5 @@
 import { useEffect, useState, useRef } from 'react'
+import Link from 'next/link'
 import type { Agent, Project, Task } from '@/types'
 
 interface Props {
@@ -199,9 +200,11 @@ export function DashboardOverview({ agents, projects, tasks }: Props) {
               ))}
            </div>
            
-           <button style={{ marginTop: 'auto', width: '100%', padding: '0.75rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-subtle)', background: 'transparent', color: 'var(--text-secondary)', fontSize: '0.8125rem', fontWeight: 600, cursor: 'pointer', transition: 'all 0.2s' }}>
-              View All Agents
-           </button>
+           <Link href="/agents" style={{ marginTop: 'auto', textDecoration: 'none' }}>
+              <button style={{ width: '100%', padding: '0.75rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-subtle)', background: 'transparent', color: 'var(--text-secondary)', fontSize: '0.8125rem', fontWeight: 600, cursor: 'pointer', transition: 'all 0.2s' }}>
+                 View All Agents
+              </button>
+           </Link>
         </div>
 
       </div>

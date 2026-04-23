@@ -13,6 +13,19 @@ export function useProjects() {
   })
 }
 
+export function useProject(id: string | null) {
+  return useQuery({
+    queryKey: ['projects', id],
+    queryFn: async () => {
+      if (!id) return null
+      const { data, error } = await supabase.from('projects').select('*').eq('id', id).single()
+      if (error) throw error
+      return data as Project
+    },
+    enabled: !!id
+  })
+}
+
 export function useCreateProject() {
   const queryClient = useQueryClient()
   return useMutation({

@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import Link from 'next/link'
 import type { Project, Agent } from '@/types'
 import { NewProjectModal } from '@/components/modals/NewProjectModal'
 import { EditProjectModal } from '@/components/modals/EditProjectModal'
@@ -113,7 +114,7 @@ export function ProjectsPanel({ projects, agents, onCreateProject, onUpdateProje
                 </div>
               )}
               
-              <div style={{ marginTop: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <div style={{ marginTop: 'auto', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                 <div style={{ flex: 1, height: '4px', background: 'var(--bg-elevated)', borderRadius: '2px' }}>
                   <div style={{ height: '100%', width: project.status === 'completed' ? '100%' : '30%', background: config.color, borderRadius: '2px' }} />
                 </div>
@@ -121,6 +122,19 @@ export function ProjectsPanel({ projects, agents, onCreateProject, onUpdateProje
                   {project.status === 'completed' ? '100%' : '30%'}
                 </span>
               </div>
+
+              <Link 
+                href={`/projects/${project.id}`}
+                onClick={(e) => e.stopPropagation()}
+                style={{ 
+                  marginTop: '0.5rem', textDecoration: 'none',
+                  padding: '8px', borderRadius: 'var(--radius-md)', background: 'var(--bg-elevated)',
+                  color: 'var(--accent)', fontSize: '0.75rem', fontWeight: 700, textAlign: 'center',
+                  border: '1px solid var(--border-subtle)', transition: 'all 0.2s'
+                }}
+              >
+                OPEN WORKSPACE
+              </Link>
             </div>
           )
         })}
