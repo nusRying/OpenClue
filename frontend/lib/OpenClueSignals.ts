@@ -1,7 +1,7 @@
 import { supabase } from './supabase'
 import mappingsData from './mappings.json'
 
-const N8N_BASE_URL = 'https://cardial.kutraa.com/webhook/oc-actions-v2'
+const N8N_BASE_URL = 'https://cardial.kutraa.com/webhook/OpenClueActions'
 
 /**
  * Maps agent names to their configurations dynamically.

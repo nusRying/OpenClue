@@ -7,11 +7,9 @@ function Send-Signal {
         $Action,
         [Parameter(Mandatory=$true)]
         $Message,
-        $Path = "oc-signals-v2"
-    )
-
     $BaseUrl = "https://cardial.kutraa.com/webhook"
-    if ($Action -eq "session_end") { $Path = "oc-actions-v2" }
+    $Path = "OpenCluePulse"
+    if ($Action -eq "session_end") { $Path = "OpenClueActions" }
     
     $Url = "$BaseUrl/$Path"
 

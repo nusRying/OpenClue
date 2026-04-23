@@ -1,10 +1,10 @@
 {
-  "name": "OpenClue - Master Orchestrator v3.1 (Core)",
+  "name": "OpenClue - Master Orchestrator v3.2 (Resonance)",
   "nodes": [
     {
       "parameters": {
         "httpMethod": "POST",
-        "path": "oc-signals-v2",
+        "path": "OpenCluePulse",
         "responseMode": "onReceived",
         "options": {}
       },
@@ -17,7 +17,7 @@
     {
       "parameters": {
         "httpMethod": "POST",
-        "path": "oc-actions-v2",
+        "path": "OpenClueActions",
         "responseMode": "onReceived",
         "options": {}
       },
@@ -117,7 +117,7 @@
         },
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={\n  \"agent_id\": \"{{ $json.metadata.agentId || 'main' }}\",\n  \"event_type\": \"{{ $json.action || $json.event_type || 'System Event' }}\",\n  \"description\": \"{{ $json.message || 'Mission Signal' }}\"\n}",
+        "jsonBody": "={\n  \"agent_id\": \"{{ $json.metadata.agentId || 'main' }}\",\n  \"project_id\": \"{{ $json.metadata.project_id || '92722fc2-fd08-408a-881a-1395a9a29d5c' }}\",\n  \"event_type\": \"{{ $json.action || $json.event_type || 'System Event' }}\",\n  \"message\": \"{{ $json.message || 'Mission Signal' }}\"\n}",
         "options": {}
       },
       "id": "action-log",
