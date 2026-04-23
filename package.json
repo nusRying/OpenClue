@@ -1,0 +1,9 @@
+{
+  "devDependencies": {
+    "@types/node": "^25.6.0"
+  },
+  "dependencies": {
+    "dotenv": "^17.4.2",
+    "openclaw": "^2026.4.15"
+  }
+}

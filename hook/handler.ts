@@ -1,33 +1,20 @@
-/**
- * Mission Control Hook — OpenClaw Session + Message Events
- *
- * Fires on session lifecycle events AND message events.
- * For message events, extracts the real sender identity from context.metadata.
- */
-
-import type { HookHandler } from "openclaw/sdk/hook";
+import type { HookHandler } from "openclaw/sdk/hooks";
+import 'dotenv/config'
 
 const N8N_URL = "https://agents.kutraa.com/webhook";
 const AGENT_TOKEN = process.env.MISSION_CONTROL_AGENT_TOKEN || process.env.AGENT_TOKEN_STRING || "string-secret";
 
-// Map Telegram user IDs to agent names
-// Key: Telegram user ID (as string), Value: agent name
 const TELEGRAM_AGENT_MAP: Record<string, string> = {
-  // Mehzam (CEO)
   "8423315067": "Mehzam",
-  // KUT
   "6993398322": "KUT",
-  // Add other known Telegram IDs here
 };
 
 function getAgentNameFromMetadata(metadata?: Record<string, unknown>): string | null {
-  // Try to get agent name from Telegram sender ID
   const senderId = metadata?.senderId as string | number | undefined;
   if (senderId) {
     const agent = TELEGRAM_AGENT_MAP[String(senderId)];
     if (agent) return agent;
   }
-  // Fallback: try sender name
   const senderName = metadata?.senderName as string | undefined;
   if (senderName) {
     const lower = senderName.toLowerCase();
@@ -46,6 +33,7 @@ interface WebhookPayload {
   context?: {
     content?: string;
     from?: string;
+    to?: string;
     channelId?: string;
     metadata?: Record<string, unknown>;
   };
@@ -63,16 +51,14 @@ async function sendToBackend(payload: WebhookPayload): Promise<void> {
       body: JSON.stringify(payload),
     });
   } catch {
-    // Swallow errors — don't crash the gateway
+    // Swallow errors
   }
 }
-
-// ─── Session Lifecycle Events ───────────────────────────────────────────────
 
 export const handler: HookHandler = {
   name: "mission-control",
 
-  onSessionStart(event) {
+  onSessionStart(event: any) {
     void sendToBackend({
       event_type: "session_start",
       message: `Session started`,
@@ -84,7 +70,7 @@ export const handler: HookHandler = {
     });
   },
 
-  onSessionEnd(event) {
+  onSessionEnd(event: any) {
     void sendToBackend({
       event_type: "session_end",
       message: `Session ended`,
@@ -96,7 +82,7 @@ export const handler: HookHandler = {
     });
   },
 
-  onSessionError(event) {
+  onSessionError(event: any) {
     void sendToBackend({
       event_type: "session_error",
       message: `Session error: ${event.metadata?.error || "unknown"}`,
@@ -108,12 +94,9 @@ export const handler: HookHandler = {
     });
   },
 
-  // ─── Message Events ────────────────────────────────────────────────────────
-
-  onMessageReceived(event) {
+  onMessageReceived(event: any) {
     const agentName = getAgentNameFromMetadata(event.context?.metadata);
-    // Try bodyForAgent first (preprocessed), then content, then first message
-    const messageContent = (event as any).bodyForAgent || event.context?.content || (event.messages?.[0] as string) || "";
+    const messageContent = (event as any).bodyForAgent || event.context?.content || (event as any).messages?.[0] || "";
     void sendToBackend({
       event_type: "message:received",
       message: messageContent,
@@ -133,13 +116,13 @@ export const handler: HookHandler = {
     });
   },
 
-  onMessagePreprocessed(event) {
+  onMessagePreprocessed(event: any) {
     const agentName = getAgentNameFromMetadata(event.context?.metadata);
     void sendToBackend({
       event_type: "message:preprocessed",
-      message: event.context?.bodyForAgent || event.context?.content || "",
+      message: (event as any).bodyForAgent || event.context?.content || "",
       context: {
-        content: event.context?.bodyForAgent,
+        content: (event as any).bodyForAgent,
         from: event.context?.from,
         channelId: event.context?.channelId,
         metadata: event.context?.metadata,
@@ -154,9 +137,9 @@ export const handler: HookHandler = {
     });
   },
 
-  onMessageSent(event) {
+  onMessageSent(event: any) {
     const agentName = getAgentNameFromMetadata(event.context?.metadata);
-    const messageContent = (event as any).bodyForAgent || event.context?.content || (event.messages?.[0] as string) || "";
+    const messageContent = (event as any).bodyForAgent || event.context?.content || (event as any).messages?.[0] || "";
     void sendToBackend({
       event_type: "message:sent",
       message: messageContent,

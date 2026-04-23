@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import type { Conversation, Agent } from '@/types'
-import { format } from 'date-fns'
+import { format, isValid } from 'date-fns'
 
 interface Props {
   conversations: Conversation[]
@@ -31,6 +31,15 @@ function cleanMessageContent(content: string | undefined): string {
     }
   } catch (e) {}
   return content
+}
+
+function formatDateTime(value: string | undefined, pattern: string, fallback = '--:--'): string {
+  if (!value) return fallback
+
+  const parsed = new Date(value)
+  if (!isValid(parsed)) return fallback
+
+  return format(parsed, pattern)
 }
 
 export function ConversationsPanel({ conversations, agents, selectedSessionKey, onSelectSession }: Props) {
@@ -140,7 +149,7 @@ export function ConversationsPanel({ conversations, agents, selectedSessionKey, 
                       <p style={{ fontSize: '0.6875rem', color: 'var(--text-tertiary)', margin: '2px 0 0' }}>{conv.channel.toUpperCase()}</p>
                     </div>
                     <span style={{ fontSize: '0.625rem', color: 'var(--text-tertiary)', fontWeight: 600 }}>
-                      {format(new Date(conv.updated_at), 'HH:mm')}
+                      {formatDateTime(conv.updated_at, 'HH:mm')}
                     </span>
                   </div>
                   <p style={{ fontSize: '0.8125rem', color: 'var(--text-secondary)', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', lineHeight: 1.4 }}>
@@ -202,7 +211,7 @@ export function ConversationsPanel({ conversations, agents, selectedSessionKey, 
                   }}>
                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.375rem', flexDirection: isAgent ? 'row-reverse' : 'row' }}>
                         <span style={{ fontSize: '0.6875rem', fontWeight: 700, color: 'var(--text-tertiary)' }}>{isAgent ? 'MISSION AGENT' : 'EXTERNAL CLIENT'}</span>
-                        <span style={{ fontSize: '0.625rem', color: 'var(--text-tertiary)', opacity: 0.6 }}>{format(new Date(msg.timestamp), 'HH:mm:ss')}</span>
+                        <span style={{ fontSize: '0.625rem', color: 'var(--text-tertiary)', opacity: 0.6 }}>{formatDateTime(msg.timestamp, 'HH:mm:ss')}</span>
                      </div>
                     <div style={{
                       padding: '1rem 1.25rem', borderRadius: 'var(--radius-lg)',

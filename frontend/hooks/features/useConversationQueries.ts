@@ -2,6 +2,13 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '@/lib/supabase'
 import type { Conversation } from '@/types'
 
+function normalizeIsoDate(value: string | undefined, fallback: string): string {
+  if (!value) return fallback
+
+  const parsed = new Date(value)
+  return Number.isNaN(parsed.getTime()) ? fallback : parsed.toISOString()
+}
+
 function normalizeConversation(conversation: Conversation): Conversation {
   const raw = conversation as Conversation & {
     last_message_at?: string
@@ -13,8 +20,19 @@ function normalizeConversation(conversation: Conversation): Conversation {
   return {
     ...raw,
     channel: raw.channel || 'telegram',
-    messages: Array.isArray(raw.messages) ? raw.messages : [],
-    updated_at: raw.updated_at || raw.last_message_at || raw.created_at || new Date().toISOString(),
+    messages: Array.isArray(raw.messages)
+      ? raw.messages.map((message) => ({
+          ...message,
+          timestamp: normalizeIsoDate(
+            message?.timestamp,
+            raw.updated_at || raw.last_message_at || raw.created_at || new Date().toISOString(),
+          ),
+        }))
+      : [],
+    updated_at: normalizeIsoDate(
+      raw.updated_at || raw.last_message_at || raw.created_at,
+      new Date().toISOString(),
+    ),
   }
 }
 
