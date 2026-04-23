@@ -28,6 +28,7 @@ export function ProjectDetailView({ project, agents, statusConfig, tasks, activi
   
   const [broadcastMsg, setBroadcastMsg] = useState('')
   const [isBroadcasting, setIsBroadcasting] = useState(false)
+  const [selectedAgentIds, setSelectedAgentIds] = useState<string[]>([])
 
   // Unique agents assigned to this project
   const projectAgents = Array.from(new Set([
@@ -36,14 +37,17 @@ export function ProjectDetailView({ project, agents, statusConfig, tasks, activi
   ])).map(id => agents.find(a => a.id === id)).filter(Boolean) as Agent[]
 
   const handleBroadcast = async () => {
-    if (!broadcastMsg.trim() || projectAgents.length === 0) return
+    if (!broadcastMsg.trim() || selectedAgentIds.length === 0) {
+      if (selectedAgentIds.length === 0) toast.error('Please select at least one target agent.')
+      return
+    }
     
     setIsBroadcasting(true)
-    const success = await broadcastAgentSignal(projectAgents.map(a => a.id), broadcastMsg, project.id)
+    const success = await broadcastAgentSignal(selectedAgentIds, broadcastMsg, project.id)
     setIsBroadcasting(false)
     
     if (success) {
-      toast.success('Broadcast signal transmitted to all agents')
+      toast.success('Broadcast signal transmitted to selected agents')
       setBroadcastMsg('')
     } else {
       toast.error('Failed to transmit broadcast signal')
@@ -129,7 +133,7 @@ export function ProjectDetailView({ project, agents, statusConfig, tasks, activi
                   Broadcast Mission Update
                </h3>
                <p style={{ fontSize: '0.875rem', color: 'var(--text-tertiary)', marginTop: '0.5rem', marginBottom: '1.5rem' }}>
-                  Signal will be transmitted to all {projectAgents.length} agents assigned to this workspace.
+                  Select the necessary operational agents to receive this transmission.
                </p>
 
                <div style={{ position: 'relative' }}>
@@ -145,12 +149,13 @@ export function ProjectDetailView({ project, agents, statusConfig, tasks, activi
                   />
                   <button 
                     onClick={handleBroadcast}
-                    disabled={!broadcastMsg.trim() || isBroadcasting}
+                    disabled={!broadcastMsg.trim() || isBroadcasting || selectedAgentIds.length === 0}
                     style={{ 
                       position: 'absolute', bottom: '1rem', right: '1rem',
                       padding: '0.75rem 1.5rem', borderRadius: 'var(--radius-md)', background: 'var(--accent-solid)',
                       color: 'white', border: 'none', fontWeight: 700, fontSize: '0.8125rem',
-                      cursor: 'pointer', opacity: (!broadcastMsg.trim() || isBroadcasting) ? 0.5 : 1,
+                      cursor: (!broadcastMsg.trim() || isBroadcasting || selectedAgentIds.length === 0) ? 'not-allowed' : 'pointer', 
+                      opacity: (!broadcastMsg.trim() || isBroadcasting || selectedAgentIds.length === 0) ? 0.5 : 1,
                       transition: 'all 0.2s', boxShadow: '0 4px 12px rgba(0,0,0,0.1)'
                     }}
                   >
@@ -160,17 +165,33 @@ export function ProjectDetailView({ project, agents, statusConfig, tasks, activi
             </div>
 
             <div style={{ width: '280px', borderLeft: '1px solid var(--border-subtle)', paddingLeft: '2rem' }}>
-               <p style={{ fontSize: '0.625rem', fontWeight: 800, color: 'var(--text-tertiary)', textTransform: 'uppercase', marginBottom: '1rem', letterSpacing: '0.05em' }}>Target Agents</p>
-               <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.625rem' }}>
-                  {projectAgents.map(a => (
-                     <div key={a.id} style={{ 
-                        display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.375rem 0.75rem',
-                        background: 'var(--bg-elevated)', borderRadius: 'var(--radius-full)', border: '1px solid var(--border-subtle)'
-                     }}>
-                        <span style={{ fontSize: '0.875rem' }}>{a.emoji}</span>
-                        <span style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-primary)' }}>{a.id}</span>
-                     </div>
-                  ))}
+               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' }}>
+                 <p style={{ fontSize: '0.625rem', fontWeight: 800, color: 'var(--text-tertiary)', textTransform: 'uppercase', letterSpacing: '0.05em', margin: 0 }}>Target Agents</p>
+                 <button 
+                   onClick={() => setSelectedAgentIds(selectedAgentIds.length === agents.length ? [] : agents.map(a => a.id))}
+                   style={{ background: 'none', border: 'none', color: 'var(--accent)', fontSize: '0.6875rem', fontWeight: 700, cursor: 'pointer' }}
+                 >
+                   {selectedAgentIds.length === agents.length ? 'DESELECT ALL' : 'SELECT ALL'}
+                 </button>
+               </div>
+               <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.625rem', maxHeight: '160px', overflowY: 'auto', paddingRight: '0.5rem' }}>
+                  {agents.map(a => {
+                     const isSelected = selectedAgentIds.includes(a.id);
+                     return (
+                     <button
+                        key={a.id} 
+                        onClick={() => setSelectedAgentIds(prev => isSelected ? prev.filter(id => id !== a.id) : [...prev, a.id])}
+                        style={{ 
+                           display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.375rem 0.75rem',
+                           background: isSelected ? 'var(--accent-solid)' : 'var(--bg-elevated)', 
+                           color: isSelected ? 'white' : 'var(--text-primary)',
+                           borderRadius: 'var(--radius-full)', border: `1px solid ${isSelected ? 'var(--accent)' : 'var(--border-subtle)'}`,
+                           cursor: 'pointer', transition: 'all 0.2s', outline: 'none'
+                        }}>
+                        <span style={{ fontSize: '0.875rem' }}>{a.emoji || '🤖'}</span>
+                        <span style={{ fontSize: '0.75rem', fontWeight: 700 }}>{a.name}</span>
+                     </button>
+                  )})}
                </div>
             </div>
          </div>
