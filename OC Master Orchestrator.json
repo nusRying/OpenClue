@@ -1,5 +1,5 @@
 {
-  "name": "OpenClue - Master Orchestrator v5.1.9 (Absolution-Fix)",
+  "name": "OpenClue - Master Orchestrator v5.1.10 (Fault-Tolerant)",
   "nodes": [
     {
       "parameters": {
@@ -72,7 +72,7 @@
         },
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={{ JSON.stringify({\n  p_session_key: $json.metadata.sessionKey || 'UNTRACKED',\n  p_message: {\n    role: ($json.event_type || $json.action) === 'message:sent' ? 'agent' : 'user',\n    content: $json.message || $json.description || 'Heartbeat signal.',\n    timestamp: $now.toISOString(),\n    metadata: {\n      priority: $json.priority || 'medium',\n      orchestrator_v: '5.1.9'\n    }\n  },\n  p_agent_id: $json.metadata.agentId || 'main',\n  p_client_name: $json.metadata.senderName || 'Mission Client'\n}) }}",
+        "jsonBody": "={{ JSON.stringify({\n  p_session_key: $json.metadata.sessionKey || 'UNTRACKED',\n  p_message: {\n    role: ($json.event_type || $json.action) === 'message:sent' ? 'agent' : 'user',\n    content: $json.message || $json.description || 'Heartbeat signal.',\n    timestamp: $now.toISOString(),\n    metadata: {\n      priority: $json.priority || 'medium',\n      orchestrator_v: '5.1.10'\n    }\n  },\n  p_agent_id: $json.metadata.agentId || 'main',\n  p_client_name: $json.metadata.senderName || 'Mission Client'\n}) }}",
         "options": {}
       },
       "id": "action-conversation",
@@ -143,7 +143,7 @@
     },
     {
       "parameters": {
-        "jsCode": "const item = $input.item.json;\nconst meta = item.metadata || {};\nconst text = item.message || item.description || item.text || 'Mission pulse acknowledged.';\n\nconst payload = {\n  event_type: item.action || item.event_type || 'unclassified',\n  description: text,\n  metadata: {\n    ...meta,\n    source: 'OpenClue Orchestrator v5.1.9',\n    priority: item.priority || 'medium'\n  }\n};\n\nif (meta.agentId) payload.agent_id = meta.agentId;\nif (meta.project_id && meta.project_id.length === 36) {\n  payload.project_id = meta.project_id;\n}\n\nreturn { json: payload };"
+        "jsCode": "const item = $input.item.json;\nconst meta = item.metadata || {};\nconst text = item.message || item.description || item.text || 'Mission pulse acknowledged.';\n\nconst payload = {\n  event_type: item.action || item.event_type || 'unclassified',\n  description: text,\n  metadata: {\n    ...meta,\n    source: 'OpenClue Orchestrator v5.1.10',\n    priority: item.priority || 'medium'\n  }\n};\n\nif (meta.agentId) payload.agent_id = meta.agentId;\nif (meta.project_id && meta.project_id.length === 36) {\n  payload.project_id = meta.project_id;\n}\n\nreturn { json: payload };"
       },
       "id": "payload-shield",
       "name": "Neural Preparation Block",
@@ -171,12 +171,13 @@
       "name": "Neural Persistence: Log",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.1,
-      "position": [ 1200, 200 ]
+      "position": [ 1200, 200 ],
+      "continueOnFail": true
     },
     {
       "parameters": {
         "options": {
-          "responseBody": "={{ JSON.stringify({\n  mission: 'acknowledged',\n  signal_id: $execution.id,\n  resonance_v: '5.1.9',\n  timestamp: $now.toISOString()\n}) }}"
+          "responseBody": "={{ JSON.stringify({\n  mission: 'acknowledged',\n  signal_id: $execution.id,\n  resonance_v: '5.1.10',\n  timestamp: $now.toISOString()\n}) }}"
         }
       },
       "id": "final-response",

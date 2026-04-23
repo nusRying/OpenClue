@@ -22,7 +22,6 @@ function Send-Signal {
         metadata = @{
             sessionKey = "FINAL_MISSION_VERIFY"
             agentId = "main"
-            project_id = "92722fc2-fd08-408a-881a-1395a9a29d5c"
         }
     } | ConvertTo-Json
 
