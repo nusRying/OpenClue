@@ -170,10 +170,11 @@
       "main": [ 
         [ { "node": "Neural Persistence: Chat", "type": "main", "index": 0 }, { "node": "Neural Preparation Block", "type": "main", "index": 0 } ],
         [ { "node": "Neural Persistence: Status", "type": "main", "index": 0 }, { "node": "Neural Preparation Block", "type": "main", "index": 0 } ],
-        [ { "node": "Neural Signal Gate (Telegram)", "type": "main", "index": 0 }, { "node": "Neural Preparation Block", "type": "main", "index": 0 } ],
+        [ { "node": "Neural Signal Gate (Telegram)", "type": "main", "index": 0 } ],
         [ { "node": "Neural Preparation Block", "type": "main", "index": 0 } ]
       ] 
     },
+    "Neural Signal Gate (Telegram)": { "main": [ [ { "node": "Neural Preparation Block", "type": "main", "index": 0 } ] ] },
     "Neural Preparation Block": { "main": [ [ { "node": "Neural Persistence: Log", "type": "main", "index": 0 } ] ] },
     "Neural Persistence: Log": { "main": [ [ { "node": "Mission Response Gate", "type": "main", "index": 0 } ] ] }
   },
