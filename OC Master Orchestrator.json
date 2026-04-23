@@ -1,11 +1,11 @@
 {
-  "name": "OpenClue - Master Orchestrator v5.1.16 (Resonance-Stabilized)",
+  "name": "OpenClue - Master Orchestrator v5.1.17 (Unified-Resonance)",
   "nodes": [
     {
       "parameters": {
         "httpMethod": "POST",
         "path": "OpenCluePulse",
-        "responseMode": "lastNode",
+        "responseMode": "responseNode",
         "options": {}
       },
       "id": "agent-events",
@@ -18,7 +18,7 @@
       "parameters": {
         "httpMethod": "POST",
         "path": "OpenClueActions",
-        "responseMode": "lastNode",
+        "responseMode": "responseNode",
         "options": {}
       },
       "id": "frontend-actions",
@@ -61,50 +61,8 @@
     },
     {
       "parameters": {
-        "jsCode": "// Resolve broadcast - Pinned topics for Telegram\nconst item = $input.item.json;\nconst messageText = item.message || item.description || 'Broadcast pulse.';\n\nconst MAPPINGS = [\n  { agentName: 'promo', to: '-1003728720677:topic:1239', sessionKey: 'agent:promo:telegram:group:-1003728720677:topic:1239' },\n  { agentName: 'main', to: '-1003728720677:topic:1', sessionKey: 'agent:main:telegram:group:-1003728720677:topic:1' },\n  { agentName: 'digit', to: '-1003728720677:topic:3', sessionKey: 'agent:digit:telegram:group:-1003728720677:topic:3' },\n  { agentName: 'string', to: '-1003728720677:topic:2', sessionKey: 'agent:string:telegram:group:-1003728720677:topic:2' }\n];\n\nreturn MAPPINGS.map(m => ({\n  json: {\n    ...m,\n    message: messageText,\n    original: item\n  }\n}));"
-      },
-      "id": "broadcast-resolver",
-      "name": "Broadcast Resolver",
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
-      "position": [ 550, 400 ]
-    },
-    {
-      "parameters": {
         "method": "POST",
-        "url": "=http://tofyq3lga15o3184lxde506q:18789/hooks/n8n-{{ $json.agentName }}",
-        "sendHeaders": true,
-        "headerParameters": {
-          "parameters": [
-            { "name": "Authorization", "value": "Bearer 46cf3441242627eabf8eb5c32d2e0d7f" }
-          ]
-        },
-        "sendBody": true,
-        "specifyBody": "json",
-        "jsonBody": "={\n  \"message\": \"{{ $json.message }}\",\n  \"to\": \"{{ $json.to }}\",\n  \"sessionKey\": \"{{ $json.sessionKey }}\",\n  \"channel\": \"telegram\"\n}",
-        "options": {}
-      },
-      "id": "gateway-pulse",
-      "name": "Neural Gateway Pulse",
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.1,
-      "position": [ 800, 400 ],
-      "continueOnFail": true
-    },
-    {
-      "parameters": {
-        "jsCode": "// Aggregate signals back to a single pulse for logging and response\nconst input = $input.all();\nconst first = input[0].json;\nconst original = first.original || first._raw || {};\n\nreturn {\n  json: {\n    event_type: 'broadcast',\n    description: original.message || 'Signal resonance optimized.',\n    metadata: {\n      source: 'Orchestrator v5.1.16',\n      pulse_count: input.length,\n      timestamp: new Date().toISOString()\n    }\n  }\n};"
-      },
-      "id": "signal-aggregator",
-      "name": "Signal Aggregator",
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
-      "position": [ 1050, 300 ]
-    },
-    {
-      "parameters": {
-        "method": "POST",
-        "url": "https://base.kutraa.com/rest/v1/activity_log",
+        "url": "https://base.kutraa.com/rest/v1/rpc/append_conversation_message",
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
@@ -114,48 +72,60 @@
         },
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={{ JSON.stringify($json) }}",
+        "jsonBody": "={{ JSON.stringify({\n  p_session_key: $json.metadata.sessionKey || 'UNTRACKED',\n  p_message: { role: 'agent', content: $json.message || 'Mission Pulse', timestamp: $now.toISOString() },\n  p_agent_id: $json.metadata.agentId || 'main',\n  p_client_name: 'Mission Client'\n}) }}",
         "options": {}
       },
-      "id": "action-log",
-      "name": "Neural Persistence: Log",
+      "id": "action-chat",
+      "name": "Sync: Chat",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.1,
-      "position": [ 1250, 300 ],
+      "position": [ 600, 50 ],
       "continueOnFail": true
     },
     {
       "parameters": {
-        "options": {
-          "responseBody": "={{ JSON.stringify({\n  mission: 'acknowledged',\n  signal_id: $execution.id,\n  resonance: 'v5.1.16',\n  timestamp: $now.toISOString()\n}) }}"
-        }
+        "jsCode": "// Broadcast Resolver - Topics pinned from client_mappings\nconst item = $input.item.json;\nconst msg = item.message || 'Signal pulse.';\nconst MAPS = [\n  { name: 'promo', to: '-1003728720677:topic:1239', key: 'agent:promo:telegram:group:-1003728720677:topic:1239' },\n  { name: 'main', to: '-1003728720677:topic:1', key: 'agent:main:telegram:group:-1003728720677:topic:1' },\n  { name: 'digit', to: '-1003728720677:topic:3', key: 'agent:digit:telegram:group:-1003728720677:topic:3' },\n  { name: 'string', to: '-1003728720677:topic:2', key: 'agent:string:telegram:group:-1003728720677:topic:2' }\n];\nreturn MAPS.map(m => ({ json: { ...m, message: msg, original: item } }));"
       },
-      "id": "final-response",
-      "name": "Mission Response Gate",
-      "type": "n8n-nodes-base.respondToWebhook",
-      "typeVersion": 1,
-      "position": [ 1450, 300 ]
-    }
-  ],
-  "connections": {
-    "Agent Event Inbound": { "main": [ [ { "node": "Body Unwrap", "type": "main", "index": 0 } ] ] },
-    "Frontend Action Inbound": { "main": [ [ { "node": "Body Unwrap", "type": "main", "index": 0 } ] ] },
-    "Body Unwrap": { "main": [ [ { "node": "Absolute Router", "type": "main", "index": 0 } ] ] },
-    "Absolute Router": { 
-      "main": [ 
-        [],
-        [],
-        [ { "node": "Broadcast Resolver", "type": "main", "index": 0 } ],
-        [ { "node": "Signal Aggregator", "type": "main", "index": 0 } ]
-      ] 
+      "id": "broadcast-resolver",
+      "name": "Broadcast Resolver",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [ 550, 250 ]
     },
-    "Broadcast Resolver": { "main": [ [ { "node": "gateway-pulse", "type": "main", "index": 0 } ] ] },
-    "gateway-pulse": { "main": [ [ { "node": "Signal Aggregator", "type": "main", "index": 0 } ] ] },
-    "Signal Aggregator": { "main": [ [ { "node": "action-log", "type": "main", "index": 0 } ] ] },
-    "action-log": { "main": [ [ { "node": "final-response", "type": "main", "index": 0 } ] ] }
-  },
-  "settings": {
-    "executionOrder": "v1",
-    "callerPolicy": "workflowsFromSameOwner"
-  }
-}
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=http://tofyq3lga15o3184lxde506q:18789/hooks/n8n-{{ $json.name }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [ { "name": "Authorization", "value": "Bearer 46cf3441242627eabf8eb5c32d2e0d7f" } ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={ \"message\": \"{{ $json.message }}\", \"to\": \"{{ $json.to }}\", \"sessionKey\": \"{{ $json.key }}\" }",
+        "options": {}
+      },
+      "id": "gateway-pulse",
+      "name": "Gateway Pulse",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [ 750, 250 ],
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "jsCode": "// Unified Aggregator - Consolidates all branches before final logging\nconst all = $input.all();\nconst first = all[0].json;\nconst orig = first.original || first;\nreturn {\n  json: {\n    event_type: 'mission_pulse',\n    description: orig.message || 'Unified signal verified.',\n    metadata: { version: '5.1.17', branch_count: all.length }\n  }\n};"
+      },
+      "id": "unified-aggregator",
+      "name": "Unified Aggregator",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [ 1000, 200 ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://base.kutraa.com/rest/v1/activity_log",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [\n            { \"name\": \"apikey\", \"value\": \"eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJzdXBhYmFzZSIsImlhdCI6MTc3NjI0NDU2MCwiZXhwIjo0OTMxOTE4MTYwLCJyb2xlIjoiYW5vbiJ9.RJRl9UsbEImEOQYPBy6nZds-RYlaTclQQj2pJ8uJb6U\" },\n            { \"name\": \"Authorization\", \"value\": \"Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJzdXBhYmFzZSIsImlhdCI6MTc3NjI0NDU2MCwiZXhwIjo0OTMxOTE4MTYwLCJyb2xlIjoiYW5vbiJ9.RJRl9UsbEImEOQYPBy6nZds-RYlaTclQQj2pJ8uJb6U\" }\n          ]\n        },\n        \"sendBody\": true,\n        \"specifyBody\": \"json\",\n        \"jsonBody\": \"={{ JSON.stringify($json) }}\",\n        \"options\": {}\n      },\n      \"id\": \"action-log\",\n      \"name\": \"Final Log Node\",\n      \"type\": \"n8n-nodes-base.httpRequest\",\n      \"typeVersion\": 4.1,\n      \"position\": [ 1200, 200 ],\n      \"continueOnFail\": true\n    },\n    {\n      \"parameters\": {\n        \"options\": {\n          \"responseBody\": \"={{ JSON.stringify({ mission: 'acknowledged', resonance: 'v5.1.17', timestamp: $now.toISOString() }) }}\"\n        }\n      },\n      \"id\": \"response-gate\",\n      \"name\": \"Final Response Gate\",\n      \"type\": \"n8n-nodes-base.respondToWebhook\",\n      \"typeVersion\": 1,\n      \"position\": [ 1400, 200 ]\n    }\n  ],\n  \"connections\": {\n    \"Agent Event Inbound\": { \"main\": [ [ { \"node\": \"Body Unwrap\", \"type\": \"main\", \"index\": 0 } ] ] },\n    \"Frontend Action Inbound\": { \"main\": [ [ { \"node\": \"Body Unwrap\", \"type\": \"main\", \"index\": 0 } ] ] },\n    \"Body Unwrap\": { \"main\": [ [ { \"node\": \"Absolute Router\", \"type\": \"main\", \"index\": 0 } ] ] },\n    \"Absolute Router\": {\n      \"main\": [\n        [ { \"node\": \"Sync: Chat\", \"type\": \"main\", \"index\": 0 } ],\n        [ { \"node\": \"Unified Aggregator\", \"type\": \"main\", \"index\": 0 } ],\n        [ { \"node\": \"Broadcast Resolver\", \"type\": \"main\", \"index\": 0 } ],\n        [ { \"node\": \"Unified Aggregator\", \"type\": \"main\", \"index\": 0 } ]\n      ]\n    },\n    \"Sync: Chat\": { \"main\": [ [ { \"node\": \"Unified Aggregator\", \"type\": \"main\", \"index\": 0 } ] ] },\n    \"Broadcast Resolver\": { \"main\": [ [ { \"node\": \"Gateway Pulse\", \"type\": \"main\", \"index\": 0 } ] ] },\n    \"Gateway Pulse\": { \"main\": [ [ { \"node\": \"Unified Aggregator\", \"type\": \"main\", \"index\": 0 } ] ] },\n    \"Unified Aggregator\": { \"main\": [ [ { \"node\": \"Final Log Node\", \"type\": \"main\", \"index\": 0 } ] ] },\n    \"Final Log Node\": { \"main\": [ [ { \"node\": \"Final Response Gate\", \"type\": \"main\", \"index\": 0 } ] ] }\n  }\n}\n
