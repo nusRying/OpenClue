@@ -72,7 +72,21 @@ function getAgentConfig(agentName: string) {
       body: JSON.stringify(finalPayload),
     })
 
-    if (!response.ok) throw new Error(`Action ${action} failed with status ${response.status}`)
+    if (!response.ok) {
+      let errorMessage = `Action ${action} failed with status ${response.status}`
+      try {
+        const errorData = await response.json()
+        if (errorData.n8n_response && errorData.n8n_response.hint) {
+           console.error('[n8n] Rejection Hint:', errorData.n8n_response.hint)
+           errorMessage += ` - ${errorData.n8n_response.hint}`
+        } else if (errorData.error) {
+           errorMessage += ` - ${errorData.error}`
+        }
+      } catch (e) {
+        // Ignore json parse errors here
+      }
+      throw new Error(errorMessage)
+    }
     
     return await response.json()
   } catch (error) {
