@@ -1,0 +1,403 @@
+{
+  "name": "task flow",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "openclaw",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -112,
+        208
+      ],
+      "id": "ce99777e-c418-406a-a724-e81c5001526a",
+      "name": "Webhook",
+      "webhookId": "1abddf6d-1510-43fc-adb6-2ec5568d3c50"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.agentName || ['promo'] }}",
+                    "rightValue": "promo",
+                    "operator": {
+                      "type": "array",
+                      "operation": "contains",
+                      "rightType": "any"
+                    },
+                    "id": "269ba0ba-d178-4bbb-a44f-73b35d4baab3"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Promo"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "0ed1262f-4a41-4521-9a5f-fc2e951982a4",
+                    "leftValue": "={{ $json.agentName }}",
+                    "rightValue": "digit",
+                    "operator": {
+                      "type": "array",
+                      "operation": "contains",
+                      "rightType": "any"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Digit"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "d25786f3-2194-4b13-a4f0-d477f8f3a885",
+                    "leftValue": "={{ $json.agentName }}",
+                    "rightValue": "string",
+                    "operator": {
+                      "type": "array",
+                      "operation": "contains",
+                      "rightType": "any"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "String"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "b4f509d4-ecbf-49d6-9da0-228a09d72f24",
+                    "leftValue": "={{ $json.agentName }}",
+                    "rightValue": "main",
+                    "operator": {
+                      "type": "array",
+                      "operation": "contains",
+                      "rightType": "any"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Main"
+            }
+          ]
+        },
+        "options": {
+          "allMatchingOutputs": true
+        }
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        336,
+        176
+      ],
+      "id": "78073e92-9a66-43dc-a8e5-546eb5b26936",
+      "name": "Switch"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "08dce18d-3ec7-4a18-b85b-3f52eb1ae000",
+              "name": "taskTitle",
+              "value": "={{ $json.body.record.title }}",
+              "type": "string"
+            },
+            {
+              "id": "48fa3712-9efb-49ba-b3f6-ae35b426c6b8",
+              "name": "taskPriority",
+              "value": "={{ $json.body.record.priority }}",
+              "type": "string"
+            },
+            {
+              "id": "88eb71ea-2015-41fd-a304-9247db5366c6",
+              "name": "taskDescription",
+              "value": "={{ $json.body.record.description }}",
+              "type": "string"
+            },
+            {
+              "id": "4509a698-6afd-49b4-bc5e-8bfe7fd5aaa8",
+              "name": "id",
+              "value": "={{ $json.body.record.id }}",
+              "type": "string"
+            },
+            {
+              "id": "6fa121de-2088-460a-9b47-39de4a67fdc5",
+              "name": "taskStatus",
+              "value": "={{ $json.body.record.status }}",
+              "type": "string"
+            },
+            {
+              "id": "ee823c28-707b-41a5-800e-097b220a5aeb",
+              "name": "taskDueDate",
+              "value": "={{ $json.body.record.due_date }}",
+              "type": "string"
+            },
+            {
+              "id": "deb261ba-525e-4347-a017-c8f5cf689285",
+              "name": "agentName",
+              "value": "={{ $json.body.record.assignee_names }}",
+              "type": "array"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        112,
+        208
+      ],
+      "id": "ff8dda9c-aaa8-4f1f-a6e8-a7516954c729",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=http://tofyq3lga15o3184lxde506q:18789/hooks/n8n-promo",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer 46cf3441242627eabf8eb5c32d2e0d7f"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "message",
+              "value": "=this is a message generated from mission control system. you are assigned this task:\n\n\ntask title: {{ $json.taskTitle }}\n\ntask description: {{ $json.taskDescription }}\n\n\n"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        560,
+        -80
+      ],
+      "id": "ac1b0f31-c3f8-4936-ab4f-7e2067118270",
+      "name": "Sent to Promo"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=http://tofyq3lga15o3184lxde506q:18789/hooks/n8n-digit",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer 46cf3441242627eabf8eb5c32d2e0d7f"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "message",
+              "value": "=this is a message generated from mission control system. you are assigned this task:\n\n\ntask title: {{ $json.taskTitle }}\n\ntask description: {{ $json.taskDescription }}\n\n\n"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        560,
+        112
+      ],
+      "id": "8c04b79b-65dc-4218-832c-2882566f0284",
+      "name": "Sent to Digit"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=http://tofyq3lga15o3184lxde506q:18789/hooks/n8n-string",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer 46cf3441242627eabf8eb5c32d2e0d7f"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "message",
+              "value": "=this is a message generated from mission control system. you are assigned this task:\n\n\ntask title: {{ $json.taskTitle }}\n\ntask description: {{ $json.taskDescription }}\n\n\n"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        560,
+        304
+      ],
+      "id": "fca9a253-8f0e-450a-ab5e-7c083e12ae7e",
+      "name": "Sent To String"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=http://tofyq3lga15o3184lxde506q:18789/hooks/n8n-main",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer 46cf3441242627eabf8eb5c32d2e0d7f"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "message",
+              "value": "=this is a message generated from mission control system. you are assigned this task:\n\n\ntask title: {{ $json.taskTitle }}\n\ntask description: {{ $json.taskDescription }}\n\n\n"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        560,
+        496
+      ],
+      "id": "72914055-7478-4faa-a8c7-9313c39042e4",
+      "name": "Sent to Main"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch": {
+      "main": [
+        [
+          {
+            "node": "Sent to Promo",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Sent to Digit",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Sent To String",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Sent to Main",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [],
+        [],
+        []
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Switch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "621070d1-5189-469c-a0be-053bdeb5b508",
+  "meta": {
+    "instanceId": "df7c36f7b0ec34d9779c677c0f4ccaa3fac3e27b68d743ef9e0d7fba2cda7656"
+  },
+  "id": "uT3CYFMUUOwaycnC",
+  "tags": []
+}
