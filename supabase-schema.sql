@@ -243,3 +243,55 @@ begin
   alter publication supabase_realtime add table public.tool_calls;
 exception when duplicate_object then null;
 end $$;
+
+-- =========================
+-- RLS POLICIES (Public Access)
+-- =========================
+
+-- Agents
+ALTER TABLE public.agents ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Allow public read access" ON public.agents;
+CREATE POLICY "Allow public read access" ON public.agents FOR SELECT USING (true);
+DROP POLICY IF EXISTS "Allow public update access" ON public.agents;
+CREATE POLICY "Allow public update access" ON public.agents FOR UPDATE USING (true);
+
+-- Projects
+ALTER TABLE public.projects ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Allow public read access" ON public.projects;
+CREATE POLICY "Allow public read access" ON public.projects FOR SELECT USING (true);
+DROP POLICY IF EXISTS "Allow public insert access" ON public.projects;
+CREATE POLICY "Allow public insert access" ON public.projects FOR INSERT WITH CHECK (true);
+DROP POLICY IF EXISTS "Allow public update access" ON public.projects;
+CREATE POLICY "Allow public update access" ON public.projects FOR UPDATE USING (true);
+DROP POLICY IF EXISTS "Allow public delete access" ON public.projects;
+CREATE POLICY "Allow public delete access" ON public.projects FOR DELETE USING (true);
+
+-- Tasks
+ALTER TABLE public.tasks ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Allow public read access" ON public.tasks;
+CREATE POLICY "Allow public read access" ON public.tasks FOR SELECT USING (true);
+DROP POLICY IF EXISTS "Allow public insert access" ON public.tasks;
+CREATE POLICY "Allow public insert access" ON public.tasks FOR INSERT WITH CHECK (true);
+DROP POLICY IF EXISTS "Allow public update access" ON public.tasks;
+CREATE POLICY "Allow public update access" ON public.tasks FOR UPDATE USING (true);
+DROP POLICY IF EXISTS "Allow public delete access" ON public.tasks;
+CREATE POLICY "Allow public delete access" ON public.tasks FOR DELETE USING (true);
+
+-- Activity Log
+ALTER TABLE public.activity_log ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Allow public read access" ON public.activity_log;
+CREATE POLICY "Allow public read access" ON public.activity_log FOR SELECT USING (true);
+DROP POLICY IF EXISTS "Allow public insert access" ON public.activity_log;
+CREATE POLICY "Allow public insert access" ON public.activity_log FOR INSERT WITH CHECK (true);
+
+-- Conversations
+ALTER TABLE public.conversations ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Allow public all access" ON public.conversations;
+CREATE POLICY "Allow public all access" ON public.conversations FOR ALL USING (true);
+
+-- Tool Calls
+ALTER TABLE public.tool_calls ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Allow public read access" ON public.tool_calls;
+CREATE POLICY "Allow public read access" ON public.tool_calls FOR SELECT USING (true);
+DROP POLICY IF EXISTS "Allow public insert access" ON public.tool_calls;
+CREATE POLICY "Allow public insert access" ON public.tool_calls FOR INSERT WITH CHECK (true);
