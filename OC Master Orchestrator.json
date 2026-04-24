@@ -1,5 +1,5 @@
 {
-  "name": "OpenClue - Master Orchestrator v5.3.0 (Precision Connectivity)",
+  "name": "OpenClue - Master Orchestrator v5.3.1 (Fixed Switch Outputs)",
   "nodes": [
     {
       "parameters": {
@@ -62,7 +62,11 @@
             },
             {
               "operation": "startsWith",
-              "value2": "session_",
+              "value2": "task:",
+              "output": 1
+            },
+            {
+              "value2": "task:event",
               "output": 1
             },
             {
@@ -70,17 +74,13 @@
               "output": 2
             },
             {
-              "value2": "session_end",
+              "operation": "startsWith",
+              "value2": "session_",
               "output": 3
             },
             {
-              "operation": "startsWith",
-              "value2": "task:",
-              "output": 4
-            },
-            {
-              "value2": "task:event",
-              "output": 4
+              "value2": "session_end",
+              "output": 3
             }
           ]
         },
@@ -187,7 +187,7 @@
     },
     {
       "parameters": {
-        "jsCode": "// Activity Log Aggregator\nconst all = $input.all();\nif (all.length === 0) return { json: { description: 'Pulse silent.' } };\nconst first = all[0].json;\nconst orig = first.original || first;\nconst project_id = first.project_id || orig.project_id;\n\nreturn {\n  json: {\n    event_type: 'mission_update',\n    project_id: project_id,\n    description: orig.message || 'Mission pulse active.',\n    metadata: { version: '5.3.0', source: 'orch_v5' }\n  }\n};"
+        "jsCode": "// Activity Log Aggregator\nconst all = $input.all();\nif (all.length === 0) return { json: { description: 'Pulse silent.' } };\nconst first = all[0].json;\nconst orig = first.original || first;\nconst project_id = first.project_id || orig.project_id;\n\nreturn {\n  json: {\n    event_type: 'mission_update',\n    project_id: project_id,\n    description: orig.message || 'Mission pulse active.',\n    metadata: { version: '5.3.1', source: 'orch_v5' }\n  }\n};"
       },
       "id": "aggregator",
       "name": "Unified Aggregator",
@@ -233,7 +233,7 @@
     {
       "parameters": {
         "options": {
-          "responseBody": "={{ JSON.stringify({ mission: 'acknowledged', version: '5.3.0', timestamp: $now.toISOString(), project_context: $json.project_id }) }}"
+          "responseBody": "={{ JSON.stringify({ mission: 'acknowledged', version: '5.3.1', timestamp: $now.toISOString(), project_context: $json.project_id }) }}"
         }
       },
       "id": "response-gate",
@@ -291,7 +291,7 @@
         ],
         [
           {
-            "node": "Unified Aggregator",
+            "node": "Task Resolver",
             "type": "main",
             "index": 0
           }
@@ -306,13 +306,6 @@
         [
           {
             "node": "Unified Aggregator",
-            "type": "main",
-            "index": 0
-          }
-        ],
-        [
-          {
-            "node": "Task Resolver",
             "type": "main",
             "index": 0
           }
