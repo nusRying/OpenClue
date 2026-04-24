@@ -1,5 +1,5 @@
 {
-  "name": "OpenClue - Master Orchestrator v5.4.0 (Native Task Flow Integration)",
+  "name": "OpenClue - Master Orchestrator v5.4.1 (Fixed Character Casing)",
   "nodes": [
     {
       "parameters": {
@@ -12,7 +12,7 @@
       "name": "Agent Event Inbound",
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 2.1,
-      "position": [-200, 200]
+      "position": [-300, 200]
     },
     {
       "parameters": {
@@ -25,7 +25,7 @@
       "name": "Frontend Action Inbound",
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 2.1,
-      "position": [-200, 400]
+      "position": [-300, 400]
     },
     {
       "parameters": {
@@ -35,20 +35,21 @@
       "name": "Body Unwrap",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [50, 300]
+      "position": [0, 300]
     },
     {
       "parameters": {
         "dataType": "string",
-        "value1": "={{ ($json.action || $json.event_type || ($json.record ? 'task:event' : 'unclassified')).toString() }}",
+        "value1": "={{ ($json.action || $json.event_type || ($json.record ? 'task:test' : 'unclassified')).toString() }}",
         "rules": {
           "rules": [
             { "value2": "message:sent", "output": 0 },
             { "value2": "message:received", "output": 0 },
             { "operation": "startsWith", "value2": "task:", "output": 1 },
-            { "value2": "task:event", "output": 1 },
+            { "value2": "task:test", "output": 1 },
             { "value2": "broadcast", "output": 2 },
-            { "operation": "startsWith", "value2": "session_", "output": 3 }
+            { "operation": "startsWith", "value2": "session_", "output": 3 },
+            { "value2": "session_end", "output": 3 }
           ]
         },
         "fallbackOutput": 3
@@ -57,7 +58,7 @@
       "name": "Absolute Router",
       "type": "n8n-nodes-base.switch",
       "typeVersion": 1,
-      "position": [300, 300]
+      "position": [250, 300]
     },
     {
       "parameters": {
@@ -124,7 +125,7 @@
       "name": "Task Agent Switch",
       "type": "n8n-nodes-base.switch",
       "typeVersion": 3,
-      "position": [800, 150]
+      "position": [850, 150]
     },
     {
       "parameters": {
@@ -147,7 +148,7 @@
       "name": "Sent to Promo",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.1,
-      "position": [1100, -50]
+      "position": [1150, -100]
     },
     {
       "parameters": {
@@ -170,7 +171,7 @@
       "name": "Sent to Digit",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.1,
-      "position": [1100, 100]
+      "position": [1150, 50]
     },
     {
       "parameters": {
@@ -193,7 +194,7 @@
       "name": "Sent to String",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.1,
-      "position": [1100, 250]
+      "position": [1150, 200]
     },
     {
       "parameters": {
@@ -216,7 +217,7 @@
       "name": "Sent to Main",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.1,
-      "position": [1100, 400]
+      "position": [1150, 350]
     },
     {
       "parameters": {
@@ -249,7 +250,7 @@
       "name": "Broadcast Sender",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.1,
-      "position": [800, 450]
+      "position": [850, 450]
     },
     {
       "parameters": {
@@ -271,7 +272,7 @@
       "name": "Activity Log",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4,
-      "position": [1400, 300]
+      "position": [1500, 300]
     },
     {
       "parameters": {
@@ -283,7 +284,7 @@
       "name": "Respond to Webhook",
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1,
-      "position": [1600, 300]
+      "position": [1700, 300]
     }
   ],
   "connections": {
@@ -292,10 +293,10 @@
     "Body Unwrap": { "main": [ [ { "node": "Absolute Router", "type": "main", "index": 0 } ] ] },
     "Absolute Router": {
       "main": [
-        [ { "node": "activity-log", "type": "main", "index": 0 } ],
+        [ { "node": "Activity Log", "type": "main", "index": 0 } ],
         [ { "node": "Task Field Extractor", "type": "main", "index": 0 } ],
-        [ { "node": "broadcast-resolver", "type": "main", "index": 0 } ],
-        [ { "node": "activity-log", "type": "main", "index": 0 } ]
+        [ { "node": "Broadcast Resolver", "type": "main", "index": 0 } ],
+        [ { "node": "Activity Log", "type": "main", "index": 0 } ]
       ]
     },
     "Task Field Extractor": { "main": [ [ { "node": "Task Agent Switch", "type": "main", "index": 0 } ] ] },
@@ -307,12 +308,12 @@
         [ { "node": "Sent to Main", "type": "main", "index": 0 } ]
       ]
     },
-    "Sent to Promo": { "main": [ [ { "node": "activity-log", "type": "main", "index": 0 } ] ] },
-    "Sent to Digit": { "main": [ [ { "node": "activity-log", "type": "main", "index": 0 } ] ] },
-    "Sent to String": { "main": [ [ { "node": "activity-log", "type": "main", "index": 0 } ] ] },
-    "Sent to Main": { "main": [ [ { "node": "activity-log", "type": "main", "index": 0 } ] ] },
-    "broadcast-resolver": { "main": [ [ { "node": "broadcast-sender", "type": "main", "index": 0 } ] ] },
-    "broadcast-sender": { "main": [ [ { "node": "activity-log", "type": "main", "index": 0 } ] ] },
-    "activity-log": { "main": [ [ { "node": "Respond to Webhook", "type": "main", "index": 0 } ] ] }
+    "Sent to Promo": { "main": [ [ { "node": "Activity Log", "type": "main", "index": 0 } ] ] },
+    "Sent to Digit": { "main": [ [ { "node": "Activity Log", "type": "main", "index": 0 } ] ] },
+    "Sent to String": { "main": [ [ { "node": "Activity Log", "type": "main", "index": 0 } ] ] },
+    "Sent to Main": { "main": [ [ { "node": "Activity Log", "type": "main", "index": 0 } ] ] },
+    "Broadcast Resolver": { "main": [ [ { "node": "Broadcast Sender", "type": "main", "index": 0 } ] ] },
+    "Broadcast Sender": { "main": [ [ { "node": "Activity Log", "type": "main", "index": 0 } ] ] },
+    "Activity Log": { "main": [ [ { "node": "Respond to Webhook", "type": "main", "index": 0 } ] ] }
   }
 }
