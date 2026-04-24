@@ -1,7 +1,22 @@
 import type { HookHandler } from "openclaw/sdk/hooks";
-import 'dotenv/config'
+import * as dotenv from 'dotenv';
+dotenv.config();
 
-const N8N_URL = "https://agents.kutraa.com/webhook";
+function trimTrailingSlash(value: string): string {
+  return value.endsWith("/") ? value.slice(0, -1) : value;
+}
+
+const DEFAULT_BACKEND_URL = "http://mission-control-backend:3001";
+const LEGACY_N8N_URL = process.env.N8N_URL;
+const MISSION_CONTROL_WEBHOOK_URL =
+  process.env.MISSION_CONTROL_WEBHOOK_URL ||
+  (process.env.MISSION_CONTROL_BACKEND_URL
+    ? `${trimTrailingSlash(process.env.MISSION_CONTROL_BACKEND_URL)}/api/webhook/openclaw`
+    : undefined) ||
+  (LEGACY_N8N_URL
+    ? `${trimTrailingSlash(LEGACY_N8N_URL)}/mission-control-events`
+    : `${DEFAULT_BACKEND_URL}/api/webhook/openclaw`);
+
 const AGENT_TOKEN = process.env.MISSION_CONTROL_AGENT_TOKEN || process.env.AGENT_TOKEN_STRING || "string-secret";
 
 const TELEGRAM_AGENT_MAP: Record<string, string> = {
@@ -42,7 +57,7 @@ interface WebhookPayload {
 
 async function sendToBackend(payload: WebhookPayload): Promise<void> {
   try {
-    await fetch(`${N8N_URL}/mission-control-events`, {
+    await fetch(MISSION_CONTROL_WEBHOOK_URL, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

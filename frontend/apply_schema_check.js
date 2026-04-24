@@ -1,10 +1,10 @@
-const { createClient } = require('@supabase/supabase-js');
-const fs = require('fs');
-const path = require('path');
+import { createClient } from '@supabase/supabase-js';
+import fs from 'fs';
+import path from 'path';
 
-const supabaseUrl = 'https://kxhnjmkxbylxmxjapiad.supabase.co';
+const supabaseUrl = process.env.supabaseUrl;
 // Using Service Role Key for DDL/DML bypass RLS
-const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imt4aG5qbWt4YnlseG14amFwaWFkIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3Njg2ODIyOSwiZXhwIjoyMDkyNDQ0MjI5fQ.UKJtj4jTz3PUVcu6Aq0jA88ts87tmI0NwicBEK7rqaY';
+const supabaseKey = process.env.supabaseKey;
 
 const supabase = createClient(supabaseUrl, supabaseKey);
 
