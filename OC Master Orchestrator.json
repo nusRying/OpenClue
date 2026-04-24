@@ -1,5 +1,5 @@
 {
-  "name": "OpenClue - Master Orchestrator v5.3.1 (Fixed Switch Outputs)",
+  "name": "OpenClue - Master Orchestrator v5.4.0 (Native Task Flow Integration)",
   "nodes": [
     {
       "parameters": {
@@ -12,10 +12,7 @@
       "name": "Agent Event Inbound",
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 2.1,
-      "position": [
-        -100,
-        150
-      ]
+      "position": [-200, 200]
     },
     {
       "parameters": {
@@ -28,23 +25,17 @@
       "name": "Frontend Action Inbound",
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 2.1,
-      "position": [
-        -100,
-        350
-      ]
+      "position": [-200, 400]
     },
     {
       "parameters": {
-        "jsCode": "// Normalize webhook payload and preserve project context\nconst raw = $input.item.json;\nconst data = raw.body && typeof raw.body === 'object' && !Array.isArray(raw.body) ? raw.body : raw;\nconst project_id = data.project_id || (data.metadata ? data.metadata.project_id : (data.record ? data.record.project_id : null));\nreturn { json: { ...data, project_id } };"
+        "jsCode": "// Normalize payload\nconst raw = $input.item.json;\nconst data = raw.body && typeof raw.body === 'object' && !Array.isArray(raw.body) ? raw.body : raw;\nconst project_id = data.project_id || (data.metadata ? data.metadata.project_id : (data.record ? data.record.project_id : null));\nreturn { json: { ...data, project_id } };"
       },
       "id": "body-unwrap",
       "name": "Body Unwrap",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [
-        200,
-        250
-      ]
+      "position": [50, 300]
     },
     {
       "parameters": {
@@ -52,36 +43,12 @@
         "value1": "={{ ($json.action || $json.event_type || ($json.record ? 'task:event' : 'unclassified')).toString() }}",
         "rules": {
           "rules": [
-            {
-              "value2": "message:sent",
-              "output": 0
-            },
-            {
-              "value2": "message:received",
-              "output": 0
-            },
-            {
-              "operation": "startsWith",
-              "value2": "task:",
-              "output": 1
-            },
-            {
-              "value2": "task:event",
-              "output": 1
-            },
-            {
-              "value2": "broadcast",
-              "output": 2
-            },
-            {
-              "operation": "startsWith",
-              "value2": "session_",
-              "output": 3
-            },
-            {
-              "value2": "session_end",
-              "output": 3
-            }
+            { "value2": "message:sent", "output": 0 },
+            { "value2": "message:received", "output": 0 },
+            { "operation": "startsWith", "value2": "task:", "output": 1 },
+            { "value2": "task:event", "output": 1 },
+            { "value2": "broadcast", "output": 2 },
+            { "operation": "startsWith", "value2": "session_", "output": 3 }
           ]
         },
         "fallbackOutput": 3
@@ -90,68 +57,176 @@
       "name": "Absolute Router",
       "type": "n8n-nodes-base.switch",
       "typeVersion": 1,
-      "position": [
-        450,
-        250
-      ]
+      "position": [300, 300]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            { "name": "taskTitle", "value": "={{ $json.record.title || $json.title }}", "type": "string" },
+            { "name": "taskDescription", "value": "={{ $json.record.description || $json.description }}", "type": "string" },
+            { "name": "agentName", "value": "={{ $json.record.assignee_names || $json.assignee_names || [] }}", "type": "array" },
+            { "name": "project_id", "value": "={{ $json.project_id }}", "type": "string" }
+          ]
+        }
+      },
+      "id": "task-field-extractor",
+      "name": "Task Field Extractor",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.2,
+      "position": [550, 150]
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "conditions": [
+                  { "leftValue": "={{ $json.agentName }}", "rightValue": "promo", "operator": { "type": "array", "operation": "contains" } }
+                ]
+              },
+              "renameOutput": true,
+              "outputKey": "Promo"
+            },
+            {
+              "conditions": {
+                "conditions": [
+                  { "leftValue": "={{ $json.agentName }}", "rightValue": "digit", "operator": { "type": "array", "operation": "contains" } }
+                ]
+              },
+              "renameOutput": true,
+              "outputKey": "Digit"
+            },
+            {
+              "conditions": {
+                "conditions": [
+                  { "leftValue": "={{ $json.agentName }}", "rightValue": "string", "operator": { "type": "array", "operation": "contains" } }
+                ]
+              },
+              "renameOutput": true,
+              "outputKey": "String"
+            },
+            {
+              "conditions": {
+                "conditions": [
+                  { "leftValue": "={{ $json.agentName }}", "rightValue": "main", "operator": { "type": "array", "operation": "contains" } }
+                ]
+              },
+              "renameOutput": true,
+              "outputKey": "Main"
+            }
+          ]
+        },
+        "options": { "allMatchingOutputs": true }
+      },
+      "id": "task-agent-switch",
+      "name": "Task Agent Switch",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3,
+      "position": [800, 150]
     },
     {
       "parameters": {
         "method": "POST",
-        "url": "https://base.kutraa.com/rest/v1/rpc/append_conversation_message",
+        "url": "http://tofyq3lga15o3184lxde506q:18789/hooks/n8n-promo",
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
-            {
-              "name": "apikey",
-              "value": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJzdXBhYmFzZSIsImlhdCI6MTc3NjI0NDU2MCwiZXhwIjo0OTMxOTE4MTYwLCJyb2xlIjoiYW5vbiJ9.RJRl9UsbEImEOQYPBy6nZds-RYlaTclQQj2pJ8uJb6U"
-            },
-            {
-              "name": "Authorization",
-              "value": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJzdXBhYmFzZSIsImlhdCI6MTc3NjI0NDU2MCwiZXhwIjo0OTMxOTE4MTYwLCJyb2xlIjoiYW5vbiJ9.RJRl9UsbEImEOQYPBy6nZds-RYlaTclQQj2pJ8uJb6U"
-            }
+            { "name": "Authorization", "value": "Bearer 46cf3441242627eabf8eb5c32d2e0d7f" }
           ]
         },
         "sendBody": true,
-        "specifyBody": "json",
-        "jsonBody": "={{ JSON.stringify({\n  p_session_key: $json.metadata.sessionKey || 'UNTRACKED',\n  p_message: { role: 'agent', content: $json.message || 'Mission Pulse', timestamp: $now.toISOString() },\n  p_agent_id: $json.metadata.agentId || 'main',\n  p_client_name: 'Mission Client'\n}) }}",
-        "options": {}
+        "bodyParameters": {
+          "parameters": [
+            { "name": "message", "value": "=this is a message generated from mission control system. you are assigned this task:\n\n\ntask title: {{ $json.taskTitle }}\n\ntask description: {{ $json.taskDescription }}\n\n\n" }
+          ]
+        }
       },
-      "id": "action-chat",
-      "name": "Sync: Chat",
+      "id": "send-promo",
+      "name": "Sent to Promo",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.1,
-      "position": [
-        750,
-        50
-      ],
-      "continueOnFail": true
+      "position": [1100, -50]
     },
     {
       "parameters": {
-        "jsCode": "// Broadcast Resolver\nconst item = $input.item.json;\nconst msg = item.message || 'Signal pulse.';\nconst pid = item.project_id;\nconst MAPS = [\n  { name: 'promo', to: '-1003728720677:topic:1239', key: 'agent:promo:telegram:group:-1003728720677:topic:1239' },\n  { name: 'main', to: '-1003728720677:topic:1', key: 'agent:main:telegram:group:-1003728720677:topic:1' },\n  { name: 'digit', to: '-1003728720677:topic:3', key: 'agent:digit:telegram:group:-1003728720677:topic:3' },\n  { name: 'string', to: '-1003728720677:topic:2', key: 'agent:string:telegram:group:-1003728720677:topic:2' }\n];\nreturn MAPS.map(m => ({ json: { ...m, message: msg, project_id: pid, original: item } }));"
+        "method": "POST",
+        "url": "http://tofyq3lga15o3184lxde506q:18789/hooks/n8n-digit",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "Authorization", "value": "Bearer 46cf3441242627eabf8eb5c32d2e0d7f" }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            { "name": "message", "value": "=this is a message generated from mission control system. you are assigned this task:\n\n\ntask title: {{ $json.taskTitle }}\n\ntask description: {{ $json.taskDescription }}\n\n\n" }
+          ]
+        }
+      },
+      "id": "send-digit",
+      "name": "Sent to Digit",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [1100, 100]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://tofyq3lga15o3184lxde506q:18789/hooks/n8n-string",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "Authorization", "value": "Bearer 46cf3441242627eabf8eb5c32d2e0d7f" }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            { "name": "message", "value": "=this is a message generated from mission control system. you are assigned this task:\n\n\ntask title: {{ $json.taskTitle }}\n\ntask description: {{ $json.taskDescription }}\n\n\n" }
+          ]
+        }
+      },
+      "id": "send-string",
+      "name": "Sent to String",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [1100, 250]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://tofyq3lga15o3184lxde506q:18789/hooks/n8n-main",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "Authorization", "value": "Bearer 46cf3441242627eabf8eb5c32d2e0d7f" }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            { "name": "message", "value": "=this is a message generated from mission control system. you are assigned this task:\n\n\ntask title: {{ $json.taskTitle }}\n\ntask description: {{ $json.taskDescription }}\n\n\n" }
+          ]
+        }
+      },
+      "id": "send-main",
+      "name": "Sent to Main",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [1100, 400]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Broadcast Resolver\nconst item = $input.item.json;\nreturn [\n  { name: 'promo', to: '-1003728720677:topic:1239' },\n  { name: 'main', to: '-1003728720677:topic:1' },\n  { name: 'digit', to: '-1003728720677:topic:3' },\n  { name: 'string', to: '-1003728720677:topic:2' }\n].map(m => ({ json: { ...m, message: item.message, project_id: item.project_id } }));"
       },
       "id": "broadcast-resolver",
       "name": "Broadcast Resolver",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [
-        750,
-        250
-      ]
-    },
-    {
-      "parameters": {
-        "jsCode": "// Task Resolver\nconst item = $input.item.json;\nconst record = item.record || item;\nconst title = record.title || 'Untitled Mission';\nconst desc = record.description || 'No description provided.';\nconst assignees = record.assignee_names || [];\nconst pid = record.project_id || item.project_id;\n\nconst MAPS = [\n  { name: 'promo', to: '-1003728720677:topic:1239', key: 'agent:promo:telegram:group:-1003728720677:topic:1239' },\n  { name: 'main', to: '-1003728720677:topic:1', key: 'agent:main:telegram:group:-1003728720677:topic:1' },\n  { name: 'digit', to: '-1003728720677:topic:3', key: 'agent:digit:telegram:group:-1003728720677:topic:3' },\n  { name: 'string', to: '-1003728720677:topic:2', key: 'agent:string:telegram:group:-1003728720677:topic:2' }\n];\n\nconst targeted = MAPS.filter(m => assignees.includes(m.name));\nconst results = targeted.length > 0 ? targeted : MAPS;\n\nconst message = `this is a message generated from mission control system. you are assigned this task:\\n\\ntask title: ${title}\\ntask description: ${desc}`;\n\nreturn results.map(m => ({ json: { ...m, message, project_id: pid, original: item } }));"
-      },
-      "id": "task-resolver",
-      "name": "Task Resolver",
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
-      "position": [
-        750,
-        450
-      ]
+      "position": [550, 450]
     },
     {
       "parameters": {
@@ -160,43 +235,21 @@
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
-            {
-              "name": "Authorization",
-              "value": "Bearer 46cf3441242627eabf8eb5c32d2e0d7f"
-            },
-            {
-              "name": "Content-Type",
-              "value": "application/json"
-            }
+            { "name": "Authorization", "value": "Bearer 46cf3441242627eabf8eb5c32d2e0d7f" }
           ]
         },
         "sendBody": true,
-        "specifyBody": "json",
-        "jsonBody": "={ \"message\": \"{{ $json.message }}\" }",
-        "options": {}
+        "bodyParameters": {
+          "parameters": [
+            { "name": "message", "value": "={{ $json.message }}" }
+          ]
+        }
       },
-      "id": "gateway-pulse",
-      "name": "Neural Gateway Pulse",
+      "id": "broadcast-sender",
+      "name": "Broadcast Sender",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.1,
-      "position": [
-        1050,
-        350
-      ],
-      "continueOnFail": true
-    },
-    {
-      "parameters": {
-        "jsCode": "// Activity Log Aggregator\nconst all = $input.all();\nif (all.length === 0) return { json: { description: 'Pulse silent.' } };\nconst first = all[0].json;\nconst orig = first.original || first;\nconst project_id = first.project_id || orig.project_id;\n\nreturn {\n  json: {\n    event_type: 'mission_update',\n    project_id: project_id,\n    description: orig.message || 'Mission pulse active.',\n    metadata: { version: '5.3.1', source: 'orch_v5' }\n  }\n};"
-      },
-      "id": "aggregator",
-      "name": "Unified Aggregator",
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
-      "position": [
-        1350,
-        350
-      ]
+      "position": [800, 450]
     },
     {
       "parameters": {
@@ -205,178 +258,61 @@
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
-            {
-              "name": "apikey",
-              "value": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJzdXBhYmFzZSIsImlhdCI6MTc3NjI0NDU2MCwiZXhwIjo0OTMxOTE4MTYwLCJyb2xlIjoiYW5vbiJ9.RJRl9UsbEImEOQYPBy6nZds-RYlaTclQQj2pJ8uJb6U"
-            },
-            {
-              "name": "Authorization",
-              "value": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJzdXBhYmFzZSIsImlhdCI6MTc3NjI0NDU2MCwiZXhwIjo0OTMxOTE4MTYwLCJyb2xlIjoiYW5vbiJ9.RJRl9UsbEImEOQYPBy6nZds-RYlaTclQQj2pJ8uJb6U"
-            }
+            { "name": "apikey", "value": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJzdXBhYmFzZSIsImlhdCI6MTc3NjI0NDU2MCwiZXhwIjo0OTMxOTE4MTYwLCJyb2xlIjoiYW5vbiJ9.RJRl9UsbEImEOQYPBy6nZds-RYlaTclQQj2pJ8uJb6U" },
+            { "name": "Authorization", "value": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJzdXBhYmFzZSIsImlhdCI6MTc3NjI0NDU2MCwiZXhwIjo0OTMxOTE4MTYwLCJyb2xlIjoiYW5vbiJ9.RJRl9UsbEImEOQYPBy6nZds-RYlaTclQQj2pJ8uJb6U" }
           ]
         },
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={{ JSON.stringify($json) }}",
+        "jsonBody": "={ \"event_type\": \"pulse\", \"project_id\": \"{{ $json.project_id }}\", \"description\": \"Orchestrator Activity\" }",
         "options": {}
       },
-      "id": "action-log",
-      "name": "Final Log Node",
+      "id": "activity-log",
+      "name": "Activity Log",
       "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.1,
-      "position": [
-        1600,
-        350
-      ],
-      "continueOnFail": true
+      "typeVersion": 4,
+      "position": [1400, 300]
     },
     {
       "parameters": {
         "options": {
-          "responseBody": "={{ JSON.stringify({ mission: 'acknowledged', version: '5.3.1', timestamp: $now.toISOString(), project_context: $json.project_id }) }}"
+          "responseBody": "={ \"status\": \"success\" }"
         }
       },
       "id": "response-gate",
-      "name": "Final Response Gate",
+      "name": "Respond to Webhook",
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1,
-      "position": [
-        1850,
-        350
-      ]
+      "position": [1600, 300]
     }
   ],
   "connections": {
-    "Agent Event Inbound": {
-      "main": [
-        [
-          {
-            "node": "Body Unwrap",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Frontend Action Inbound": {
-      "main": [
-        [
-          {
-            "node": "Body Unwrap",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Body Unwrap": {
-      "main": [
-        [
-          {
-            "node": "Absolute Router",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
+    "Agent Event Inbound": { "main": [ [ { "node": "Body Unwrap", "type": "main", "index": 0 } ] ] },
+    "Frontend Action Inbound": { "main": [ [ { "node": "Body Unwrap", "type": "main", "index": 0 } ] ] },
+    "Body Unwrap": { "main": [ [ { "node": "Absolute Router", "type": "main", "index": 0 } ] ] },
     "Absolute Router": {
       "main": [
-        [
-          {
-            "node": "Sync: Chat",
-            "type": "main",
-            "index": 0
-          }
-        ],
-        [
-          {
-            "node": "Task Resolver",
-            "type": "main",
-            "index": 0
-          }
-        ],
-        [
-          {
-            "node": "Broadcast Resolver",
-            "type": "main",
-            "index": 0
-          }
-        ],
-        [
-          {
-            "node": "Unified Aggregator",
-            "type": "main",
-            "index": 0
-          }
-        ]
+        [ { "node": "activity-log", "type": "main", "index": 0 } ],
+        [ { "node": "Task Field Extractor", "type": "main", "index": 0 } ],
+        [ { "node": "broadcast-resolver", "type": "main", "index": 0 } ],
+        [ { "node": "activity-log", "type": "main", "index": 0 } ]
       ]
     },
-    "Sync: Chat": {
+    "Task Field Extractor": { "main": [ [ { "node": "Task Agent Switch", "type": "main", "index": 0 } ] ] },
+    "Task Agent Switch": {
       "main": [
-        [
-          {
-            "node": "Unified Aggregator",
-            "type": "main",
-            "index": 0
-          }
-        ]
+        [ { "node": "Sent to Promo", "type": "main", "index": 0 } ],
+        [ { "node": "Sent to Digit", "type": "main", "index": 0 } ],
+        [ { "node": "Sent to String", "type": "main", "index": 0 } ],
+        [ { "node": "Sent to Main", "type": "main", "index": 0 } ]
       ]
     },
-    "Broadcast Resolver": {
-      "main": [
-        [
-          {
-            "node": "Neural Gateway Pulse",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Task Resolver": {
-      "main": [
-        [
-          {
-            "node": "Neural Gateway Pulse",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Neural Gateway Pulse": {
-      "main": [
-        [
-          {
-            "node": "Unified Aggregator",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Unified Aggregator": {
-      "main": [
-        [
-          {
-            "node": "Final Log Node",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Final Log Node": {
-      "main": [
-        [
-          {
-            "node": "Final Response Gate",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    }
+    "Sent to Promo": { "main": [ [ { "node": "activity-log", "type": "main", "index": 0 } ] ] },
+    "Sent to Digit": { "main": [ [ { "node": "activity-log", "type": "main", "index": 0 } ] ] },
+    "Sent to String": { "main": [ [ { "node": "activity-log", "type": "main", "index": 0 } ] ] },
+    "Sent to Main": { "main": [ [ { "node": "activity-log", "type": "main", "index": 0 } ] ] },
+    "broadcast-resolver": { "main": [ [ { "node": "broadcast-sender", "type": "main", "index": 0 } ] ] },
+    "broadcast-sender": { "main": [ [ { "node": "activity-log", "type": "main", "index": 0 } ] ] },
+    "activity-log": { "main": [ [ { "node": "Respond to Webhook", "type": "main", "index": 0 } ] ] }
   }
 }
