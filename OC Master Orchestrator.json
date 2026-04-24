@@ -1,5 +1,5 @@
 {
-  "name": "OpenClue - Master Orchestrator v5.4.1 (Fixed Character Casing)",
+  "name": "OpenClue - Master Orchestrator v5.4.2 (UUID Field Hardening)",
   "nodes": [
     {
       "parameters": {
@@ -29,7 +29,7 @@
     },
     {
       "parameters": {
-        "jsCode": "// Normalize payload\nconst raw = $input.item.json;\nconst data = raw.body && typeof raw.body === 'object' && !Array.isArray(raw.body) ? raw.body : raw;\nconst project_id = data.project_id || (data.metadata ? data.metadata.project_id : (data.record ? data.record.project_id : null));\nreturn { json: { ...data, project_id } };"
+        "jsCode": "// Normalize payload and guarantee project_id exists (even if null)\nconst raw = $input.item.json;\nconst data = raw.body && typeof raw.body === 'object' && !Array.isArray(raw.body) ? raw.body : raw;\nlet project_id = data.project_id || (data.metadata ? data.metadata.project_id : (data.record ? data.record.project_id : null));\n\n// Ensure project_id is either a valid UUID string or null (NEVER an empty string)\nif (!project_id || project_id === \"\" || project_id === \"undefined\") project_id = null;\n\nreturn { json: { ...data, project_id } };"
       },
       "id": "body-unwrap",
       "name": "Body Unwrap",
@@ -66,8 +66,7 @@
           "assignments": [
             { "name": "taskTitle", "value": "={{ $json.record.title || $json.title }}", "type": "string" },
             { "name": "taskDescription", "value": "={{ $json.record.description || $json.description }}", "type": "string" },
-            { "name": "agentName", "value": "={{ $json.record.assignee_names || $json.assignee_names || [] }}", "type": "array" },
-            { "name": "project_id", "value": "={{ $json.project_id }}", "type": "string" }
+            { "name": "agentName", "value": "={{ $json.record.assignee_names || $json.assignee_names || [] }}", "type": "array" }
           ]
         }
       },
@@ -221,7 +220,7 @@
     },
     {
       "parameters": {
-        "jsCode": "// Broadcast Resolver\nconst item = $input.item.json;\nreturn [\n  { name: 'promo', to: '-1003728720677:topic:1239' },\n  { name: 'main', to: '-1003728720677:topic:1' },\n  { name: 'digit', to: '-1003728720677:topic:3' },\n  { name: 'string', to: '-1003728720677:topic:2' }\n].map(m => ({ json: { ...m, message: item.message, project_id: item.project_id } }));"
+        "jsCode": "// Broadcast Resolver\nconst item = $input.item.json;\nreturn [\n  { name: 'promo', to: '-1003728720677:topic:1239' },\n  { name: 'main', to: '-1003728720677:topic:1' },\n  { name: 'digit', to: '-1003728720677:topic:3' },\n  { name: 'string', to: '-1003728720677:topic:2' }\n].map(m => ({ json: { ...m, message: item.message } }));"
       },
       "id": "broadcast-resolver",
       "name": "Broadcast Resolver",
@@ -265,7 +264,7 @@
         },
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={ \"event_type\": \"pulse\", \"project_id\": \"{{ $json.project_id }}\", \"description\": \"Orchestrator Activity\" }",
+        "jsonBody": "={{ JSON.stringify({\n  event_type: 'pulse',\n  project_id: $node[\"Body Unwrap\"].json[\"project_id\"] || null,\n  description: 'Orchestrator Activity v5.4.2',\n  metadata: { timestamp: $now.toISOString() }\n}) }}",
         "options": {}
       },
       "id": "activity-log",
