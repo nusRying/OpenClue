@@ -1,5 +1,5 @@
 {
-  "name": "OpenClue - Master Orchestrator v5.2.1 (Resolved Connectivity)",
+  "name": "OpenClue - Master Orchestrator v5.2.2 (Telegram Visibility Fix)",
   "nodes": [
     {
       "parameters": {
@@ -93,7 +93,7 @@
     },
     {
       "parameters": {
-        "jsCode": "// Task Resolver - Integrated from task flow.json\nconst item = $input.item.json;\nconst record = item.record || item;\nconst title = record.title || 'Untitled Mission';\nconst desc = record.description || 'No description provided.';\nconst assignees = record.assignee_names || [];\nconst pid = record.project_id || item.project_id;\n\nconst MAPS = [\n  { name: 'promo', to: '-1003728720677:topic:1239', key: 'agent:promo:telegram:group:-1003728720677:topic:1239' },\n  { name: 'main', to: '-1003728720677:topic:1', key: 'agent:main:telegram:group:-1003728720677:topic:1' },\n  { name: 'digit', to: '-1003728720677:topic:3', key: 'agent:digit:telegram:group:-1003728720677:topic:3' },\n  { name: 'string', to: '-1003728720677:topic:2', key: 'agent:string:telegram:group:-1003728720677:topic:2' }\n];\n\nconst targeted = MAPS.filter(m => assignees.includes(m.name));\nconst results = targeted.length > 0 ? targeted : MAPS; \n\nconst message = `this is a message generated from mission control system. you are assigned this task:\n\ntask title: ${title}\ntask description: ${desc}`;\n\nreturn results.map(m => ({ json: { ...m, message, project_id: pid, original: item } }));"
+        "jsCode": "// Task Resolver - Integrated from task flow.json with clean message\nconst item = $input.item.json;\nconst record = item.record || item;\nconst title = record.title || 'Untitled Mission';\nconst desc = record.description || 'No description provided.';\nconst assignees = record.assignee_names || [];\nconst pid = record.project_id || item.project_id;\n\nconst MAPS = [\n  { name: 'promo', to: '-1003728720677:topic:1239', key: 'agent:promo:telegram:group:-1003728720677:topic:1239' },\n  { name: 'main', to: '-1003728720677:topic:1', key: 'agent:main:telegram:group:-1003728720677:topic:1' },\n  { name: 'digit', to: '-1003728720677:topic:3', key: 'agent:digit:telegram:group:-1003728720677:topic:3' },\n  { name: 'string', to: '-1003728720677:topic:2', key: 'agent:string:telegram:group:-1003728720677:topic:2' }\n];\n\nconst targeted = MAPS.filter(m => assignees.includes(m.name));\nconst results = targeted.length > 0 ? targeted : MAPS; \n\nconst message = `this is a message generated from mission control system. you are assigned this task:\\n\\ntask title: ${title}\\ntask description: ${desc}`;\n\nreturn results.map(m => ({ json: { ...m, message, project_id: pid, original: item } }));"
       },
       "id": "task-resolver",
       "name": "Task Resolver",
@@ -114,7 +114,7 @@
         },
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={ \"message\": \"{{ $json.message }}\", \"to\": \"{{ $json.to }}\", \"sessionKey\": \"{{ $json.key }}\", \"priority\": \"high\", \"project_id\": \"{{ $json.project_id }}\" }",
+        "jsonBody": "={ \"message\": \"{{ $json.message }}\" }",
         "options": {}
       },
       "id": "gateway-pulse",
@@ -126,7 +126,7 @@
     },
     {
       "parameters": {
-        "jsCode": "// Unified Aggregator - Consolidates all signals for Activity Log\nconst all = $input.all();\nconst first = all[0].json;\nconst orig = first.original || first;\nconst project_id = first.project_id || orig.project_id;\n\nreturn {\n  json: {\n    event_type: 'mission_update',\n    project_id: project_id,\n    description: orig.message || 'Mission pulse active.',\n    metadata: { version: '5.2.1', source: 'orch_v5' }\n  }\n};"
+        "jsCode": "// Activity Log Aggregator\nconst all = $input.all();\nconst first = all[0].json;\nconst orig = first.original || first;\nconst project_id = first.project_id || orig.project_id;\n\nreturn {\n  json: {\n    event_type: 'mission_update',\n    project_id: project_id,\n    description: orig.message || 'Mission pulse active.',\n    metadata: { version: '5.2.2', source: 'orch_v5' }\n  }\n};"
       },
       "id": "aggregator",
       "name": "Unified Aggregator",
@@ -160,7 +160,7 @@
     {
       "parameters": {
         "options": {
-          "responseBody": "={{ JSON.stringify({ mission: 'acknowledged', version: '5.2.1', timestamp: $now.toISOString(), project_context: $json.project_id }) }}"
+          "responseBody": "={{ JSON.stringify({ mission: 'acknowledged', version: '5.2.2', timestamp: $now.toISOString(), project_context: $json.project_id }) }}"
         }
       },
       "id": "response-gate",
