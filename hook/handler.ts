@@ -16,12 +16,16 @@ const MISSION_CONTROL_WEBHOOK_URL =
   (LEGACY_N8N_URL
     ? `${trimTrailingSlash(LEGACY_N8N_URL)}/mission-control-events`
     : `${DEFAULT_BACKEND_URL}/api/webhook/openclaw`);
+const USING_LEGACY_N8N_WEBHOOK =
+  !process.env.MISSION_CONTROL_WEBHOOK_URL &&
+  !process.env.MISSION_CONTROL_BACKEND_URL &&
+  Boolean(LEGACY_N8N_URL);
 
 const AGENT_TOKEN = process.env.MISSION_CONTROL_AGENT_TOKEN || process.env.AGENT_TOKEN_STRING || "string-secret";
 
 const TELEGRAM_AGENT_MAP: Record<string, string> = {
-  "8423315067": "Mehzam",
-  "6993398322": "KUT",
+  "8423315067": "mehzam",
+  "6993398322": "kut",
 };
 
 function getAgentNameFromMetadata(metadata?: Record<string, unknown>): string | null {
@@ -33,13 +37,41 @@ function getAgentNameFromMetadata(metadata?: Record<string, unknown>): string | 
   const senderName = metadata?.senderName as string | undefined;
   if (senderName) {
     const lower = senderName.toLowerCase();
-    if (lower.includes("mehzam")) return "Mehzam";
-    if (lower.includes("kut") || lower.includes("mc1aaz")) return "KUT";
-    if (lower.includes("digit")) return "Digit";
-    if (lower.includes("promo")) return "Promo";
-    if (lower.includes("string")) return "String";
+    if (lower.includes("mehzam")) return "mehzam";
+    if (lower.includes("kut") || lower.includes("mc1aaz")) return "kut";
+    if (lower.includes("digit")) return "digit";
+    if (lower.includes("promo")) return "promo";
+    if (lower.includes("string")) return "string";
   }
   return null;
+}
+
+function coerceMessageContent(value: unknown): string {
+  if (typeof value === "string") return value;
+  if (typeof value === "number" || typeof value === "boolean") return String(value);
+  if (Array.isArray(value)) {
+    return value
+      .map((entry) => coerceMessageContent(entry))
+      .filter(Boolean)
+      .join("\n");
+  }
+  if (value && typeof value === "object") {
+    try {
+      return JSON.stringify(value);
+    } catch {
+      return "";
+    }
+  }
+  return "";
+}
+
+function extractMessageContent(event: any): string {
+  return coerceMessageContent(
+    (event as any).bodyForAgent ??
+    event.context?.content ??
+    (event as any).messages?.[0] ??
+    "",
+  );
 }
 
 interface WebhookPayload {
@@ -57,7 +89,11 @@ interface WebhookPayload {
 
 async function sendToBackend(payload: WebhookPayload): Promise<void> {
   try {
-    await fetch(MISSION_CONTROL_WEBHOOK_URL, {
+    if (USING_LEGACY_N8N_WEBHOOK) {
+      console.warn(`[mission-control hook] Using legacy N8N webhook: ${MISSION_CONTROL_WEBHOOK_URL}`);
+    }
+
+    const response = await fetch(MISSION_CONTROL_WEBHOOK_URL, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -65,8 +101,16 @@ async function sendToBackend(payload: WebhookPayload): Promise<void> {
       },
       body: JSON.stringify(payload),
     });
-  } catch {
-    // Swallow errors
+
+    if (!response.ok) {
+      const errorBody = await response.text().catch(() => "");
+      console.error(
+        `[mission-control hook] Backend rejected ${payload.event_type} with ${response.status} ${response.statusText}: ${errorBody}`,
+      );
+    }
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    console.error(`[mission-control hook] Failed to deliver ${payload.event_type} to ${MISSION_CONTROL_WEBHOOK_URL}: ${message}`);
   }
 }
 
@@ -111,7 +155,7 @@ export const handler: HookHandler = {
 
   onMessageReceived(event: any) {
     const agentName = getAgentNameFromMetadata(event.context?.metadata);
-    const messageContent = (event as any).bodyForAgent || event.context?.content || (event as any).messages?.[0] || "";
+    const messageContent = extractMessageContent(event);
     void sendToBackend({
       event_type: "message:received",
       message: messageContent,
@@ -133,11 +177,12 @@ export const handler: HookHandler = {
 
   onMessagePreprocessed(event: any) {
     const agentName = getAgentNameFromMetadata(event.context?.metadata);
+    const messageContent = extractMessageContent(event);
     void sendToBackend({
       event_type: "message:preprocessed",
-      message: (event as any).bodyForAgent || event.context?.content || "",
+      message: messageContent,
       context: {
-        content: (event as any).bodyForAgent,
+        content: messageContent,
         from: event.context?.from,
         channelId: event.context?.channelId,
         metadata: event.context?.metadata,
@@ -154,7 +199,7 @@ export const handler: HookHandler = {
 
   onMessageSent(event: any) {
     const agentName = getAgentNameFromMetadata(event.context?.metadata);
-    const messageContent = (event as any).bodyForAgent || event.context?.content || (event as any).messages?.[0] || "";
+    const messageContent = extractMessageContent(event);
     void sendToBackend({
       event_type: "message:sent",
       message: messageContent,

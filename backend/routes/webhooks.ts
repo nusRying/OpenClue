@@ -65,6 +65,32 @@ async function insertActivityLog(
   };
 }
 
+async function updateConversationRecord(
+  supabase: ReturnType<typeof getSupabase>,
+  sessionKey: string,
+  updates: Record<string, unknown>,
+) {
+  const currentUpdates = { ...updates };
+
+  for (let attempt = 0; attempt < 6; attempt += 1) {
+    const result = await supabase
+      .from('conversations')
+      .update(currentUpdates)
+      .eq('session_key', sessionKey);
+
+    if (!result.error) return result.error;
+    if (result.error.code !== 'PGRST204' && result.error.code !== '42703') return result.error;
+
+    const match = String(result.error.message || '').match(/'([^']+)'/);
+    const missingColumn = match?.[1];
+    if (!missingColumn) return result.error;
+
+    delete currentUpdates[missingColumn];
+  }
+
+  return { code: 'PGRST204', message: 'Failed to update conversations after fallback attempts' };
+}
+
 // Extract agent name from sessionKey (format: agent:mehzam:telegram:group:...)
 function extractAgentFromSessionKey(sessionKey: string): string | null {
   const parts = sessionKey.split(':');
@@ -229,11 +255,7 @@ async function syncConversation(
   if (params.clientId) updates.client_id = params.clientId;
   if (params.clientName) updates.client_name = params.clientName;
 
-  const { error: updateError } = await supabase
-    .from('conversations')
-    .update(updates)
-    .eq('session_key', params.sessionKey);
-
+  const updateError = await updateConversationRecord(supabase, params.sessionKey, updates);
   return updateError;
 }
 
