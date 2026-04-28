@@ -28,18 +28,23 @@ export function ConversationsPanel({ conversations, agents, selectedSessionKey, 
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedChannel, setSelectedChannel] = useState<'all' | 'telegram' | 'whatsapp'>('all')
   const scrollRef = useRef<HTMLDivElement>(null)
+  const messagesEndRef = useRef<HTMLDivElement>(null)
 
   const selectedConv = conversations.find(c => c.session_key === selectedSessionKey)
 
-  // Auto-scroll to bottom on new messages
+  // Auto-scroll to bottom on new messages or session change
   useEffect(() => {
-    if (scrollRef.current) {
-      scrollRef.current.scrollTo({
-        top: scrollRef.current.scrollHeight,
-        behavior: 'smooth'
-      })
+    const scrollContainer = scrollRef.current
+    if (scrollContainer) {
+      const scroll = () => {
+        scrollContainer.scrollTop = scrollContainer.scrollHeight
+      }
+      scroll()
+      // Small delay to ensure DOM is fully rendered (especially with RichText)
+      const timeoutId = setTimeout(scroll, 100)
+      return () => clearTimeout(timeoutId)
     }
-  }, [selectedConv?.messages?.length])
+  }, [selectedConv?.messages?.length, selectedSessionKey])
   
   const filteredConversations = conversations.filter(c => {
     const matchesSearch = c.client_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -178,11 +183,10 @@ export function ConversationsPanel({ conversations, agents, selectedSessionKey, 
                 <span className="badge" style={{ background: 'var(--success-muted)', color: 'var(--success)', border: '1px solid var(--success-muted)' }}>LIVE FEED</span>
               </div>
             </div>
-
             {/* Messages Area */}
             <div 
               ref={scrollRef}
-              style={{ flex: 1, overflowY: 'auto', padding: '2rem', display: 'flex', flexDirection: 'column', gap: '1.5rem', background: 'var(--bg-base)', scrollBehavior: 'smooth' }}
+              style={{ flex: 1, overflowY: 'auto', padding: '2rem', display: 'flex', flexDirection: 'column', gap: '1.5rem', background: 'var(--bg-base)' }}
             >
               {selectedConv.messages.map((msg, idx) => {
                 const isAgent = msg.role === 'agent'
@@ -225,6 +229,7 @@ export function ConversationsPanel({ conversations, agents, selectedSessionKey, 
                   </div>
                 )
               })}
+              <div ref={messagesEndRef} style={{ height: '1px', marginTop: '-1px' }} />
             </div>
 
             {/* Footer / Status Area */}
