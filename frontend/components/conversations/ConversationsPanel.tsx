@@ -1,8 +1,10 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import type { Conversation, Agent } from '@/types'
 import { format, isValid } from 'date-fns'
+import { RichText } from '@/components/ui/RichText'
+import { cleanMessageContent } from '@/lib/messageUtils'
 
 interface Props {
   conversations: Conversation[]
@@ -11,27 +13,7 @@ interface Props {
   onSelectSession: (key: string) => void
 }
 
-function cleanMessageContent(content: string | undefined): string {
-  if (!content) return ''
-  
-  const extractText = (obj: any): string => {
-    return obj.message || obj.content || obj.text || obj.msg || obj.msg_content || ''
-  }
 
-  try {
-    let current = content.trim()
-    const jsonMatch = current.match(/^(?:.*?:?\s*)?({[\s\S]*})$/)
-    if (jsonMatch && jsonMatch[1]) current = jsonMatch[1]
-
-    if (current.startsWith('{') && current.endsWith('}')) {
-      let parsed = JSON.parse(current)
-      let text = extractText(parsed)
-      if (text) return cleanMessageContent(text)
-      return current
-    }
-  } catch (e) {}
-  return content
-}
 
 function formatDateTime(value: string | undefined, pattern: string, fallback = '--:--'): string {
   if (!value) return fallback
@@ -45,8 +27,19 @@ function formatDateTime(value: string | undefined, pattern: string, fallback = '
 export function ConversationsPanel({ conversations, agents, selectedSessionKey, onSelectSession }: Props) {
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedChannel, setSelectedChannel] = useState<'all' | 'telegram' | 'whatsapp'>('all')
+  const scrollRef = useRef<HTMLDivElement>(null)
 
   const selectedConv = conversations.find(c => c.session_key === selectedSessionKey)
+
+  // Auto-scroll to bottom on new messages
+  useEffect(() => {
+    if (scrollRef.current) {
+      scrollRef.current.scrollTo({
+        top: scrollRef.current.scrollHeight,
+        behavior: 'smooth'
+      })
+    }
+  }, [selectedConv?.messages?.length])
   
   const filteredConversations = conversations.filter(c => {
     const matchesSearch = c.client_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -187,7 +180,10 @@ export function ConversationsPanel({ conversations, agents, selectedSessionKey, 
             </div>
 
             {/* Messages Area */}
-            <div style={{ flex: 1, overflowY: 'auto', padding: '2rem', display: 'flex', flexDirection: 'column', gap: '1.5rem', background: 'var(--bg-base)' }}>
+            <div 
+              ref={scrollRef}
+              style={{ flex: 1, overflowY: 'auto', padding: '2rem', display: 'flex', flexDirection: 'column', gap: '1.5rem', background: 'var(--bg-base)', scrollBehavior: 'smooth' }}
+            >
               {selectedConv.messages.map((msg, idx) => {
                 const isAgent = msg.role === 'agent'
                 const isSystem = msg.role === 'system'
@@ -221,9 +217,10 @@ export function ConversationsPanel({ conversations, agents, selectedSessionKey, 
                       color: isAgent ? 'white' : 'var(--text-primary)',
                       fontSize: '0.9375rem', lineHeight: 1.6,
                       boxShadow: '0 4px 12px rgba(0,0,0,0.05)',
-                      border: isAgent ? 'none' : '1px solid var(--border-subtle)'
+                      border: isAgent ? 'none' : '1px solid var(--border-subtle)',
+                      wordBreak: 'break-word'
                     }}>
-                      {cleanedContent}
+                      <RichText text={cleanedContent} isAgent={isAgent} />
                     </div>
                   </div>
                 )
