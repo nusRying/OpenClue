@@ -142,9 +142,11 @@ export function ConversationsPanel({ conversations, agents, selectedSessionKey, 
                     }}>{agent?.emoji || '👤'}</div>
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <p style={{ fontSize: '0.875rem', fontWeight: 700, color: 'var(--text-primary)', margin: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                        {conv.client_name || 'Anonymous Client'}
+                        {conv.client_name || 'Client'}
                       </p>
-                      <p style={{ fontSize: '0.6875rem', color: 'var(--text-tertiary)', margin: '2px 0 0' }}>{conv.channel.toUpperCase()}</p>
+                      <p style={{ fontSize: '0.6875rem', color: 'var(--text-tertiary)', margin: '2px 0 0' }}>
+                        {conv.channel.toUpperCase()} {conv.client_id ? `• ${conv.client_id}` : ''}
+                      </p>
                     </div>
                     <span style={{ fontSize: '0.625rem', color: 'var(--text-tertiary)', fontWeight: 600 }}>
                       {formatDateTime(conv.updated_at, 'HH:mm')}
@@ -174,7 +176,9 @@ export function ConversationsPanel({ conversations, agents, selectedSessionKey, 
                   <h2 style={{ fontSize: '1.0625rem', fontWeight: 700, margin: 0, color: 'var(--text-primary)' }}>{selectedConv.client_name || 'Client'}</h2>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginTop: '2px' }}>
                     <div style={{ width: 6, height: 6, borderRadius: '50%', background: 'var(--success)', animation: 'pulse 2s infinite' }} />
-                    <span style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-tertiary)' }}>SESSION ID: {selectedConv.session_key.slice(0, 8)}...</span>
+                    <span style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-tertiary)' }}>
+                      SENDER: {selectedConv.client_id || 'UNKNOWN'} | SESSION: {selectedConv.session_key.slice(0, 8)}
+                    </span>
                   </div>
                 </div>
               </div>
