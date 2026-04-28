@@ -1,7 +1,6 @@
 import type { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import getSupabase from '../lib/supabase.js';
 import { sendTelegramMessage, eventPriority } from '../lib/telegram.js';
-import type { ActivityEvent, ToolCall, SessionEvent } from '../src/types.js';
 
 const AGENT_TOKENS = new Map<string, string>([
   ['string', process.env.AGENT_TOKEN_STRING || 'string-secret'],
@@ -66,6 +65,32 @@ async function insertActivityLog(
   };
 }
 
+async function updateConversationRecord(
+  supabase: ReturnType<typeof getSupabase>,
+  sessionKey: string,
+  updates: Record<string, unknown>,
+) {
+  const currentUpdates = { ...updates };
+
+  for (let attempt = 0; attempt < 6; attempt += 1) {
+    const result = await supabase
+      .from('conversations')
+      .update(currentUpdates)
+      .eq('session_key', sessionKey);
+
+    if (!result.error) return result.error;
+    if (result.error.code !== 'PGRST204' && result.error.code !== '42703') return result.error;
+
+    const match = String(result.error.message || '').match(/'([^']+)'/);
+    const missingColumn = match?.[1];
+    if (!missingColumn) return result.error;
+
+    delete currentUpdates[missingColumn];
+  }
+
+  return { code: 'PGRST204', message: 'Failed to update conversations after fallback attempts' };
+}
+
 // Extract agent name from sessionKey (format: agent:mehzam:telegram:group:...)
 function extractAgentFromSessionKey(sessionKey: string): string | null {
   const parts = sessionKey.split(':');
@@ -75,10 +100,19 @@ function extractAgentFromSessionKey(sessionKey: string): string | null {
   return null;
 }
 
+type ConversationRole = 'user' | 'agent' | 'system';
+type ConversationChannel = 'telegram' | 'whatsapp' | 'web';
+type ConversationStatus = 'active' | 'archived';
+
 interface WebhookBody {
   agent_id?: string;
   event_type?: string;
   message?: string;
+  tool_name?: string;
+  session_id?: string;
+  success?: boolean;
+  error_message?: string;
+  started_at?: string;
   context?: {
     content?: string;
     from?: string;
@@ -88,6 +122,141 @@ interface WebhookBody {
   };
   metadata?: Record<string, unknown>;
   [key: string]: unknown;
+}
+
+interface ConversationMessage {
+  role: ConversationRole;
+  content: string;
+  timestamp: string;
+  metadata?: Record<string, unknown>;
+}
+
+function inferConversationRole(eventType?: string): ConversationRole | null {
+  switch (eventType) {
+    case 'message:received':
+      return 'user';
+    case 'message:sent':
+      return 'agent';
+    case 'session_start':
+    case 'session_end':
+    case 'session_error':
+      return 'system';
+    default:
+      return null;
+  }
+}
+
+function inferConversationStatus(eventType?: string): ConversationStatus {
+  if (eventType === 'session_end' || eventType === 'session_error') {
+    return 'archived';
+  }
+  return 'active';
+}
+
+function inferConversationChannel(sessionKey: string, context?: WebhookBody['context']): ConversationChannel {
+  const haystack = `${sessionKey} ${context?.channelId || ''}`.toLowerCase();
+  if (haystack.includes('whatsapp')) return 'whatsapp';
+  if (haystack.includes('web')) return 'web';
+  return 'telegram';
+}
+
+function resolveClientName(eventType: string | undefined, body: WebhookBody): string | null {
+  const contextMetadata = body.context?.metadata;
+  const metadata = body.metadata;
+
+  if (eventType === 'message:sent') {
+    const recipient = body.context?.to?.trim();
+    return recipient || null;
+  }
+
+  const senderName = contextMetadata?.senderName ?? metadata?.senderName;
+  if (typeof senderName === 'string' && senderName.trim()) {
+    return senderName.trim();
+  }
+
+  const sender = body.context?.from?.trim();
+  if (sender) return sender;
+
+  return null;
+}
+
+function resolveClientId(eventType: string | undefined, body: WebhookBody): string | null {
+  const contextMetadata = body.context?.metadata;
+  const metadata = body.metadata;
+
+  if (eventType === 'message:sent') {
+    const recipient = body.context?.to?.trim();
+    return recipient || null;
+  }
+
+  const senderId = contextMetadata?.senderId ?? metadata?.senderId;
+  if (typeof senderId === 'string' || typeof senderId === 'number') {
+    return String(senderId);
+  }
+
+  const sender = body.context?.from?.trim();
+  if (sender) return sender;
+
+  return null;
+}
+
+function buildConversationMessage(
+  body: WebhookBody,
+  agentName: string,
+  messageText: string,
+): ConversationMessage | null {
+  const role = inferConversationRole(body.event_type);
+  const content = messageText.trim();
+
+  if (!role || !content) return null;
+
+  return {
+    role,
+    content,
+    timestamp: new Date().toISOString(),
+    metadata: {
+      ...(body.metadata || {}),
+      ...(body.context?.metadata || {}),
+      agent_name: agentName,
+      event_type: body.event_type || 'session_event',
+    },
+  };
+}
+
+async function syncConversation(
+  supabase: ReturnType<typeof getSupabase>,
+  params: {
+    sessionKey: string;
+    agentUuid: string | null;
+    clientId: string | null;
+    clientName: string | null;
+    channel: ConversationChannel;
+    status: ConversationStatus;
+    message: ConversationMessage;
+  },
+) {
+  const { error: appendError } = await supabase.rpc('append_conversation_message', {
+    p_session_key: params.sessionKey,
+    p_message: params.message,
+    p_agent_id: params.agentUuid,
+    p_client_name: params.clientName || 'Client',
+  });
+
+  if (appendError) return appendError;
+
+  const updates: Record<string, unknown> = {
+    channel: params.channel,
+    status: params.status,
+    last_message_at: params.message.timestamp,
+    updated_at: params.message.timestamp,
+  };
+
+  if (params.agentUuid) updates.agent_id = params.agentUuid;
+  if (params.clientId) updates.client_id = params.clientId;
+  if (params.clientName) updates.client_name = params.clientName;
+
+  const updateError = await updateConversationRecord(supabase, params.sessionKey, updates);
+  return updateError;
 }
 
 export async function webhooksRouter(fastify: FastifyInstance) {
@@ -117,6 +286,11 @@ export async function webhooksRouter(fastify: FastifyInstance) {
 
     // Resolve agent name to UUID for database
     const agentUuid = await resolveAgentUuid(supabase, agentName);
+    const conversationMessage = buildConversationMessage(request.body, agentName, messageText);
+    const clientName = resolveClientName(event_type, request.body);
+    const clientId = resolveClientId(event_type, request.body);
+    const channel = inferConversationChannel(sessionKey, context);
+    const status = inferConversationStatus(event_type);
 
     // Update agent's last_seen_at
     if (agentUuid) {
@@ -124,6 +298,23 @@ export async function webhooksRouter(fastify: FastifyInstance) {
         .from('agents')
         .update({ last_seen_at: new Date().toISOString() })
         .eq('id', agentUuid);
+    }
+
+    if (sessionKey && conversationMessage) {
+      const conversationError = await syncConversation(supabase, {
+        sessionKey,
+        agentUuid,
+        clientId,
+        clientName,
+        channel,
+        status,
+        message: conversationMessage,
+      });
+
+      if (conversationError) {
+        console.error('[Webhook] Failed to sync conversation:', conversationError);
+        return reply.status(500).send({ error: 'Failed to sync conversation' });
+      }
     }
 
     // Log to activity_log
