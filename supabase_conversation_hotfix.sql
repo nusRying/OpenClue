@@ -45,6 +45,93 @@ update public.conversations
 set updated_at = coalesce(updated_at, last_message_at, created_at, now())
 where updated_at is null;
 
+update public.conversations
+set messages = jsonb_build_array(messages)
+where messages is not null
+  and jsonb_typeof(messages) = 'object';
+
+with ranked_rows as (
+  select
+    id,
+    session_key,
+    row_number() over (
+      partition by session_key
+      order by coalesce(updated_at, last_message_at, created_at, now()) desc, created_at desc, id desc
+    ) as row_rank
+  from public.conversations
+),
+aggregated_rows as (
+  select
+    c.session_key,
+    min(c.created_at) as merged_created_at,
+    max(c.last_message_at) as merged_last_message_at,
+    max(coalesce(c.updated_at, c.last_message_at, c.created_at, now())) as merged_updated_at,
+    coalesce(
+      (array_remove(array_agg(c.agent_id order by coalesce(c.updated_at, c.last_message_at, c.created_at, now()) desc), null))[1],
+      (array_agg(c.agent_id order by coalesce(c.updated_at, c.last_message_at, c.created_at, now()) desc))[1]
+    ) as merged_agent_id,
+    coalesce(
+      (array_remove(array_agg(c.client_id order by coalesce(c.updated_at, c.last_message_at, c.created_at, now()) desc), null))[1],
+      (array_agg(c.client_id order by coalesce(c.updated_at, c.last_message_at, c.created_at, now()) desc))[1]
+    ) as merged_client_id,
+    coalesce(
+      (array_remove(array_agg(c.client_name order by coalesce(c.updated_at, c.last_message_at, c.created_at, now()) desc), null))[1],
+      'Client'
+    ) as merged_client_name,
+    coalesce(
+      (array_remove(array_agg(c.channel order by coalesce(c.updated_at, c.last_message_at, c.created_at, now()) desc), null))[1],
+      'telegram'
+    ) as merged_channel,
+    coalesce(
+      (array_remove(array_agg(c.status order by coalesce(c.updated_at, c.last_message_at, c.created_at, now()) desc), null))[1],
+      'active'
+    ) as merged_status,
+    coalesce(
+      jsonb_agg(msg order by coalesce(c.updated_at, c.last_message_at, c.created_at, now()))
+        filter (where msg is not null),
+      '[]'::jsonb
+    ) as merged_messages
+  from public.conversations c
+  left join lateral jsonb_array_elements(
+    case
+      when c.messages is null then '[]'::jsonb
+      when jsonb_typeof(c.messages) = 'array' then c.messages
+      when jsonb_typeof(c.messages) = 'object' then jsonb_build_array(c.messages)
+      else '[]'::jsonb
+    end
+  ) msg on true
+  group by c.session_key
+)
+update public.conversations c
+set
+  agent_id = a.merged_agent_id,
+  client_id = a.merged_client_id,
+  client_name = a.merged_client_name,
+  channel = a.merged_channel,
+  status = a.merged_status,
+  messages = a.merged_messages,
+  last_message_at = a.merged_last_message_at,
+  created_at = a.merged_created_at,
+  updated_at = a.merged_updated_at
+from ranked_rows r
+join aggregated_rows a on a.session_key = r.session_key
+where c.id = r.id
+  and r.row_rank = 1;
+
+with ranked_rows as (
+  select
+    id,
+    row_number() over (
+      partition by session_key
+      order by coalesce(updated_at, last_message_at, created_at, now()) desc, created_at desc, id desc
+    ) as row_rank
+  from public.conversations
+)
+delete from public.conversations c
+using ranked_rows r
+where c.id = r.id
+  and r.row_rank > 1;
+
 -- Ensure session_key stays unique for upserts/appends.
 do $$
 begin

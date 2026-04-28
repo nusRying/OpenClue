@@ -7,19 +7,21 @@ function trimTrailingSlash(value: string): string {
 }
 
 const DEFAULT_BACKEND_URL = "http://mission-control-backend:3001";
-const LEGACY_N8N_URL = process.env.N8N_URL;
+const DEFAULT_N8N_WEBHOOK_PATH = "webhook/OpenCluePulse";
+const N8N_URL = process.env.N8N_URL || process.env.N8N_API_URL;
+const N8N_WEBHOOK_URL =
+  process.env.N8N_WEBHOOK_URL ||
+  process.env.OPENCLUE_PULSE_URL ||
+  (N8N_URL ? `${trimTrailingSlash(N8N_URL)}/${DEFAULT_N8N_WEBHOOK_PATH}` : undefined);
 const MISSION_CONTROL_WEBHOOK_URL =
   process.env.MISSION_CONTROL_WEBHOOK_URL ||
+  N8N_WEBHOOK_URL ||
   (process.env.MISSION_CONTROL_BACKEND_URL
     ? `${trimTrailingSlash(process.env.MISSION_CONTROL_BACKEND_URL)}/api/webhook/openclaw`
-    : undefined) ||
-  (LEGACY_N8N_URL
-    ? `${trimTrailingSlash(LEGACY_N8N_URL)}/mission-control-events`
     : `${DEFAULT_BACKEND_URL}/api/webhook/openclaw`);
 const USING_LEGACY_N8N_WEBHOOK =
   !process.env.MISSION_CONTROL_WEBHOOK_URL &&
-  !process.env.MISSION_CONTROL_BACKEND_URL &&
-  Boolean(LEGACY_N8N_URL);
+  Boolean(N8N_WEBHOOK_URL);
 
 const AGENT_TOKEN = process.env.MISSION_CONTROL_AGENT_TOKEN || process.env.AGENT_TOKEN_STRING || "string-secret";
 
@@ -90,7 +92,7 @@ interface WebhookPayload {
 async function sendToBackend(payload: WebhookPayload): Promise<void> {
   try {
     if (USING_LEGACY_N8N_WEBHOOK) {
-      console.warn(`[mission-control hook] Using legacy N8N webhook: ${MISSION_CONTROL_WEBHOOK_URL}`);
+      console.warn(`[mission-control hook] Forwarding session events to n8n OpenCluePulse webhook: ${MISSION_CONTROL_WEBHOOK_URL}`);
     }
 
     const response = await fetch(MISSION_CONTROL_WEBHOOK_URL, {
