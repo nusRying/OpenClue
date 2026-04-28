@@ -163,7 +163,7 @@ export function ConversationsPanel({ conversations, agents, selectedSessionKey, 
       </div>
 
       {/* Main: Chat View */}
-      <div style={{ display: 'flex', flexDirection: 'column', background: 'var(--bg-base)', position: 'relative' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', background: 'var(--bg-base)', position: 'relative', height: '100%', overflow: 'hidden', minHeight: 0 }}>
         {selectedConv ? (
           <>
             {/* Chat Header */}
@@ -190,7 +190,7 @@ export function ConversationsPanel({ conversations, agents, selectedSessionKey, 
             {/* Messages Area */}
             <div 
               ref={scrollRef}
-              style={{ flex: 1, overflowY: 'auto', padding: '2rem', display: 'flex', flexDirection: 'column', gap: '1.5rem', background: 'var(--bg-base)' }}
+              style={{ flex: 1, overflowY: 'auto', padding: '2rem', display: 'flex', flexDirection: 'column', gap: '1.5rem', background: 'var(--bg-base)', minHeight: 0 }}
             >
               {selectedConv.messages.map((msg, idx) => {
                 const isAgent = msg.role === 'agent'
