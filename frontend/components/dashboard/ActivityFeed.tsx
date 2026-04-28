@@ -2,6 +2,8 @@
 
 import { useState } from 'react'
 import type { ActivityEvent } from '@/types'
+import { RichText } from '@/components/ui/RichText'
+import { cleanMessageContent } from '@/lib/messageUtils'
 
 const EVENT_CONFIG: Record<string, { color: string; bgColor: string; icon: string; label?: string }> = {
   agent_status: { color: 'var(--info)', bgColor: 'var(--info-muted)', icon: '●', label: 'Status' },
@@ -29,22 +31,19 @@ function formatTime(ts: string): string {
 }
 
 function getDisplayMessage(event: ActivityEvent): { primary: string; secondary?: string } {
-  const msg = event.message || ''
-
-  if (msg.startsWith('Session event from ')) {
+  const rawMsg = event.message || ''
+  
+  if (rawMsg.startsWith('Session event from ')) {
     const meta = event.metadata as Record<string, any> | null
     const content = meta?.content || meta?.bodyForAgent || meta?.error
-    if (content) return { primary: String(content), secondary: 'Session event' }
-    return { primary: 'Session event', secondary: msg.replace('Session event from ', '') }
+    if (content) return { primary: cleanMessageContent(String(content)), secondary: 'Session event' }
+    return { primary: 'Session event', secondary: cleanMessageContent(rawMsg.replace('Session event from ', '')) }
   }
 
-  if (msg.startsWith('Session error:')) return { primary: msg, secondary: 'Session error' }
-  if (msg.startsWith('❌')) return { primary: msg, secondary: 'Tool failed' }
+  if (rawMsg.startsWith('Session error:')) return { primary: cleanMessageContent(rawMsg), secondary: 'Session error' }
+  if (rawMsg.startsWith('❌')) return { primary: cleanMessageContent(rawMsg), secondary: 'Tool failed' }
 
-  const MAX = 100
-  if (msg.length > MAX) return { primary: msg.slice(0, MAX) + '…', secondary: msg.slice(MAX) }
-
-  return { primary: msg, secondary: undefined }
+  return { primary: cleanMessageContent(rawMsg), secondary: undefined }
 }
 
 function EventRow({ event, compact }: { event: ActivityEvent; compact?: boolean }) {
@@ -61,7 +60,7 @@ function EventRow({ event, compact }: { event: ActivityEvent; compact?: boolean 
     <div
       style={rowStyle}
       className="activity-row"
-      onClick={hasSecondary && !expanded ? () => setExpanded(true) : undefined}
+      onClick={() => (hasSecondary || primary.length > 80) && setExpanded(!expanded)}
     >
       <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.625rem' }}>
         {/* Icon */}
@@ -78,19 +77,23 @@ function EventRow({ event, compact }: { event: ActivityEvent; compact?: boolean 
 
         {/* Content */}
         <div style={{ flex: 1, minWidth: 0 }}>
-          <p style={{
+          <div style={{
             fontSize: '0.8125rem', lineHeight: 1.5, margin: 0,
             color: !primary || primary === 'Session event'
               ? 'var(--text-tertiary)'
               : 'var(--text-secondary)',
             fontStyle: !primary || primary === 'Session event' ? 'italic' : 'normal',
-            cursor: hasSecondary && !expanded ? 'pointer' : 'default',
+            cursor: hasSecondary || primary.length > 80 ? 'pointer' : 'default',
           }}>
-            {primary || 'Empty event'}
-            {expanded && secondary && (
-              <span style={{ display: 'block', color: 'var(--text-tertiary)', marginTop: 2 }}>{secondary}</span>
+            {expanded ? (
+              <RichText text={primary} style={{ fontSize: '0.8125rem' }} />
+            ) : (
+              primary.length > 80 ? `${primary.slice(0, 80)}…` : primary
             )}
-          </p>
+            {expanded && secondary && (
+              <span style={{ display: 'block', color: 'var(--text-tertiary)', marginTop: 4, fontSize: '0.75rem', borderTop: '1px solid var(--border-subtle)', paddingTop: 4 }}>{secondary}</span>
+            )}
+          </div>
 
           {/* Meta */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginTop: 4 }}>
