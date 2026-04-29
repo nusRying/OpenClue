@@ -571,7 +571,7 @@
             },
             {
               "name": "p_message",
-              "value": "={{ [\n  {\n    role: $json.messages?.[0]?.role || 'system',\n    content: $json.messages?.[0]?.content || ''\n  }\n] }}"
+              "value": "={{ $('Edit Fields').item.json.message[0] }}"
             },
             {
               "name": "p_agent_id",

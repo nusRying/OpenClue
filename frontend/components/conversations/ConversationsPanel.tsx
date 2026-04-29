@@ -217,19 +217,33 @@ export function ConversationsPanel({ conversations, agents, selectedSessionKey, 
                         <span style={{ fontSize: '0.6875rem', fontWeight: 700, color: 'var(--text-tertiary)' }}>{isAgent ? 'MISSION AGENT' : 'EXTERNAL CLIENT'}</span>
                         <span style={{ fontSize: '0.625rem', color: 'var(--text-tertiary)', opacity: 0.6 }}>{formatDateTime(msg.timestamp, 'HH:mm:ss')}</span>
                      </div>
-                    <div style={{
-                      padding: '1rem 1.25rem', borderRadius: 'var(--radius-lg)',
-                      borderBottomLeftRadius: !isAgent ? 4 : 'var(--radius-lg)',
-                      borderBottomRightRadius: isAgent ? 4 : 'var(--radius-lg)',
+                     {cleanedContent && (
+                  <div 
+                    style={{ 
+                      maxWidth: '85%',
+                      alignSelf: isAgent ? 'flex-end' : 'flex-start',
+                      padding: '1.25rem 1.5rem',
+                      borderRadius: isAgent ? '1.5rem 1.5rem 0.25rem 1.5rem' : '1.5rem 1.5rem 1.5rem 0.25rem',
                       background: isAgent ? 'var(--accent-solid)' : 'var(--bg-surface)',
                       color: isAgent ? 'white' : 'var(--text-primary)',
-                      fontSize: '0.9375rem', lineHeight: 1.6,
-                      boxShadow: '0 4px 12px rgba(0,0,0,0.05)',
+                      boxShadow: '0 4px 15px rgba(0,0,0,0.1)',
+                      position: 'relative',
                       border: isAgent ? 'none' : '1px solid var(--border-subtle)',
-                      wordBreak: 'break-word'
+                    }}
+                  >
+                    <RichText text={cleanedContent} isAgent={isAgent} />
+                    
+                    <div style={{ 
+                      fontSize: '0.7rem', 
+                      opacity: 0.6, 
+                      marginTop: '0.5rem',
+                      textAlign: isAgent ? 'right' : 'left',
+                      fontWeight: 500
                     }}>
-                      <RichText text={cleanedContent} isAgent={isAgent} />
+                      {format(new Date(msg.timestamp), 'HH:mm')}
                     </div>
+                  </div>
+                )}
                   </div>
                 )
               })}

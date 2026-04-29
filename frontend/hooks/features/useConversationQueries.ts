@@ -22,23 +22,33 @@ function normalizeMessages(
       : []
 
   return source
-    .filter((message): message is ConversationMessage => Boolean(message && typeof message === 'object'))
+    .filter((message): message is ConversationMessage => {
+      if (!message || typeof message !== 'object') return false
+      // Skip empty objects or messages with no role and no content
+      if (Object.keys(message).length === 0) return false
+      if (!message.role && !message.content) return false
+      return true
+    })
     .map((message) => {
-      // If the message itself is stringified JSON, we'll handle it in cleanMessageContent later.
-      // But if it's a nested object with content inside, let's try to extract it now.
-      const content = typeof message.content === 'string'
-        ? message.content
-        : typeof message.content === 'object' && message.content !== null
-          ? JSON.stringify(message.content)
-          : JSON.stringify(message.content ?? '')
+      // Extract content safely
+      let content = ''
+      if (typeof message.content === 'string') {
+        content = message.content
+      } else if (message.content && typeof message.content === 'object') {
+        content = JSON.stringify(message.content)
+      } else {
+        content = String(message.content ?? '')
+      }
 
       return {
         ...message,
         role: message.role || 'system',
-        content,
+        content: content.trim(),
         timestamp: normalizeIsoDate(message.timestamp, fallbackTimestamp),
       }
     })
+    // Final pass to remove trimmed empty messages
+    .filter(msg => msg.content.length > 0 || msg.role !== 'system')
 }
 
 function dedupeMessages(messages: Conversation['messages']): Conversation['messages'] {
