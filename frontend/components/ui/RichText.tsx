@@ -49,12 +49,42 @@ export function RichText({ text, isAgent, style }: Props) {
     })
   }
 
+  let inCodeBlock = false
+  let codeBuffer: string[] = []
+
   lines.forEach((line, i) => {
     const trimmed = line.trim()
     
-    // Code block start/end
+    // Code block toggle
     if (trimmed.startsWith('```')) {
-      // Very basic code block handling
+      if (inCodeBlock) {
+        // End of code block
+        elements.push(
+          <pre key={`code-${i}`} style={{ 
+            background: isAgent ? 'rgba(0,0,0,0.2)' : 'var(--bg-elevated)',
+            padding: '1rem',
+            borderRadius: 'var(--radius-md)',
+            overflowX: 'auto',
+            margin: '0.5rem 0',
+            fontSize: '0.8125rem',
+            fontFamily: 'monospace',
+            border: '1px solid var(--border-subtle)',
+            color: isAgent ? 'white' : 'var(--text-primary)'
+          }}>
+            {codeBuffer.join('\n')}
+          </pre>
+        )
+        codeBuffer = []
+        inCodeBlock = false
+      } else {
+        // Start of code block
+        inCodeBlock = true
+      }
+      return
+    }
+
+    if (inCodeBlock) {
+      codeBuffer.push(line)
       return
     }
 
@@ -80,6 +110,24 @@ export function RichText({ text, isAgent, style }: Props) {
       elements.push(<p key={i} style={{ margin: '0.25rem 0', lineHeight: 1.6 }}>{parseInline(line)}</p>)
     }
   })
+
+  // Close unclosed code blocks
+  if (inCodeBlock && codeBuffer.length > 0) {
+    elements.push(
+      <pre key="code-final" style={{ 
+        background: isAgent ? 'rgba(0,0,0,0.2)' : 'var(--bg-elevated)',
+        padding: '1rem',
+        borderRadius: 'var(--radius-md)',
+        overflowX: 'auto',
+        margin: '0.5rem 0',
+        fontSize: '0.8125rem',
+        fontFamily: 'monospace',
+        border: '1px solid var(--border-subtle)'
+      }}>
+        {codeBuffer.join('\n')}
+      </pre>
+    )
+  }
 
   return <div className="rich-text-content" style={style}>{elements}</div>
 }

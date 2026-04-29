@@ -8,14 +8,23 @@ export function cleanMessageContent(content: string | undefined): string {
     if (!obj || typeof obj !== 'object') return ''
     
     // Direct match for common keys
-    const keys = ['message', 'content', 'text', 'msg', 'msg_content', 'response', 'output', 'body', 'data']
+    const keys = [
+      'message', 'content', 'text', 'msg', 'msg_content', 
+      'response', 'output', 'body', 'data', 'bodyForAgent',
+      'error', 'error_message', 'description', 'payload'
+    ]
     for (const key of keys) {
       if (typeof obj[key] === 'string' && obj[key].trim()) return obj[key]
     }
 
-    // Deep search (one level)
-    if (obj.data && typeof obj.data === 'object') return extractText(obj.data)
-    if (obj.message && typeof obj.message === 'object') return extractText(obj.message)
+    // Deep search (multiple levels)
+    const recursiveKeys = ['data', 'message', 'context', 'record', 'body']
+    for (const key of recursiveKeys) {
+      if (obj[key] && typeof obj[key] === 'object') {
+        const found = extractText(obj[key])
+        if (found) return found
+      }
+    }
 
     return ''
   }

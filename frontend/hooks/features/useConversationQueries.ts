@@ -16,19 +16,29 @@ function normalizeMessages(
   fallbackTimestamp: string,
 ): Conversation['messages'] {
   const source = Array.isArray(rawMessages)
-    ? rawMessages
+    ? rawMessages.flat(5) // Support deep nesting from inconsistent RPC/webhook payloads
     : rawMessages && typeof rawMessages === 'object'
       ? [rawMessages]
       : []
 
   return source
     .filter((message): message is ConversationMessage => Boolean(message && typeof message === 'object'))
-    .map((message) => ({
-      ...message,
-      role: message.role || 'system',
-      content: typeof message.content === 'string' ? message.content : JSON.stringify(message.content ?? ''),
-      timestamp: normalizeIsoDate(message.timestamp, fallbackTimestamp),
-    }))
+    .map((message) => {
+      // If the message itself is stringified JSON, we'll handle it in cleanMessageContent later.
+      // But if it's a nested object with content inside, let's try to extract it now.
+      const content = typeof message.content === 'string'
+        ? message.content
+        : typeof message.content === 'object' && message.content !== null
+          ? JSON.stringify(message.content)
+          : JSON.stringify(message.content ?? '')
+
+      return {
+        ...message,
+        role: message.role || 'system',
+        content,
+        timestamp: normalizeIsoDate(message.timestamp, fallbackTimestamp),
+      }
+    })
 }
 
 function dedupeMessages(messages: Conversation['messages']): Conversation['messages'] {
