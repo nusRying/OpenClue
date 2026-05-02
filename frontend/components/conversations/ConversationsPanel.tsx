@@ -62,34 +62,51 @@ export function ConversationsPanel({ conversations, agents, selectedSessionKey, 
   return (
     <div style={{ 
       display: 'grid', 
-      gridTemplateColumns: '350px 1fr', 
+      gridTemplateColumns: 'auto 1fr', 
       gap: '1px', 
-      height: 'calc(100vh - 10rem)', 
+      height: 'calc(100vh - 12rem)', 
       background: 'var(--border-subtle)', 
       borderRadius: 'var(--radius-xl)', 
       overflow: 'hidden', 
       border: '1px solid var(--border-subtle)',
-      boxShadow: '0 20px 50px rgba(0,0,0,0.3)'
+      boxShadow: '0 20px 50px rgba(0,0,0,0.5)'
     }}>
       <style dangerouslySetInnerHTML={{ __html: `
+        .sidebar-container {
+          width: 80px;
+          transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+          overflow: hidden;
+        }
+        .sidebar-container:hover {
+          width: 350px;
+        }
         .chat-scroll-container::-webkit-scrollbar {
-          width: 6px;
+          width: 8px;
         }
         .chat-scroll-container::-webkit-scrollbar-track {
-          background: transparent;
+          background: rgba(255,255,255,0.02);
         }
         .chat-scroll-container::-webkit-scrollbar-thumb {
-          background: var(--border-subtle);
+          background: var(--accent);
           border-radius: 10px;
+          border: 2px solid var(--bg-base);
+          box-shadow: 0 0 10px var(--accent-muted);
         }
         .chat-scroll-container::-webkit-scrollbar-thumb:hover {
-          background: var(--text-tertiary);
+          background: white;
+        }
+        .message-bubble {
+          transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .message-bubble:hover {
+          transform: translateY(-2px);
+          box-shadow: 0 8px 25px rgba(0,0,0,0.2);
         }
       `}} />
       
       {/* Sidebar: Sessions List */}
-      <div style={{ display: 'flex', flexDirection: 'column', background: 'var(--bg-surface)', borderRight: '1px solid var(--border-subtle)' }}>
-        <div style={{ padding: '1.5rem', borderBottom: '1px solid var(--border-subtle)', background: 'var(--bg-surface)' }}>
+      <div className="sidebar-container" style={{ display: 'flex', flexDirection: 'column', background: 'var(--bg-surface)', borderRight: '1px solid var(--border-subtle)', zIndex: 100 }}>
+        <div style={{ padding: '1.5rem', borderBottom: '1px solid var(--border-subtle)', background: 'var(--bg-surface)', minWidth: '350px' }}>
           <h2 style={{ fontSize: '1.25rem', fontWeight: 700, margin: 0, color: 'var(--text-primary)' }}>Terminal</h2>
           <p style={{ fontSize: '0.8125rem', color: 'var(--text-tertiary)', margin: '0.25rem 0 1rem 0' }}>All encrypted session streams</p>
           
@@ -155,7 +172,8 @@ export function ConversationsPanel({ conversations, agents, selectedSessionKey, 
                     width: '100%', padding: '1.25rem', textAlign: 'left',
                     background: isActive ? 'var(--accent-muted)' : 'transparent',
                     border: 'none', borderBottom: '1px solid var(--border-subtle)',
-                    cursor: 'pointer', transition: 'all 0.2s', position: 'relative'
+                    cursor: 'pointer', transition: 'all 0.2s', position: 'relative',
+                    minWidth: '350px'
                   }}
                 >
                   {isActive && <div style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: '4px', background: 'var(--accent)' }} />}
@@ -249,24 +267,25 @@ export function ConversationsPanel({ conversations, agents, selectedSessionKey, 
                     alignItems: isAgent ? 'flex-end' : 'flex-start',
                     maxWidth: '75%', alignSelf: isAgent ? 'flex-end' : 'flex-start'
                   }}>
-                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.375rem', flexDirection: isAgent ? 'row-reverse' : 'row' }}>
-                        <span style={{ fontSize: '0.6875rem', fontWeight: 700, color: 'var(--text-tertiary)' }}>{isAgent ? 'MISSION AGENT' : 'EXTERNAL CLIENT'}</span>
-                        <span style={{ fontSize: '0.625rem', color: 'var(--text-tertiary)', opacity: 0.6 }}>{formatDateTime(msg.timestamp, 'HH:mm:ss')}</span>
-                     </div>
-                     {cleanedContent && (
-                  <div 
-                    style={{ 
-                      maxWidth: '85%',
-                      alignSelf: isAgent ? 'flex-end' : 'flex-start',
-                      padding: '1.25rem 1.5rem',
-                      borderRadius: isAgent ? '1.5rem 1.5rem 0.25rem 1.5rem' : '1.5rem 1.5rem 1.5rem 0.25rem',
-                      background: isAgent ? 'var(--accent-solid)' : 'var(--bg-surface)',
-                      color: isAgent ? 'white' : 'var(--text-primary)',
-                      boxShadow: '0 4px 15px rgba(0,0,0,0.1)',
-                      position: 'relative',
-                      border: isAgent ? 'none' : '1px solid var(--border-subtle)',
-                    }}
-                  >
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.375rem', flexDirection: isAgent ? 'row-reverse' : 'row' }}>
+                         <span style={{ fontSize: '0.6875rem', fontWeight: 700, color: 'var(--text-tertiary)' }}>{isAgent ? 'MISSION AGENT' : 'EXTERNAL CLIENT'}</span>
+                         <span style={{ fontSize: '0.625rem', color: 'var(--text-tertiary)', opacity: 0.6 }}>{formatDateTime(msg.timestamp, 'HH:mm:ss')}</span>
+                      </div>
+                      {cleanedContent && (
+                   <div 
+                     className="message-bubble"
+                     style={{ 
+                       maxWidth: '85%',
+                       alignSelf: isAgent ? 'flex-end' : 'flex-start',
+                       padding: '1.25rem 1.5rem',
+                       borderRadius: isAgent ? '1.5rem 1.5rem 0.25rem 1.5rem' : '1.5rem 1.5rem 1.5rem 0.25rem',
+                       background: isAgent ? 'var(--accent-solid)' : 'var(--bg-surface)',
+                       color: isAgent ? 'white' : 'var(--text-primary)',
+                       boxShadow: '0 4px 15px rgba(0,0,0,0.1)',
+                       position: 'relative',
+                       border: isAgent ? 'none' : '1px solid var(--border-subtle)',
+                     }}
+                   >
                     <RichText text={cleanedContent} isAgent={isAgent} />
                     
                     <div style={{ 
@@ -283,7 +302,7 @@ export function ConversationsPanel({ conversations, agents, selectedSessionKey, 
                   </div>
                 )
               })}
-              <div ref={messagesEndRef} style={{ height: '100px', flexShrink: 0 }} />
+              <div ref={messagesEndRef} style={{ height: '150px', flexShrink: 0 }} />
             </div>
 
             {/* Footer / Status Area */}
