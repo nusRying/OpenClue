@@ -71,7 +71,7 @@ export function ConversationsPanel({ conversations, agents, selectedSessionKey, 
       border: '1px solid var(--border-subtle)',
       boxShadow: '0 20px 50px rgba(0,0,0,0.3)'
     }}>
-      <style jsx global>{`
+      <style dangerouslySetInnerHTML={{ __html: `
         .chat-scroll-container::-webkit-scrollbar {
           width: 6px;
         }
@@ -85,7 +85,7 @@ export function ConversationsPanel({ conversations, agents, selectedSessionKey, 
         .chat-scroll-container::-webkit-scrollbar-thumb:hover {
           background: var(--text-tertiary);
         }
-      `}</style>
+      `}} />
       
       {/* Sidebar: Sessions List */}
       <div style={{ display: 'flex', flexDirection: 'column', background: 'var(--bg-surface)', borderRight: '1px solid var(--border-subtle)' }}>
