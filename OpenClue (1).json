@@ -700,7 +700,7 @@
             {
               "id": "68a1c9e0-9533-4788-bee1-40a89a1139b0",
               "name": "message",
-              "value": "={{ [\n  {\n    \"role\": $json.messages.role,\n    \"content\": $json.messages.content\n  }\n] }}",
+              "value": "={{ $('Edit Fields').item.json.message }}",
               "type": "array"
             },
             {
