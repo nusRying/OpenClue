@@ -60,7 +60,32 @@ export function ConversationsPanel({ conversations, agents, selectedSessionKey, 
   }
 
   return (
-    <div style={{ display: 'grid', gridTemplateColumns: '350px 1fr', gap: '1px', height: 'calc(100vh - 12rem)', background: 'var(--border-subtle)', borderRadius: 'var(--radius-xl)', overflow: 'hidden', border: '1px solid var(--border-subtle)' }}>
+    <div style={{ 
+      display: 'grid', 
+      gridTemplateColumns: '350px 1fr', 
+      gap: '1px', 
+      height: 'calc(100vh - 10rem)', 
+      background: 'var(--border-subtle)', 
+      borderRadius: 'var(--radius-xl)', 
+      overflow: 'hidden', 
+      border: '1px solid var(--border-subtle)',
+      boxShadow: '0 20px 50px rgba(0,0,0,0.3)'
+    }}>
+      <style jsx global>{`
+        .chat-scroll-container::-webkit-scrollbar {
+          width: 6px;
+        }
+        .chat-scroll-container::-webkit-scrollbar-track {
+          background: transparent;
+        }
+        .chat-scroll-container::-webkit-scrollbar-thumb {
+          background: var(--border-subtle);
+          border-radius: 10px;
+        }
+        .chat-scroll-container::-webkit-scrollbar-thumb:hover {
+          background: var(--text-tertiary);
+        }
+      `}</style>
       
       {/* Sidebar: Sessions List */}
       <div style={{ display: 'flex', flexDirection: 'column', background: 'var(--bg-surface)', borderRight: '1px solid var(--border-subtle)' }}>
@@ -190,7 +215,18 @@ export function ConversationsPanel({ conversations, agents, selectedSessionKey, 
             {/* Messages Area */}
             <div 
               ref={scrollRef}
-              style={{ flex: 1, overflowY: 'auto', padding: '2rem', display: 'flex', flexDirection: 'column', gap: '1.5rem', background: 'var(--bg-base)', minHeight: 0 }}
+              className="chat-scroll-container"
+              style={{ 
+                flex: 1, 
+                overflowY: 'auto', 
+                padding: '2rem 2rem 0 2rem', 
+                display: 'flex', 
+                flexDirection: 'column', 
+                gap: '1.5rem', 
+                background: 'var(--bg-base)', 
+                minHeight: 0,
+                scrollBehavior: 'smooth'
+              }}
             >
               {selectedConv.messages.map((msg, idx) => {
                 const isAgent = msg.role === 'agent'
@@ -247,7 +283,7 @@ export function ConversationsPanel({ conversations, agents, selectedSessionKey, 
                   </div>
                 )
               })}
-              <div ref={messagesEndRef} style={{ height: '1px', marginTop: '-1px' }} />
+              <div ref={messagesEndRef} style={{ height: '100px', flexShrink: 0 }} />
             </div>
 
             {/* Footer / Status Area */}
