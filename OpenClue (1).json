@@ -357,6 +357,10 @@
               "value": "={{ $json.message }}"
             },
             {
+              "name": "sessionKey",
+              "value": "={{ $json.session_key }}"
+            },
+            {
               "name": "session_key",
               "value": "={{ $json.session_key }}"
             },
@@ -440,7 +444,7 @@
             {
               "id": "d8a0c918-ca4a-4ec0-a375-8a7080f665dd",
               "name": "sessionKey",
-              "value": "={{ $json.body.sessionKey }}",
+              "value": "={{ $json.body.sessionKey || $json.body.session_key }}",
               "type": "string"
             },
             {
