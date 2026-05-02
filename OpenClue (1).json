@@ -355,6 +355,18 @@
             {
               "name": "message",
               "value": "={{ $json.message }}"
+            },
+            {
+              "name": "sessionKey",
+              "value": "={{ $json.session_key }}"
+            },
+            {
+              "name": "session_key",
+              "value": "={{ $json.session_key }}"
+            },
+            {
+              "name": "project_id",
+              "value": "={{ $json.project_id }}"
             }
           ]
         },
